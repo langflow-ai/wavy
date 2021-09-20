@@ -1,2 +1,2 @@
 # timeLab
-Time Series done the right way
+Time Series Done The Right Way
