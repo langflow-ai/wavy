@@ -16,6 +16,41 @@ pd.options.plotting.backend = "plotly"
 cmap1 = px.colors.qualitative.Plotly
 cmap2 = cmap1[::-1]
 
+def ffill(arr, axis):
+    arr = arr.astype(float)
+    idx_shape = tuple([slice(None)] + [np.newaxis] * (len(arr.shape) - axis - 1))
+    idx = np.where(~np.isnan(arr), np.arange(arr.shape[axis])[idx_shape], 0)
+    np.maximum.accumulate(idx, axis=axis, out=idx)
+    slc = [
+        np.arange(k)[
+            tuple(
+                slice(None) if dim == i else np.newaxis
+                for dim in range(len(arr.shape))
+            )
+        ]
+        for i, k in enumerate(arr.shape)
+    ]
+
+    slc[axis] = idx
+    return arr[tuple(slc)]
+
+def bfill(arr, axis):
+    arr = arr.astype(float)
+    idx_shape = tuple([slice(None)] + [np.newaxis] * (len(arr.shape) - axis - 1))
+    idx = np.where(~np.isnan(arr), np.arange(arr.shape[axis])[idx_shape], arr.shape[axis] - 1)
+    slc = [
+        np.arange(k)[
+            tuple(
+                slice(None) if dim == i else np.newaxis
+                for dim in range(len(arr.shape))
+            )
+        ]
+        for i, k in enumerate(arr.shape)
+    ]
+
+    slc[axis] = idx
+    return arr[tuple(slc)]
+
 
 def get_null_indexes(x):
     s = np.sum(x, axis=3)

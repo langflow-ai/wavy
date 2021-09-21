@@ -9,7 +9,7 @@ from tqdm import tqdm
 from .frequency import check_frequency, infer_frequency
 from .multicol import MultiColumn, rebuild_from_index
 from .pair import TimePair, from_frames
-from .utils import all_equal, smash_array, get_null_indexes
+from .utils import all_equal, bfill, ffill, smash_array, get_null_indexes
 
 
 def from_xy_data(xdata, ydata, lookback, horizon, gap=0):
@@ -345,7 +345,6 @@ class TimePanel:
 
         self.set_train_val_test_sets()
 
-
     def _findna(self):
         X_indexes = get_null_indexes(self.X)
         y_indexes = get_null_indexes(self.y)
@@ -361,7 +360,7 @@ class TimePanel:
 
         Returns:
             [type]: [description]
-        """""
+        """ ""
 
         null_indexes = self._findna()
         new_pairs = [i for idx, i in enumerate(self.pairs) if idx not in null_indexes]
@@ -413,7 +412,7 @@ class TimePanel:
             Part of the total number of TimePanels according to the percentage provided.
         """
         if 0 < test_size < 1:
-            train_size = int(len(self) * (1-test_size))
+            train_size = int(len(self) * (1 - test_size))
         else:
             train_size = len(len(panel) - test_size)
 
@@ -655,6 +654,45 @@ class TimePanel:
             func(pd.DataFrame(x[unit, :, :], columns=ychannels)) for unit in units
         ]
         return np.array(result)
+
+    def fillna(self, value=None, method=None):
+        """ Fills the numpy array with parameter value
+        or using one of the methods 'ffill' or 'bfill'.
+        
+        Parameters
+        ----------
+        value : int
+            Value to replace NaN values
+        method : str
+            One of 'ffill' or 'bfill'.
+            
+        Raises
+        ------
+        ValueError
+            Parameter method must be 'ffill' or 'bfill' but you passed '{method}'.
+            
+        ValueError
+            Parameter value must be  int or float.
+
+        Returns
+        -------
+        TimePanel
+            New TimePanel after filling NaN values.
+        """
+        if method not in ['ffill', 'bfill']:
+            raise ValueError(f"Parameter method must be 'ffill' or 'bfill' but you passed '{method}'.")
+        if not isinstance(value, int) or not isinstance(value, float):
+            raise ValueError("Parameter value must be  int or float.")
+        
+        if value is not None:
+            func = lambda x, axis=None: np.nan_to_num(x.astype(float), nan=value)
+
+        elif method == "ffill":
+            func = ffill
+        elif method == "bfill":
+            func = bfill
+        a = np.array([np.nan, np.nan, 1.0])
+        return self.xapply(func)
 
     @staticmethod
     def get_all_unique(array):
@@ -903,7 +941,8 @@ class TimePanel:
         """
 
         pairs = [
-            pair.filter(xunits, xchannels, yunits, ychannels) for pair in tqdm(self.pairs)
+            pair.filter(xunits, xchannels, yunits, ychannels)
+            for pair in tqdm(self.pairs)
         ]
         return TimePanel(pairs)
 
@@ -1054,11 +1093,10 @@ class TimePanel:
             DataFrame: DataFrame where each "xframe" is represented in a row.
         """
 
-        if self.lookback == 1: # avoid indexing to 0
+        if self.lookback == 1:  # avoid indexing to 0
             index = self.xindex
         else:
-            index = self.xindex[:-self.lookback + 1]
-
+            index = self.xindex[: -self.lookback + 1]
 
         xflat = np.array([i.flatten() for i in self.X])
         xflat = pd.DataFrame(xflat, index=index)
