@@ -349,7 +349,7 @@ class TimePanel:
     def _findna(self):
         X_indexes = get_null_indexes(self.X)
         y_indexes = get_null_indexes(self.y)
-        return list(set(X_indexes + y_indexes))
+        return set(X_indexes + y_indexes)
 
     def dropna(self):
         # ? Maybe change name
