@@ -5,7 +5,6 @@ from pandas import MultiIndex
 
 from .utils import smash_array
 
-
 def rebuild_from_index(
     array, index, units, channels, to_datetime=True, smash_dims=False
 ):
@@ -70,10 +69,11 @@ def unsmash(df, sep="_", level_name="main"):
 
 class MultiColumn(pd.DataFrame):
     def __init__(self, df, sep=None, *args, **kwargs):
-        if df.columns.nlevels == 1:
-            df = unsmash(df, sep=sep)
-
         super().__init__(df, *args, **kwargs)
+
+    @property
+    def _constructor(self):
+        return MultiColumn
 
     @property
     def units(self):
@@ -87,20 +87,20 @@ class MultiColumn(pd.DataFrame):
         channels = [c[1] for c in self.columns]
         return list(OrderedDict.fromkeys(channels))
 
-    def select_units(self, units):
+    def filter_units(self, units):
         if not units:
             return self
         selection = self.loc[:, (units, slice(None))]
         return rebuild(selection)
 
-    def select_channels(self, channels):
+    def filter_channels(self, channels):
         units = self.units
         if not channels:
             return self
         selection = self.loc[:, (slice(None), channels)][units]
         return rebuild(selection)
 
-    def sel(self, units, channels=None):
+    def filter(self, units=None, channels=None):
 
         if type(units) == str:
             units = [units]
@@ -117,21 +117,21 @@ class MultiColumn(pd.DataFrame):
                 raise ValueError(
                     f"One of the channels is not in columns.\nChannels:{channels}\nColumns:{list(self.columns.levels[1])}"
                 )
-        selection = self.select_units(units)
-        selection = self.select_channels(channels)
+        selection = self.filter_units(units)
+        selection = selection.filter_channels(channels)
         return selection
 
     def remove_channels(self, channels):
         if isinstance(channels, str):
             channels = [channels]
         new_channels = [c for c in self.channels if c not in channels]
-        return self.select_channels(new_channels)
+        return self.filter_channels(new_channels)
 
     def remove_units(self, units):
         if isinstance(units, str):
             units = [units]
         new_units = [u for u in self.units if u not in units]
-        return self.select_units(new_units)
+        return self.filter_units(new_units)
 
     def inspect_units(self):
         # Better if prints number of channels per unit
@@ -168,7 +168,7 @@ class MultiColumn(pd.DataFrame):
         new.loc[:, (slice(None), channels)] = values
         return MultiColumn(new)
 
-    def add_level(self, level_name="UNIT"):
+    def add_level(self, level_name="unit_0"):
         channels = list(self.columns)
         units = [level_name] * len(channels)
         tuples = list(zip(units, channels))
@@ -204,3 +204,28 @@ class MultiColumn(pd.DataFrame):
 
     def copy(self):
         return MultiColumn(self.pandas())
+
+
+# def multi_plot(mdf, unit, channels=None, return_traces=False, prefix='', dash='solid', cmap=cmap1, mode="lines"):
+#     mdf = mdf.filter(unit, channels)[unit]
+#     return line_plot(mdf, return_traces, prefix, dash, cmap, mode)
+
+
+
+
+        # def as_multicol(function):
+        #     def wrapper(x):
+        #         if isinstance(function(x), pd.DataFrame):
+        #             return MultiColumn(function(x, *args, **kwargs))
+        #         else:
+        #             return function(x, *args, **kwargs)
+        #     return wrapper
+
+        # METHODS = [func for func in dir(self) if callable(getattr(self, func)) and not func.startswith("_")]
+
+        # for name in METHODS:
+        #     try:
+        #         function = getattr(self, name)
+        #         setattr(self, name, as_multicol(function))
+        #     except:
+        #         print(name)

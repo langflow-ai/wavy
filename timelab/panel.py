@@ -9,7 +9,7 @@ from tqdm import tqdm
 from .frequency import check_frequency, infer_frequency
 from .multicol import MultiColumn, rebuild_from_index
 from .pair import TimePair, from_frames
-from .utils import all_equal, smash_array
+from .utils import all_equal, smash_array, get_null_indexes
 
 
 def from_xy_data(xdata, ydata, lookback, horizon, gap=0):
@@ -49,7 +49,7 @@ def from_xy_data(xdata, ydata, lookback, horizon, gap=0):
         pass
 
     if xdata.isnull().values.any() or ydata.isnull().values.any():
-        warnings.warn("Data frame contains null values.")
+        warnings.warn("Data contains null values.")
 
     x_timesteps = len(xdata.index)
 
@@ -241,8 +241,8 @@ def from_data(
         data = data.resample(freq).ffill().dropna()
 
     data = MultiColumn(data, sep=None)
-    xdata = data.sel(xunits, xchannels)
-    ydata = data.sel(yunits, ychannels)
+    xdata = data.filter(xunits, xchannels)
+    ydata = data.filter(yunits, ychannels)
     return from_xy_data(xdata, ydata, lookback, horizon, gap)
 
 
@@ -344,6 +344,29 @@ class TimePanel:
         self.assert_all()
 
         self.set_train_val_test_sets()
+
+
+    def _findna(self):
+        X_indexes = get_null_indexes(self.X)
+        y_indexes = get_null_indexes(self.y)
+        return list(set(X_indexes + y_indexes))
+
+    def dropna(self):
+        # ? Maybe change name
+
+        """ Remove pairs with nan values
+
+        Args:
+            panel ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """""
+
+        null_indexes = self._findna()
+        new_pairs = [i for idx, i in enumerate(self.pairs) if idx not in null_indexes]
+        print(len(self.pairs) - len(new_pairs))
+        return TimePanel(new_pairs)
 
     def find_freq(self):
         """
@@ -857,7 +880,7 @@ class TimePanel:
         """
         return self[-n:]
 
-    def sel(self, xunits=None, xchannels=None, yunits=None, ychannels=None):
+    def filter(self, xunits=None, xchannels=None, yunits=None, ychannels=None):
         """
         Selects only the given channels and units and returns another TimePanel.
 
@@ -880,7 +903,7 @@ class TimePanel:
         """
 
         pairs = [
-            pair.sel(xunits, xchannels, yunits, ychannels) for pair in tqdm(self.pairs)
+            pair.filter(xunits, xchannels, yunits, ychannels) for pair in tqdm(self.pairs)
         ]
         return TimePanel(pairs)
 

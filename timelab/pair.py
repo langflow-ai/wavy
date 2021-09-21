@@ -63,8 +63,8 @@ def from_dataframe(
     # Add start index as parameter
     xframe = dataframe.iloc[:lookback, :]
     yframe = dataframe.iloc[lookback + gap : lookback + gap + horizon, :]
-    xframe = MultiColumn(xframe).sel(xunits, xchannels)
-    yframe = MultiColumn(yframe).sel(xunits, xchannels)
+    xframe = MultiColumn(xframe).filter(xunits, xchannels)
+    yframe = MultiColumn(yframe).filter(xunits, xchannels)
 
     return from_frames(xframe, yframe, gap)
 
@@ -362,7 +362,7 @@ class TimePair:
             self.gap,
         )
 
-    def sel(self, xunits=None, xchannels=None, yunits=None, ychannels=None):
+    def filter(self, xunits=None, xchannels=None, yunits=None, ychannels=None):
         """
         Returns the pair with only the select units and channels
 
