@@ -85,11 +85,11 @@ def from_xy_data(xdata, ydata, lookback, horizon, gap=0):
     indexes = tqdm(indexes)
     pairs = [
         TimePair(
-            X[:, i - lookback : i, :],
-            y[:, i + gap : i + gap + horizon, :],
+            X[:, i - lookback: i, :],
+            y[:, i + gap: i + gap + horizon, :],
             indexes=(
-                x_data_indexes[i - lookback : i],
-                y_data_indexes[i + gap : i + gap + horizon],
+                x_data_indexes[i - lookback: i],
+                y_data_indexes[i + gap: i + gap + horizon],
             ),
             xunits=xunits,
             yunits=yunits,
@@ -169,11 +169,12 @@ def _from_xypred_data(xdata, ydata, y_pred, lookback, horizon, gap=0):
     indexes = np.arange(lookback, end)
     pairs = [
         TimePair(
-            X[:, i - lookback : i, :],
-            np.array([y_pred[unit][unit, :, :] for unit, _ in enumerate(yunits)]),
+            X[:, i - lookback: i, :],
+            np.array([y_pred[unit][unit, :, :]
+                     for unit, _ in enumerate(yunits)]),
             indexes=(
-                x_data_indexes[i - lookback : i],
-                y_data_indexes[i + gap : i + gap + horizon],
+                x_data_indexes[i - lookback: i],
+                y_data_indexes[i + gap: i + gap + horizon],
             ),
             xunits=xunits,
             yunits=yunits,
@@ -300,7 +301,7 @@ def from_arrays(
     """
 
     xindex = index[: -horizon - gap]
-    yindex = index[lookback + gap :]
+    yindex = index[lookback + gap:]
     xdata = TimePanel.make_xdata(X, index, xindex, xunits, xchannels)
     ydata = TimePanel.make_ydata(y, index, yindex, yunits, ychannels)
     return from_xy_data(xdata, ydata, lookback, horizon, gap)
@@ -351,8 +352,7 @@ class TimePanel:
         return set(X_indexes + y_indexes)
 
     def dropna(self):
-        # ? Maybe change name
-
+        # TODO: Make explicit for y and X
         """ Remove pairs with nan values
 
         Args:
@@ -363,7 +363,8 @@ class TimePanel:
         """ ""
 
         null_indexes = self._findna()
-        new_pairs = [i for idx, i in enumerate(self.pairs) if idx not in null_indexes]
+        new_pairs = [i for idx, i in enumerate(
+            self.pairs) if idx not in null_indexes]
         print(len(self.pairs) - len(new_pairs))
         return TimePanel(new_pairs)
 
@@ -656,21 +657,22 @@ class TimePanel:
         return np.array(result)
 
     def fillna(self, value=None, method=None):
+         # TODO: Make explicit for y and X
         """ Fills the numpy array with parameter value
         or using one of the methods 'ffill' or 'bfill'.
-        
+
         Parameters
         ----------
         value : int
             Value to replace NaN values
         method : str
             One of 'ffill' or 'bfill'.
-            
+
         Raises
         ------
         ValueError
             Parameter method must be 'ffill' or 'bfill' but you passed '{method}'.
-            
+
         ValueError
             Parameter value must be  int or float.
 
@@ -679,13 +681,17 @@ class TimePanel:
         TimePanel
             New TimePanel after filling NaN values.
         """
-        if method not in ['ffill', 'bfill']:
-            raise ValueError(f"Parameter method must be 'ffill' or 'bfill' but you passed '{method}'.")
-        if not isinstance(value, int) or not isinstance(value, float):
-            raise ValueError("Parameter value must be  int or float.")
-        
+
+        # TODO: It should be possible to fillna without bfill or ffill, just zeros.
+        # if method not in ['ffill', 'bfill']:
+        #     raise ValueError(
+        #         f"Parameter method must be 'ffill' or 'bfill' but you passed '{method}'.")
+        # if not isinstance(value, int) or not isinstance(value, float):
+        #     raise ValueError("Parameter value must be  int or float.")
+
         if value is not None:
-            func = lambda x, axis=None: np.nan_to_num(x.astype(float), nan=value)
+            def func(x, axis=None): return np.nan_to_num(
+                x.astype(float), nan=value)
 
         elif method == "ffill":
             func = ffill
@@ -705,9 +711,11 @@ class TimePanel:
     @staticmethod
     def make_xdata(X, index, xindex, xunits, xchannels):
         all_X = TimePanel.get_all_unique(X)
-        xdata_ = rebuild_from_index(all_X, xindex, xunits, xchannels, to_datetime=True)
+        xdata_ = rebuild_from_index(
+            all_X, xindex, xunits, xchannels, to_datetime=True)
         xdata = pd.DataFrame(
-            index=index, columns=pd.MultiIndex.from_product([xunits, xchannels])
+            index=index, columns=pd.MultiIndex.from_product(
+                [xunits, xchannels])
         )
         xdata.loc[xindex, (xunits, xchannels)] = xdata_.values
         return MultiColumn(xdata)
@@ -715,9 +723,11 @@ class TimePanel:
     @staticmethod
     def make_ydata(y, index, yindex, yunits, ychannels):
         all_y = TimePanel.get_all_unique(y)
-        ydata_ = rebuild_from_index(all_y, yindex, yunits, ychannels, to_datetime=True)
+        ydata_ = rebuild_from_index(
+            all_y, yindex, yunits, ychannels, to_datetime=True)
         ydata = pd.DataFrame(
-            index=index, columns=pd.MultiIndex.from_product([yunits, ychannels])
+            index=index, columns=pd.MultiIndex.from_product(
+                [yunits, ychannels])
         )
         ydata.loc[yindex, (yunits, ychannels)] = ydata_.values
         return MultiColumn(ydata)
@@ -821,7 +831,7 @@ class TimePanel:
             TimePanel with the pairs of the validation set.
 
         """
-        return self[self.train_size : int(self.train_size + self.val_size)]
+        return self[self.train_size: int(self.train_size + self.val_size)]
 
     @property
     def test(self):
@@ -835,7 +845,7 @@ class TimePanel:
             TimePanel with the pairs of the testing set.
 
         """
-        return self[self.train_size + self.val_size :]
+        return self[self.train_size + self.val_size:]
 
     def view(self):
         """
@@ -972,7 +982,8 @@ class TimePanel:
                         X=self.pairs[i]
                         .X[index_unit, :, :]
                         .reshape(1, self.lookback, -1),
-                        y=self.pairs[i].y[index_unit, :, :].reshape(1, self.horizon, -1)
+                        y=self.pairs[i].y[index_unit, :, :].reshape(
+                            1, self.horizon, -1)
                         if split_yunits
                         else self.pairs[i].y,
                         indexes=self.pairs[i].indexes,
@@ -1216,9 +1227,9 @@ class TimePanel:
 
             elif isinstance(key.start, int) or isinstance(key.stop, int):
                 if key.start and key.stop:
-                    selection = selection[key.start : key.stop]
+                    selection = selection[key.start: key.stop]
                 elif key.start:
-                    selection = selection[key.start :]
+                    selection = selection[key.start:]
                 elif key.stop:
                     selection = selection[: key.stop]
 
