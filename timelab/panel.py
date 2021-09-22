@@ -396,7 +396,7 @@ class TimePanel:
         return set(X_indexes + y_indexes)
 
     def dropna(self):
-        # TODO: Make explicit for y and X
+        # TODO: Separate dropna for y and X
         """ Remove pairs with nan values
 
         Args:
