@@ -121,6 +121,12 @@ class MultiColumn(pd.DataFrame):
         selection = selection.filter_channels(channels)
         return selection
 
+    def countna(self):
+        s = pd.Series(dtype=int)
+        for unit in self.units:
+            s[unit] = len(self[unit]) - len(self[unit].dropna())
+        return s
+
     def remove_channels(self, channels):
         if isinstance(channels, str):
             channels = [channels]
