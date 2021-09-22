@@ -679,19 +679,23 @@ class TimePanel:
         TimePanel
             New TimePanel after filling NaN values.
         """
-        if method not in ['ffill', 'bfill']:
-            raise ValueError(f"Parameter method must be 'ffill' or 'bfill' but you passed '{method}'.")
-        if not isinstance(value, int) or not isinstance(value, float):
-            raise ValueError("Parameter value must be  int or float.")
-        
+        if method not in ["ffill", "bfill", None]:
+            raise ValueError(
+                f"Parameter method must be 'ffill' or 'bfill' but you passed '{method}'."
+            )
+
         if value is not None:
-            func = lambda x, axis=None: np.nan_to_num(x.astype(float), nan=value)
+            if isinstance(value, (int, float)):
+                func = lambda x, axis=None: np.nan_to_num(x.astype(float), nan=value)
+            else:
+                raise ValueError(
+                    f"Parameter value must be int or float. It is {type(value)}."
+                )
 
         elif method == "ffill":
             func = ffill
         elif method == "bfill":
             func = bfill
-        a = np.array([np.nan, np.nan, 1.0])
         return self.xapply(func)
 
     @staticmethod
