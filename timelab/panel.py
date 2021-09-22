@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from .frequency import check_frequency, infer_frequency
 from .multicol import MultiColumn, rebuild_from_index
-from .pair import TimePair, from_frames
+from .pair import TimePair
 from .utils import all_equal, bfill, ffill, smash_array, get_null_indexes
 
 
@@ -345,14 +345,58 @@ class TimePanel:
 
         self.set_train_val_test_sets()
 
+    def _xshape(self):
+        size = self.X.shape[0]
+        units = self.X.shape[1]
+        timesteps = self.X.shape[2]
+        channels = self.X.shape[3]
+        s = pd.DataFrame(
+            {
+                "size": size,
+                "units": units,
+                "timesteps": timesteps,
+                "channels": channels,
+            },
+            index=["X"],
+        )
+        return s
+
+    def _yshape(self):
+        size = self.y.shape[0]
+        units = self.y.shape[1]
+        timesteps = self.y.shape[2]
+        channels = self.y.shape[3]
+        s = pd.DataFrame(
+            {
+                "size": size,
+                "units": units,
+                "timesteps": timesteps,
+                "channels": channels,
+            },
+            index=["y"],
+        )
+        s.style.hide_index()
+        return s
+
+    @property
+    def xshape(self):
+        return self._xshape().style.hide_index()
+
+    @property
+    def yshape(self):
+        return self._yshape().style.hide_index()
+
+    @property
+    def shape(self):
+        return self._xshape().append(self._yshape())
+
     def _findna(self):
         X_indexes = get_null_indexes(self.X)
         y_indexes = get_null_indexes(self.y)
         return set(X_indexes + y_indexes)
 
     def dropna(self):
-        # ? Maybe change name
-
+        # TODO: Make explicit for y and X
         """ Remove pairs with nan values
 
         Args:
@@ -656,21 +700,22 @@ class TimePanel:
         return np.array(result)
 
     def fillna(self, value=None, method=None):
+        # TODO: Make explicit for y and X
         """ Fills the numpy array with parameter value
         or using one of the methods 'ffill' or 'bfill'.
-        
+
         Parameters
         ----------
         value : int
             Value to replace NaN values
         method : str
             One of 'ffill' or 'bfill'.
-            
+
         Raises
         ------
         ValueError
             Parameter method must be 'ffill' or 'bfill' but you passed '{method}'.
-            
+
         ValueError
             Parameter value must be  int or float.
 
