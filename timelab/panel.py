@@ -85,11 +85,11 @@ def from_xy_data(xdata, ydata, lookback, horizon, gap=0):
     indexes = tqdm(indexes)
     pairs = [
         TimePair(
-            X[:, i - lookback : i, :],
-            y[:, i + gap : i + gap + horizon, :],
+            X[:, i - lookback: i, :],
+            y[:, i + gap: i + gap + horizon, :],
             indexes=(
-                x_data_indexes[i - lookback : i],
-                y_data_indexes[i + gap : i + gap + horizon],
+                x_data_indexes[i - lookback: i],
+                y_data_indexes[i + gap: i + gap + horizon],
             ),
             xunits=xunits,
             yunits=yunits,
@@ -169,11 +169,12 @@ def _from_xypred_data(xdata, ydata, y_pred, lookback, horizon, gap=0):
     indexes = np.arange(lookback, end)
     pairs = [
         TimePair(
-            X[:, i - lookback : i, :],
-            np.array([y_pred[unit][unit, :, :] for unit, _ in enumerate(yunits)]),
+            X[:, i - lookback: i, :],
+            np.array([y_pred[unit][unit, :, :]
+                     for unit, _ in enumerate(yunits)]),
             indexes=(
-                x_data_indexes[i - lookback : i],
-                y_data_indexes[i + gap : i + gap + horizon],
+                x_data_indexes[i - lookback: i],
+                y_data_indexes[i + gap: i + gap + horizon],
             ),
             xunits=xunits,
             yunits=yunits,
@@ -300,7 +301,7 @@ def from_arrays(
     """
 
     xindex = index[: -horizon - gap]
-    yindex = index[lookback + gap :]
+    yindex = index[lookback + gap:]
     xdata = TimePanel.make_xdata(X, index, xindex, xunits, xchannels)
     ydata = TimePanel.make_ydata(y, index, yindex, yunits, ychannels)
     return from_xy_data(xdata, ydata, lookback, horizon, gap)
@@ -343,52 +344,23 @@ class TimePanel:
         self.set_arrays()
         self.assert_all()
 
-        self.set_train_val_test_sets()
+        self.train_size, self.val_size, self.test_size = None, None, None
 
-    def _xshape(self):
-        size = self.X.shape[0]
-        units = self.X.shape[1]
-        timesteps = self.X.shape[2]
-        channels = self.X.shape[3]
-        s = pd.DataFrame(
-            {
-                "size": size,
-                "units": units,
-                "timesteps": timesteps,
-                "channels": channels,
-            },
-            index=["X"],
-        )
-        return s
-
-    def _yshape(self):
-        size = self.y.shape[0]
-        units = self.y.shape[1]
-        timesteps = self.y.shape[2]
-        channels = self.y.shape[3]
-        s = pd.DataFrame(
-            {
-                "size": size,
-                "units": units,
-                "timesteps": timesteps,
-                "channels": channels,
-            },
-            index=["y"],
-        )
-        s.style.hide_index()
-        return s
+    @property
+    def dims(self):
+        return ["size", "units", "timesteps", "channels"]
 
     @property
     def xshape(self):
-        return self._xshape().style.hide_index()
+        return pd.Series(self.X.shape, index=self.dims)
 
     @property
     def yshape(self):
-        return self._yshape().style.hide_index()
+        return pd.Series(self.y.shape, index=self.dims)
 
     @property
     def shape(self):
-        return self._xshape().append(self._yshape())
+        return pd.DataFrame([self.xshape, self.yshape], index=['X', 'y'])
 
     def _findna(self):
         X_indexes = get_null_indexes(self.X)
@@ -407,7 +379,8 @@ class TimePanel:
         """ ""
 
         null_indexes = self._findna()
-        new_pairs = [i for idx, i in enumerate(self.pairs) if idx not in null_indexes]
+        new_pairs = [i for idx, i in enumerate(
+            self.pairs) if idx not in null_indexes]
         print(len(self.pairs) - len(new_pairs))
         return TimePanel(new_pairs)
 
@@ -465,7 +438,7 @@ class TimePanel:
 
         return train, test
 
-    def set_train_val_test_sets(self, train_size=0.7, val_size=0.2, test_size=0.1):
+    def set_training_split(self, val_size=0.2, test_size=0.1):
         """
         Time series split into training, validation, and test sets, avoiding data leakage.
         Splits the panel in training, validation, and test panels, accessed with the properties
@@ -473,11 +446,9 @@ class TimePanel:
 
         Parameters
         ----------
-        train_rate : float
-            Percentage of data used for the training set.
-        val_rate : float
+        val_size : float
             Percentage of data used for the validation set.
-        test_rate : float
+        test_size : float
             Percentage of data used for the test set.
 
         Returns
@@ -489,18 +460,18 @@ class TimePanel:
 
         Examples
         -------
-        >>> panel.set_train_val_test_sets(0.7, 0.2, 0.1)
+        >>> panel.set_training_split(0.2, 0.1)
         >>> train = panel.train
         >>> val = panel.val
         >>> test = panel.test
         """
 
-        if train_size + val_size + test_size > 1:
-            raise ValueError("The sum of the sizes must equals one")
+        train_size = len(self) - int(len(self) * test_size)
 
-        self.train_size = int(len(self) * train_size)
-        self.val_size = int(len(self) * val_size)
         self.test_size = int(len(self) * test_size)
+        self.val_size = int(train_size * val_size)
+        self.train_size = train_size - self.val_size
+        assert self.train_size + self.val_size + self.test_size == len(self)
 
     def from_predictions(self, model):
         """
@@ -731,7 +702,8 @@ class TimePanel:
 
         if value is not None:
             if isinstance(value, (int, float)):
-                func = lambda x, axis=None: np.nan_to_num(x.astype(float), nan=value)
+                def func(x, axis=None): return np.nan_to_num(
+                    x.astype(float), nan=value)
             else:
                 raise ValueError(
                     f"Parameter value must be int or float. It is {type(value)}."
@@ -754,9 +726,11 @@ class TimePanel:
     @staticmethod
     def make_xdata(X, index, xindex, xunits, xchannels):
         all_X = TimePanel.get_all_unique(X)
-        xdata_ = rebuild_from_index(all_X, xindex, xunits, xchannels, to_datetime=True)
+        xdata_ = rebuild_from_index(
+            all_X, xindex, xunits, xchannels, to_datetime=True)
         xdata = pd.DataFrame(
-            index=index, columns=pd.MultiIndex.from_product([xunits, xchannels])
+            index=index, columns=pd.MultiIndex.from_product(
+                [xunits, xchannels])
         )
         xdata.loc[xindex, (xunits, xchannels)] = xdata_.values
         return MultiColumn(xdata)
@@ -764,9 +738,11 @@ class TimePanel:
     @staticmethod
     def make_ydata(y, index, yindex, yunits, ychannels):
         all_y = TimePanel.get_all_unique(y)
-        ydata_ = rebuild_from_index(all_y, yindex, yunits, ychannels, to_datetime=True)
+        ydata_ = rebuild_from_index(
+            all_y, yindex, yunits, ychannels, to_datetime=True)
         ydata = pd.DataFrame(
-            index=index, columns=pd.MultiIndex.from_product([yunits, ychannels])
+            index=index, columns=pd.MultiIndex.from_product(
+                [yunits, ychannels])
         )
         ydata.loc[yindex, (yunits, ychannels)] = ydata_.values
         return MultiColumn(ydata)
@@ -856,7 +832,8 @@ class TimePanel:
             TimePanel with the pairs of the training set.
 
         """
-        return self[: self.train_size]
+        if self.train_size:
+            return self[: self.train_size]
 
     @property
     def val(self):
@@ -870,7 +847,8 @@ class TimePanel:
             TimePanel with the pairs of the validation set.
 
         """
-        return self[self.train_size : int(self.train_size + self.val_size)]
+        if self.val_size and self.train_size:
+            return self[self.train_size: int(self.train_size + self.val_size)]
 
     @property
     def test(self):
@@ -884,7 +862,8 @@ class TimePanel:
             TimePanel with the pairs of the testing set.
 
         """
-        return self[self.train_size + self.val_size :]
+        if self.val_size and self.train_size:
+            return self[self.train_size + self.val_size:]
 
     def view(self):
         """
@@ -995,14 +974,14 @@ class TimePanel:
         ]
         return TimePanel(pairs)
 
-    def split_units(self, split_yunits=False):
+    def split_units(self, yunits=False):
         """
         Return a list of panels, one panel for each unit.
 
         Parameters
         ----------
-        split_yunits : bool, optional
-            If split_yunits is False, will split only xunits,
+        yunits : bool, optional
+            If yunits is False, will split only xunits,
             leaving yunits as it is. The default is False.
 
         Returns
@@ -1021,13 +1000,14 @@ class TimePanel:
                         X=self.pairs[i]
                         .X[index_unit, :, :]
                         .reshape(1, self.lookback, -1),
-                        y=self.pairs[i].y[index_unit, :, :].reshape(1, self.horizon, -1)
-                        if split_yunits
+                        y=self.pairs[i].y[index_unit, :, :].reshape(
+                            1, self.horizon, -1)
+                        if yunits
                         else self.pairs[i].y,
                         indexes=self.pairs[i].indexes,
                         xunits=[self.pairs[i].xunits[index_unit]],
                         yunits=[self.pairs[i].yunits[index_unit]]
-                        if split_yunits
+                        if yunits
                         else self.pairs[i].yunits,
                         xchannels=self.pairs[i].xchannels,
                         ychannels=self.pairs[i].ychannels,
@@ -1265,9 +1245,9 @@ class TimePanel:
 
             elif isinstance(key.start, int) or isinstance(key.stop, int):
                 if key.start and key.stop:
-                    selection = selection[key.start : key.stop]
+                    selection = selection[key.start: key.stop]
                 elif key.start:
-                    selection = selection[key.start :]
+                    selection = selection[key.start:]
                 elif key.stop:
                     selection = selection[: key.stop]
 
