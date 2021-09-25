@@ -9,6 +9,56 @@ from timelab.pair import from_frames
 TEST_DATA = os.path.join(os.path.dirname(__file__), 'test_data/multi_asset.pkl')
 
 
+def assert_all(panel):
+    # Change to type error
+    # Add more checks
+    # All gaps remain constant
+    # All ys come after xs
+    # All indexes are timestamps
+    # All xs have same number of channels and units
+    # All ys have same number of channels and units
+    # lookback, horizon and gap must be int
+    # Check when each assert must be done
+    # check all: xframe1.iloc[0].index + gap == yframe0.iloc[-1].index or smth like that
+    # Assert data is sorted
+    # Assert all xunits and xchannels are equal, same for ys
+    # No xstart date should repeat, I think
+    # y freq should be the same as x freq, I think
+    # All xindex must be smaller than the next xindex
+    # All yindex must be smaller than the next yindex
+    # Must check if y is always a future x
+
+    assert all_equal(
+        [i.xunits for i in panel.pairs]
+    ), "Pairs must have the same units."
+    assert all_equal(
+        [i.xchannels for i in panel.pairs]
+    ), "Pairs must have the same channels."
+    assert all_equal(
+        [i.horizon for i in panel.pairs]
+    ), "Pairs must have the same horizon."
+    assert all_equal(
+        [i.lookback for i in panel.pairs]
+    ), "Pairs must have the same lookback."
+    assert all_equal(
+        [i.X.shape for i in panel.pairs]
+    ), "Pairs must have the same shape."
+    assert all_equal(
+        [i.y.shape for i in panel.pairs]
+    ), "Pairs must have the same shape."
+    assert panel.lookback is not None, "lookback was not defined."
+    assert panel.horizon is not None, "horizon was not defined."
+    assert panel.gap is not None, "gap was not defined."
+    assert panel.gap >= 0
+    assert panel.horizon > 0
+    assert panel.lookback > 0
+
+    # TODO: improve / speed up this check
+    # if not all(isinstance(pair, TimePair) for pair in panel.pairs):
+    #     raise AttributeError(
+    #         "Attribute pairs does not consist of a list of TimePairs."
+    #     )
+
 class TestPair(unittest.TestCase):
     df = pd.read_pickle(TEST_DATA)
     df = df[['LNC', 'MAS', 'CSX']]

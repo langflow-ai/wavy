@@ -16,9 +16,11 @@ pd.options.plotting.backend = "plotly"
 cmap1 = px.colors.qualitative.Plotly
 cmap2 = cmap1[::-1]
 
+
 def ffill(arr, axis):
     arr = arr.astype(float)
-    idx_shape = tuple([slice(None)] + [np.newaxis] * (len(arr.shape) - axis - 1))
+    idx_shape = tuple([slice(None)] + [np.newaxis]
+                      * (len(arr.shape) - axis - 1))
     idx = np.where(~np.isnan(arr), np.arange(arr.shape[axis])[idx_shape], 0)
     np.maximum.accumulate(idx, axis=axis, out=idx)
     slc = [
@@ -34,10 +36,13 @@ def ffill(arr, axis):
     slc[axis] = idx
     return arr[tuple(slc)]
 
+
 def bfill(arr, axis):
     arr = arr.astype(float)
-    idx_shape = tuple([slice(None)] + [np.newaxis] * (len(arr.shape) - axis - 1))
-    idx = np.where(~np.isnan(arr), np.arange(arr.shape[axis])[idx_shape], arr.shape[axis] - 1)
+    idx_shape = tuple([slice(None)] + [np.newaxis]
+                      * (len(arr.shape) - axis - 1))
+    idx = np.where(~np.isnan(arr), np.arange(arr.shape[axis])[
+                   idx_shape], arr.shape[axis] - 1)
     slc = [
         np.arange(k)[
             tuple(
@@ -57,7 +62,7 @@ def get_null_indexes(x):
     s = np.sum(s, axis=2)
     s = np.sum(s, axis=1)
     s = pd.Series(s).isna()
-    return s[s==True].index.tolist()
+    return s[s == True].index.tolist()
 
 
 def line_plot(df, return_traces=False, prefix='', dash='solid', cmap=cmap1, mode="lines"):
@@ -93,7 +98,8 @@ def pair_plot(pair, unit, channels=None):
 
 
 def pred_plot(y_test, y_pred, unit, channels=None, mode="lines"):
-    test_trace = multi_plot(y_test, unit, channels, prefix='test_', return_traces=True, cmap=cmap1, mode=mode)
+    test_trace = multi_plot(y_test, unit, channels, prefix='test_',
+                            return_traces=True, cmap=cmap1, mode=mode)
     pred_trace = multi_plot(y_pred, unit, channels, prefix='pred_', return_traces=True, dash='dot', cmap=cmap2,
                             mode=mode)
     fig = copy(test_trace)
@@ -144,7 +150,6 @@ def revert_pct_change(original, changed, gap=0):
     return (original.shift(gap) * changed) + original.shift(gap)
 
 
-
 def smash_array(array):
     """
     Transforms an 3D or 4D array into a D-1 dimension array.
@@ -161,7 +166,7 @@ def smash_array(array):
 
     """
     if array.ndim == 4:
-        arr_list = list()
+        arr_list = []
         for arr in array:
             arr = np.hstack([arr[i] for i in range(len(arr))])
             arr_list.append(arr)

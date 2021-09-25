@@ -1,6 +1,6 @@
-from tensorflow.keras.layers import SeparableConv1D, Flatten, Dense, Reshape, Input
-from tensorflow.keras.layers import concatenate
 from tensorflow.keras import Model
+from tensorflow.keras.layers import (Dense, Flatten, Input, Reshape,
+                                     SeparableConv1D, concatenate)
 from tensorflow.nn import relu, sigmoid
 
 from .panel import TimePanel
@@ -20,15 +20,18 @@ class SeparateUnitModel:
             val = self.panel.val
 
         if train is None:
-            raise ValueError("Train panel must not be None. Try set panel training split before fitting.")
+            raise ValueError(
+                "Train panel must not be None. Try set panel training split before fitting.")
 
-        X_train = [smash_array(unit_train.X) for unit_train in train.split_units()]
+        X_train = [smash_array(unit_train.X)
+                   for unit_train in train.split_units()]
         y_train = train.y
 
         X_val = [smash_array(unit_val.X) for unit_val in val.split_units()]
         y_val = val.y
 
-        self.model.fit(X_train, y_train, validation_data=(X_val, y_val), **kwargs)
+        self.model.fit(X_train, y_train, validation_data=(
+            X_val, y_val), **kwargs)
         return self
 
     def predict(self, test: TimePanel = None):
@@ -40,8 +43,7 @@ class SeparateUnitModel:
     def build_unit_input(self, unit_panel):
         assert len(unit_panel.xunits) == 1
         input_shape = unit_panel.X.shape[2:]
-        input_ = Input(shape=input_shape, name=unit_panel.xunits[0])
-        return input_
+        return Input(shape=input_shape, name=unit_panel.xunits[0])
 
     def build_unit_hidden(self, input_, lookback, hidden_size, filters):
         # TODO: Add to hidden_size and filter

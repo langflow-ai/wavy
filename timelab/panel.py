@@ -1,15 +1,14 @@
 import warnings
-from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
 import plotly.express as px
 from tqdm import tqdm
 
-from .frequency import check_frequency, infer_frequency
+from . import frequency as freq
 from .multicol import MultiColumn, rebuild_from_index
 from .pair import TimePair
-from .utils import all_equal, bfill, ffill, smash_array, get_null_indexes
+from .utils import all_equal, bfill, ffill, get_null_indexes, smash_array
 
 
 def from_xy_data(xdata, ydata, lookback, horizon, gap=0):
@@ -43,7 +42,7 @@ def from_xy_data(xdata, ydata, lookback, horizon, gap=0):
     """
 
     try:
-        if not check_frequency(xdata) or not check_frequency(ydata):
+        if not freq.infer(xdata) or not freq.infer(ydata):
             warnings.warn("Frequency is either not constant or negative.")
     except:
         pass
@@ -157,8 +156,8 @@ def _from_xypred_data(xdata, ydata, y_pred, lookback, horizon, gap=0):
 
     # Get units and channels
     xdata = MultiColumn(xdata)
-    xunits = xdata.units
     ydata = MultiColumn(ydata)
+    xunits = xdata.units
     yunits = ydata.units
     xchannels = xdata.channels
     ychannels = ydata.channels
@@ -339,10 +338,10 @@ class TimePanel:
         self.xend = self.last.xend
         self.yend = self.last.yend
 
+        # TODO: either remove or improve find_freq
         self.freq = self.find_freq()
 
         self.set_arrays()
-        self.assert_all()
 
         self.train_size, self.val_size, self.test_size = None, None, None
 
@@ -386,7 +385,7 @@ class TimePanel:
 
     def find_freq(self):
         """
-        Finds the data seasonality.
+        Finds the xframe frequency.
 
         Returns
         -------
@@ -394,10 +393,11 @@ class TimePanel:
             Frequency guess representing the seasonality of the data.
 
         """
+        # ! Does not consider y frequency
         df = self.xframe(0)
         if len(df) < 3:
             df = df.append(self.xframe(1)).append(self.xframe(2))
-        return infer_frequency(df)
+        return freq.infer(df)
 
     def set_arrays(self):
         """
@@ -653,7 +653,7 @@ class TimePanel:
 
         """
 
-        if not mode in ["X", "y"]:
+        if mode not in ["X", "y"]:
             raise ValueError("Mode must be 'X' or 'y'.")
         pairs = [
             pair.add(new_panel[index], mode=mode)
@@ -789,7 +789,7 @@ class TimePanel:
 
         """
         return sorted(
-            list(set([item for pair in self.pairs for item in pair.indexes[0]]))
+            list(set(item for pair in self.pairs for item in pair.indexes[0]))
         )
 
     @property
@@ -804,7 +804,7 @@ class TimePanel:
 
         """
         return sorted(
-            list(set([item for pair in self.pairs for item in pair.indexes[1]]))
+            list(set(item for pair in self.pairs for item in pair.indexes[1]))
         )
 
     @property
@@ -877,23 +877,22 @@ class TimePanel:
 
         print("TimePanel")
 
-        if self.xunits == self.yunits:
-            if self.xchannels == self.ychannels:
-                summary = pd.Series(
-                    {
-                        "size": self.__len__(),
-                        "lookback": self.lookback,
-                        "horizon": self.horizon,
-                        "gap": self.gap,
-                        "units": self.units,
-                        "channels": self.channels,
-                        "start": self.xstart,
-                        "end": self.yend,
-                    },
-                    name="TimePanel",
-                )
-                print(summary)
-                return
+        if self.xunits == self.yunits and self.xchannels == self.ychannels:
+            summary = pd.Series(
+                {
+                    "size": self.__len__(),
+                    "lookback": self.lookback,
+                    "horizon": self.horizon,
+                    "gap": self.gap,
+                    "units": self.units,
+                    "channels": self.channels,
+                    "start": self.xstart,
+                    "end": self.yend,
+                },
+                name="TimePanel",
+            )
+            print(summary)
+            return
 
         summary = pd.Series(
             {
@@ -993,7 +992,7 @@ class TimePanel:
         index_units = np.arange(0, len(self.xunits))
         indexes = np.arange(0, len(self.pairs))
 
-        panels = [
+        return [
             TimePanel(
                 [
                     TimePair(
@@ -1020,8 +1019,6 @@ class TimePanel:
             )
             for index_unit in tqdm(index_units)
         ]
-
-        return panels
 
     def swap_dims(self):
         """
@@ -1068,15 +1065,15 @@ class TimePanel:
             raise ValueError("Must enter the start date!")
         if end is None:
             raise ValueError("Must enter the start date!")
+
         if channels is None:
             channels = self.channels
-        else:
-            if isinstance(channels, str):
+        elif isinstance(channels, str):
                 channels = [channels]
+
         if units is None:
             units = self.units
-        else:
-            if isinstance(units, str):
+        elif isinstance(units, str):
                 units = [units]
 
         if on == "xdata":
@@ -1121,11 +1118,8 @@ class TimePanel:
         Returns:
             DataFrame: DataFrame where each "xframe" is represented in a row.
         """
-
-        if self.lookback == 1:  # avoid indexing to 0
-            index = self.xindex
-        else:
-            index = self.xindex[: -self.lookback + 1]
+        # avoid indexing to 0
+        index = self.xindex if self.lookback == 1 else self.xindex[: -self.lookback + 1]
 
         xflat = np.array([i.flatten() for i in self.X])
         xflat = pd.DataFrame(xflat, index=index)
@@ -1142,64 +1136,12 @@ class TimePanel:
         Returns:
             DataFrame: DataFrame where each "yframe" is represented in a row.
         """
-        if self.horizon == 1:
-            index = self.yindex
-        else:
-            index = self.yindex[: -self.horizon + 1]
 
+        index = self.yindex if self.horizon == 1 else self.yindex[: -self.horizon + 1]
         yflat = np.array([i.flatten() for i in self.y])
         yflat = pd.DataFrame(yflat, index=index)
         return yflat
 
-    def assert_all(self):
-        # Change to type error
-        # Add more checks
-        # All gaps remain constant
-        # All ys come after xs
-        # All indexes are timestamps
-        # All xs have same number of channels and units
-        # All ys have same number of channels and units
-        # lookback, horizon and gap must be int
-        # Check when each assert must be done
-        # check all: xframe1.iloc[0].index + gap == yframe0.iloc[-1].index or smth like that
-        # Assert data is sorted
-        # Assert all xunits and xchannels are equal, same for ys
-        # No xstart date should repeat, I think
-        # y freq should be the same as x freq, I think
-        # All xindex must be smaller than the next xindex
-        # All yindex must be smaller than the next yindex
-        # Must check if y is always a future x
-
-        assert all_equal(
-            [i.xunits for i in self.pairs]
-        ), "Pairs must have the same units."
-        assert all_equal(
-            [i.xchannels for i in self.pairs]
-        ), "Pairs must have the same channels."
-        assert all_equal(
-            [i.horizon for i in self.pairs]
-        ), "Pairs must have the same horizon."
-        assert all_equal(
-            [i.lookback for i in self.pairs]
-        ), "Pairs must have the same lookback."
-        assert all_equal(
-            [i.X.shape for i in self.pairs]
-        ), "Pairs must have the same shape."
-        assert all_equal(
-            [i.y.shape for i in self.pairs]
-        ), "Pairs must have the same shape."
-        assert self.lookback is not None, "lookback was not defined."
-        assert self.horizon is not None, "horizon was not defined."
-        assert self.gap is not None, "gap was not defined."
-        assert self.gap >= 0
-        assert self.horizon > 0
-        assert self.lookback > 0
-
-        # TODO: improve / speed up this check
-        # if not all(isinstance(pair, TimePair) for pair in self.pairs):
-        #     raise AttributeError(
-        #         "Attribute pairs does not consist of a list of TimePairs."
-        #     )
 
     def __len__(self):
         return len(self.pairs)

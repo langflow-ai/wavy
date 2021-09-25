@@ -31,7 +31,7 @@ def remove_duplicated(data):
     return data.loc[non_duplicated]
 
 
-def inspect_freq(data, verbose=1):
+def inspect(data, verbose=1):
     """
     Inspect if the data frequency is inferable at each timestep.
 

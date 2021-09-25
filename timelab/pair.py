@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 
-from .frequency import check_frequency
 from .multicol import MultiColumn, rebuild_from_index
 
 
@@ -212,8 +211,8 @@ class TimePair:
             yunits = self.yunits
 
         # Improve variable naming
-        xus = tuple([self.xunits.index(xu) for xu in xunits])
-        yus = tuple([self.yunits.index(yu) for yu in yunits])
+        xus = (self.xunits.index(xu) for xu in xunits)
+        yus = (self.yunits.index(yu) for yu in yunits)
 
         X_sel = self.X[xus, :, :]
         y_sel = self.y[yus, :, :]
@@ -343,8 +342,8 @@ class TimePair:
         if not ychannels:
             ychannels = self.ychannels
 
-        xcs = tuple([self.xchannels.index(xc) for xc in xchannels])
-        ycs = tuple([self.ychannels.index(yc) for yc in ychannels])
+        xcs = (self.xchannels.index(xc) for xc in xchannels)
+        ycs = (self.ychannels.index(yc) for yc in ychannels)
 
         X_sel = self.X[:, :, xcs]
         y_sel = self.y[:, :, ycs]

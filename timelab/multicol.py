@@ -5,6 +5,7 @@ from pandas import MultiIndex
 
 from .utils import smash_array
 
+
 def rebuild_from_index(
     array, index, units, channels, to_datetime=True, smash_dims=False
 ):
@@ -192,9 +193,7 @@ class MultiColumn(pd.DataFrame):
         return count
 
     def rename_subindex(self, df, sep="_"):
-        tuples = []
-        for tup in df.index:
-            tuples.append((tup[0], tup[0] + sep + tup[1]))
+        tuples = [(tup[0], tup[0] + sep + tup[1]) for tup in df.index]
         df.index = MultiIndex.from_tuples(tuples)
         return df
 
@@ -210,28 +209,3 @@ class MultiColumn(pd.DataFrame):
 
     def copy(self):
         return MultiColumn(self.pandas())
-
-
-# def multi_plot(mdf, unit, channels=None, return_traces=False, prefix='', dash='solid', cmap=cmap1, mode="lines"):
-#     mdf = mdf.filter(unit, channels)[unit]
-#     return line_plot(mdf, return_traces, prefix, dash, cmap, mode)
-
-
-
-
-        # def as_multicol(function):
-        #     def wrapper(x):
-        #         if isinstance(function(x), pd.DataFrame):
-        #             return MultiColumn(function(x, *args, **kwargs))
-        #         else:
-        #             return function(x, *args, **kwargs)
-        #     return wrapper
-
-        # METHODS = [func for func in dir(self) if callable(getattr(self, func)) and not func.startswith("_")]
-
-        # for name in METHODS:
-        #     try:
-        #         function = getattr(self, name)
-        #         setattr(self, name, as_multicol(function))
-        #     except:
-        #         print(name)
