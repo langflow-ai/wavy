@@ -9,8 +9,8 @@ from .utils import smash_array
 
 class SeparateUnitModel:
 
-    def __init__(self, panel):
-        self.model = self.build_model(panel)
+    def __init__(self, panel, hidden_size=10, filters=10):
+        self.model = self.build_model(panel, hidden_size, filters)
         self.panel = panel
 
     def fit(self, train: TimePanel = None, val: TimePanel = None, **kwargs):
@@ -58,10 +58,10 @@ class SeparateUnitModel:
                        name='dense.' + name)(hidden)
         return hidden
 
-    def build_model(self, panel):
+    def build_model(self, panel, hidden_size, filters):
         inputs = [self.build_unit_input(unit_panel)
                   for unit_panel in panel.split_units()]
-        hidden = [self.build_unit_hidden(input_, panel.lookback, 10, 10)
+        hidden = [self.build_unit_hidden(input_, panel.lookback, hidden_size, filters)
                   for input_ in inputs]
         x = concatenate(hidden)
         x = Dense(panel.y.shape[1], activation=sigmoid)(x)

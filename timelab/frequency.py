@@ -1,44 +1,39 @@
 import numpy as np
-import pandas as pd
-from tqdm import tqdm
 
 
-def min_frequency(data):
+def minfreq(data):
     return np.diff(data.index.values).min().astype(int)
 
 
-def max_frequency(data):
+def maxfreq(data):
     return np.diff(data.index.values).max().astype(int)
 
 
-def constant_freq(data):
-    if min_frequency(data) != max_frequency(data):
-        return False
-    return True
+def is_constant(data):
+    return minfreq(data) == maxfreq(data)
 
 
-def positive_freq(data):
-    if min_frequency(data) < 0:
-        return False
-    return True
+def is_positive(data):
+    return minfreq(data) > 0
 
 
-def check_frequency(data):
-    print(f"First: {data.index[0]}")
-    print(f"Last: {data.index[-1]}")
-    diff = pd.Series(data.index).diff()
-    print(f"Min Frequency: {diff.min()}")
-    print(f"Max Frequency: {diff.max()}")
-
-    if infer_frequency(data):
-        return True
-    else:
-        return False
+def infer(data):
+    return data.index.inferred_freq
 
 
-def inspect_freq(data):
+def get_duplicated(data):
+    return data.loc[data.index.duplicated()].index.tolist()
+
+
+def remove_duplicated(data):
+    duplicated = get_duplicated(data)
+    non_duplicated = list(~np.array(duplicated))
+    return data.loc[non_duplicated]
+
+
+def inspect_freq(data, verbose=1):
     """
-    Inspect if the data frequency is constant.
+    Inspect if the data frequency is inferable at each timestep.
 
     Parameters
     ----------
@@ -46,48 +41,29 @@ def inspect_freq(data):
 
     """
 
-    if check_frequency(data):
-        print(f"Frequency is constant: {infer_frequency(data)}")
-        return
+    if verbose > 0:
+        print(f"First: {data.index[0]}")
+        print(f"Last: {data.index[-1]}\n")
 
-    print(f"Min Frequency: {min_frequency(data)} ns")
-    print(f"Max Frequency: {max_frequency(data)} ns")
+        print(f"Min Frequency: {minfreq(data)} ns")
+        print(f"Max Frequency: {maxfreq(data)} ns\n")
 
-    # Show duplicated indexes
-    duplicated_index = data.index.duplicated()
-    duplicated_data = data.loc[duplicated_index]
-    print(f"Duplicated Date Times found:\n{duplicated_data.index}")
+    duplicated = get_duplicated(data)
+    if duplicated and verbose > 0:
+            print(f"Duplicated Date Times found:\n{duplicated}")
 
-    # Remove duplicated indexes
-    non_duplicated_index = list(~np.array(duplicated_index))
-    data = data.loc[non_duplicated_index]
+    breaks = []
 
     while True:
-        # for index, row in tqdm(data.iterrows()):
-        for i, (index, row) in tqdm(enumerate(data.iterrows())):
-            if index == data.index[0] or index == data.index[1]:
+        for i, index in enumerate(data.index):
+            if index in (data.index[0], data.index[1]):
                 continue
-            if not check_frequency(data.loc[:index]):
-                print(f"Frequency breaks at {index}")
+            if not infer(data.loc[:index]):
+                if verbose > 1:
+                    print(f"Frequency breaks at {index}")
+                breaks.append(index)
                 data = data.iloc[i:]
                 break
-        if check_frequency(data.loc[:index]):
+        if infer(data.loc[:index]):
             break
-    return
-
-
-def infer_frequency(data):
-    return data.index.inferred_freq
-
-
-def resample_datetimes(data, rule='1H0min'):
-
-    # Remove duplicated datetimes
-    duplicated_index = data.index.duplicated()
-    non_duplicated_index = list(~np.array(duplicated_index))
-    data = data.loc[non_duplicated_index]
-
-    # Resample
-    data = data.resample(rule=rule).backfill()
-
-    return data
+    return duplicated, breaks
