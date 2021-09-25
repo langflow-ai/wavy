@@ -4,7 +4,6 @@ import pandas as pd
 from .multicol import MultiColumn, rebuild_from_index
 
 
-# @decorator
 def add_pair(func, pair):
     args = func.__code__.co_varnames
     if "pair" in args:
@@ -17,7 +16,6 @@ def add_pair(func, pair):
     return func_
 
 
-# @decorator
 def add_axis(func):
     args = func.__code__.co_varnames
     if not ("axis" in args or "args" in args):
