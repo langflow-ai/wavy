@@ -47,6 +47,9 @@ N        nanoseconds
 """
 
 
+COMMON_FREQS = ['N', 'U', 'L', 'S', 'T', 'H', 'D', 'W', 'M', 'Y']
+
+
 def available_calendars():
     # TODO: Should support pandas default calendars
     return ecals.get_calendar_names()
@@ -69,21 +72,28 @@ def index_info(df):
     return index_df
 
 
-def custom_resample(df, calendar=None, weekdays=None, between_time=[],
-                    holidays=[], include_start=True, include_end=True):
+def custom_resample(df, rule=None, calendar=None, weekdays=None,
+                    between_time=[], holidays=[]):
 
     # TODO: Should support pandas default calendars and others not in ecals
 
-    rule = find_closest(df)
+    minfreq = find_closest(df)
+
+    if rule:
+        if COMMON_FREQS.index(rule) < COMMON_FREQS.index(minfreq):
+            raise ArgumentError("rule frequency must be greater than min frequency")
+    else:
+        rule = minfreq
+
     df = df.resample(rule).asfreq()
-    index = df.index.tz_localize(None)  # ! removes timezone
+    index = df.index.tz_localize(None)  # ! Removes timezone
 
     if calendar:
-        # FIX: Not working
         cal = ecals.get_calendar(calendar)
-        cal_df = pd.DataFrame(index=cal.all_minutes)
-        cal_df = cal_df.resample(rule).mean()
-        cal_index = cal_df.index.tz_localize(None)  # ! removes timezone
+        cal_df = pd.DataFrame([1] * len(cal.all_minutes), index=cal.all_minutes) # Create mask
+        print(cal_df)
+        cal_df = cal_df.resample(rule).asfreq().dropna()  # Filter by mask
+        cal_index = cal_df.index.tz_localize(None)  # ! Removes timezone
         df = df[to_nanos(index).isin(to_nanos(cal_index))]
 
     if weekdays:
@@ -94,7 +104,7 @@ def custom_resample(df, calendar=None, weekdays=None, between_time=[],
 
     if between_time:
         df = df.between_time(
-            *between_time, include_start=include_start, include_end=include_end)
+            *between_time, include_start=True, include_end=True)
 
     return df
 
@@ -109,8 +119,7 @@ def find_closest(df):
         [type]: [description]
     """""
 
-    freqs = ['N', 'U', 'L', 'S', 'T', 'H', 'D', 'W', 'M', 'Y']
-    for f in freqs:
+    for f in COMMON_FREQS:
         if minfreq(df) <= to_nano(pd.Timedelta('1' + f)):
             return f
 
