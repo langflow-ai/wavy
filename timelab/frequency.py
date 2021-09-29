@@ -72,10 +72,33 @@ def index_info(df):
     return index_df
 
 
+def match_calendar(df, calendar, rule):
+    # TODO: Should support pandas default calendars and others not in ecals
+    # TODO: Should support frequencies more granular than minutes
+
+    # Create the calendar object
+    cal = ecals.get_calendar(calendar)
+
+    # Get calendar's minutely timestamps
+    minutes = cal.all_minutes
+
+    # Create mask dataframe (ones) with calendar index
+    cal_df = pd.DataFrame([1] * len(minutes), index=minutes)
+
+    # Resample keeping only calendar available timestamps
+    cal_df = cal_df.resample(rule).asfreq().dropna()
+
+    # Get cal and df indexes
+    # ! Removes timezone (maybe should convert instead?)
+    cal_index = cal_df.index.tz_localize(None)
+    df_index = df.index.tz_localize(None)
+
+    # Return df where indexes match resampled calendar
+    return df[to_nanos(df_index).isin(to_nanos(cal_index))]
+
+
 def custom_resample(df, rule=None, calendar=None, weekdays=None,
                     between_time=[], holidays=[]):
-
-    # TODO: Should support pandas default calendars and others not in ecals
 
     minfreq = find_closest(df)
 
@@ -86,26 +109,15 @@ def custom_resample(df, rule=None, calendar=None, weekdays=None,
         rule = minfreq
 
     df = df.resample(rule).asfreq()
-    index = df.index.tz_localize(None)  # ! Removes timezone
 
     if calendar:
-        cal = ecals.get_calendar(calendar)
-        cal_df = pd.DataFrame([1] * len(cal.all_minutes), index=cal.all_minutes) # Create mask
-        print(cal_df)
-        cal_df = cal_df.resample(rule).asfreq().dropna()  # Filter by mask
-        cal_index = cal_df.index.tz_localize(None)  # ! Removes timezone
-        df = df[to_nanos(index).isin(to_nanos(cal_index))]
-
+        df = match_calendar(df, cal, rule)
     if weekdays:
         df = df.loc[df.index.weekday.isin(weekdays)]
-
     if holidays:
         df = df[~(df.index.isin(holidays))]
-
     if between_time:
-        df = df.between_time(
-            *between_time, include_start=True, include_end=True)
-
+        df = df.between_time(*between_time)
     return df
 
 
