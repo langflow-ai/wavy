@@ -9,6 +9,7 @@ from .utils import smash_array
 def rebuild_from_index(
     array, index, units, channels, to_datetime=True, smash_dims=False
 ):
+
     # Needs to verify shape with dims
     if to_datetime:
         index = pd.to_datetime(index)

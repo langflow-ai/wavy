@@ -717,7 +717,6 @@ class TimePanel:
 
     @staticmethod
     def get_all_unique(array):
-        array = smash_array(array)
         all_ = [i for i in array[0]]
         for i in array[1:]:
             all_.append(i[-1])
@@ -725,6 +724,7 @@ class TimePanel:
 
     @staticmethod
     def make_xdata(X, index, xindex, xunits, xchannels):
+        X = smash_array(X)
         all_X = TimePanel.get_all_unique(X)
         xdata_ = rebuild_from_index(
             all_X, xindex, xunits, xchannels, to_datetime=True)
@@ -737,6 +737,7 @@ class TimePanel:
 
     @staticmethod
     def make_ydata(y, index, yindex, yunits, ychannels):
+        y = smash_array(y)
         all_y = TimePanel.get_all_unique(y)
         ydata_ = rebuild_from_index(
             all_y, yindex, yunits, ychannels, to_datetime=True)
@@ -788,9 +789,8 @@ class TimePanel:
             List of indexes of the dataframe with the X values.
 
         """
-        return sorted(
-            list(set(item for pair in self.pairs for item in pair.indexes[0]))
-        )
+        x_indexes = np.array([i.indexes[0] for i in self.pairs])
+        return [str(i) for i in self.get_all_unique(x_indexes)]
 
     @property
     def yindex(self):
@@ -803,9 +803,8 @@ class TimePanel:
             List of indexes of the dataframe with the y values.
 
         """
-        return sorted(
-            list(set(item for pair in self.pairs for item in pair.indexes[1]))
-        )
+        y_indexes = np.array([i.indexes[1] for i in self.pairs])
+        return [str(i) for i in self.get_all_unique(y_indexes)]
 
     @property
     def index(self):
@@ -1069,12 +1068,12 @@ class TimePanel:
         if channels is None:
             channels = self.channels
         elif isinstance(channels, str):
-                channels = [channels]
+            channels = [channels]
 
         if units is None:
             units = self.units
         elif isinstance(units, str):
-                units = [units]
+            units = [units]
 
         if on == "xdata":
             data = self.xdata[start:end]
@@ -1119,7 +1118,8 @@ class TimePanel:
             DataFrame: DataFrame where each "xframe" is represented in a row.
         """
         # avoid indexing to 0
-        index = self.xindex if self.lookback == 1 else self.xindex[: -self.lookback + 1]
+        index = self.xindex if self.lookback == 1 else self.xindex[: -
+                                                                   self.lookback + 1]
 
         xflat = np.array([i.flatten() for i in self.X])
         xflat = pd.DataFrame(xflat, index=index)
@@ -1141,7 +1141,6 @@ class TimePanel:
         yflat = np.array([i.flatten() for i in self.y])
         yflat = pd.DataFrame(yflat, index=index)
         return yflat
-
 
     def __len__(self):
         return len(self.pairs)
