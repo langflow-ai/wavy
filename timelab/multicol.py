@@ -6,6 +6,12 @@ from pandas import MultiIndex
 from .utils import smash_array
 
 
+def from3d(arr, units, channels, timestamps):
+    frames = [pd.DataFrame(x, columns=timestamps, index=channels) for x in arr]
+    df = pd.concat(frames, keys=units).T
+    return MultiColumn(df)
+
+
 def rebuild_from_index(
     array, index, units, channels, to_datetime=True, smash_dims=False
 ):

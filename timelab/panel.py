@@ -1,3 +1,4 @@
+from copy import copy
 import warnings
 
 import numpy as np
@@ -104,89 +105,108 @@ def from_xy_data(xdata, ydata, lookback, horizon, gap=0):
     return TimePanel(pairs)
 
 
-def _from_xypred_data(xdata, ydata, y_pred, lookback, horizon, gap=0):
-    """
-    Gets TimePanels from x,y DataFrames and y_pred got from the trained model.
-    This function is only callable by the TimePanel class.
 
-    Parameters
-    ----------
-    xdata : DataFrame
-        Inputs to the model.
-    ydata : DataFrame
-        Outputs to the model.
-    y_pred: numpy array
-        Data outputted from the trained model.
-    lookback : int
-        How many time steps from the past are considered for the xdata.
-    horizon : int
-        How many time steps to the future are considered for the ydata.
-    gap : int, optional
-        How many time steps are ignored between the lookback and the horizon. The default is 0.
+def from_ypred(panel, ypred):
+    panel_ = copy(panel)
+    for i, pair in enumerate(panel_.pairs):
+        # TODO: Replace with setitem
+        pair.y = ypred[i]
+    return panel_
 
-    Raises
-    ------
-   ValueError
-        If the number of total time steps in the given dataset is not enough to create a TimePair.
-        I.e. the number of time steps has to be greater than or equal to 'lookback + horizon + gap'.
+# def _from_xypred_data(xdata, ydata, y_pred, lookback, horizon, gap=0):
+#     """
+#     Gets TimePanels from x,y DataFrames and y_pred got from the trained model.
+#     This function is only callable by the TimePanel class.
 
-    Returns
-    -------
-    TimePanel
-        TimePanel object containing all (input,output) TimePairs of te given dataset.
+#     Parameters
+#     ----------
+#     xdata : DataFrame
+#         Inputs to the model.
+#     ydata : DataFrame
+#         Outputs to the model.
+#     y_pred: numpy array
+#         Data outputted from the trained model.
+#     lookback : int
+#         How many time steps from the past are considered for the xdata.
+#     horizon : int
+#         How many time steps to the future are considered for the ydata.
+#     gap : int, optional
+#         How many time steps are ignored between the lookback and the horizon. The default is 0.
 
-    """
+#     Raises
+#     ------
+#    ValueError
+#         If the number of total time steps in the given dataset is not enough to create a TimePair.
+#         I.e. the number of time steps has to be greater than or equal to 'lookback + horizon + gap'.
 
-    x_timesteps = len(xdata.index)
+#     Returns
+#     -------
+#     TimePanel
+#         TimePanel object containing all (input,output) TimePairs of te given dataset.
 
-    # assert y_index match gap, horizon, lookback with x_index
-    total = x_timesteps - lookback - horizon - gap + 1
+#     """
 
-    if total <= 0:
-        raise ValueError("Not enough timesteps to extract X and y.")
+#     x_timesteps = len(xdata.index)
 
-    end = x_timesteps - horizon - gap + 1
+#     # assert y_index match gap, horizon, lookback with x_index
+#     total = x_timesteps - lookback - horizon - gap + 1
 
-    xdata = pd.DataFrame(xdata)
-    ydata = pd.DataFrame(ydata)
+#     if total <= 0:
+#         raise ValueError("Not enough timesteps to extract X and y.")
 
-    # Get Indexes from the dataframes
-    x_data_indexes = list(map(str, xdata.index))
-    y_data_indexes = list(map(str, ydata.index))
+#     end = x_timesteps - horizon - gap + 1
 
-    # Get units and channels
-    xdata = MultiColumn(xdata)
-    ydata = MultiColumn(ydata)
-    xunits = xdata.units
-    yunits = ydata.units
-    xchannels = xdata.channels
-    ychannels = ydata.channels
+#     xdata = pd.DataFrame(xdata)
+#     ydata = pd.DataFrame(ydata)
 
-    # Convert from datafram to numpy array
-    X = np.array([xdata[i].values for i in xunits])
+#     # Get Indexes from the dataframes
+#     x_data_indexes = list(map(str, xdata.index))
+#     y_data_indexes = list(map(str, ydata.index))
 
-    indexes = np.arange(lookback, end)
-    pairs = [
-        TimePair(
-            X[:, i - lookback: i, :],
-            np.array([y_pred[unit][unit, :, :]
-                     for unit, _ in enumerate(yunits)]),
-            indexes=(
-                x_data_indexes[i - lookback: i],
-                y_data_indexes[i + gap: i + gap + horizon],
-            ),
-            xunits=xunits,
-            yunits=yunits,
-            xchannels=xchannels,
-            ychannels=ychannels,
-            lookback=lookback,
-            horizon=horizon,
-            gap=gap,
-        )
-        for i in tqdm(indexes)
-    ]
+#     # Get units and channels
+#     xdata = MultiColumn(xdata)
+#     ydata = MultiColumn(ydata)
+#     xunits = xdata.units
+#     yunits = ydata.units
+#     xchannels = xdata.channels
+#     ychannels = ydata.channels
 
-    return TimePanel(pairs)
+#     # Convert from dataframe to numpy array
+#     X = np.array([xdata[i].values for i in xunits])
+#     indexes = np.arange(lookback, end)
+#     print(X.shape)
+#     print(y_pred.shape)
+
+#     pairs = []
+
+#     for i in indexes:
+#         xi = X[:, i - lookback: i, :]
+#         print(xi);break
+#         # yi = np.array([y_pred[:, unit, :, :] for unit, _ in enumerate(yunits)])
+#         # idxi = (x_data_indexes[i - lookback: i],
+#         #         y_data_indexes[i + gap: i + gap + horizon],)
+
+#     # pairs = [
+#     #     TimePair(
+#     #         X[:, i - lookback: i, :],
+#     #         np.array([y_pred[:, unit, :, :]
+#     #                  for unit, _ in enumerate(yunits)]),
+#     #         indexes=(
+#     #             x_data_indexes[i - lookback: i],
+#     #             y_data_indexes[i + gap: i + gap + horizon],
+#     #         ),
+#     #         xunits=xunits,
+#     #         yunits=yunits,
+#     #         xchannels=xchannels,
+#     #         ychannels=ychannels,
+#     #         lookback=lookback,
+#     #         horizon=horizon,
+#     #         gap=gap,
+#     #     )
+#     #     for i in tqdm(indexes)
+#     # ]
+
+#     # return TimePanel(pairs)
 
 
 def from_data(
@@ -408,6 +428,7 @@ class TimePanel:
         None.
 
         """
+        # ? Maybe leave as a property?
         self.X = np.array([pair.X for pair in self.pairs])
         self.y = np.array([pair.y for pair in self.pairs])
 
@@ -1105,6 +1126,37 @@ class TimePanel:
             return self.xunits
         else:
             return {"xunits": self.xunits, "yunits": self.yunits}
+
+    # TODO: Add better name, not inplace (sub?)
+    def xsub(self, X):
+        """Replace X changing frames.
+
+        Args:
+            X ([type]): [description]
+
+        Returns:
+            [type]: [description]
+        """""
+        pairs = []
+        for i, pair in enumerate(self.pairs):
+            pair_ = copy(pair)
+
+            # TODO: Replace with setitem
+            pair_.X = X[i]
+            pairs.append(pair_)
+        return TimePanel(pairs)
+
+    # TODO: Add better name, not inplace (sub?)
+    def ysub(self, y):
+        pairs = []
+        for i, pair in enumerate(self.pairs):
+            pair_ = copy(pair)
+
+            # TODO: Replace with setitem
+            pair_.y = y[i]
+            pairs.append(pair_)
+        return TimePanel(pairs)
+
 
     def xflat(self):
         """
