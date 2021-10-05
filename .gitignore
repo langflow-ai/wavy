@@ -1,4 +1,3 @@
-
 # Mac related files
 Icon*
 .DS_Store
@@ -11,6 +10,7 @@ __pycache__/
 *.so
 
 # Distribution / packaging
+.venv
 .Python
 build/
 develop-eggs/
