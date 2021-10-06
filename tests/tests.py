@@ -1,12 +1,13 @@
 import os
 import unittest
+
 import pandas as pd
 from sklearn.metrics import mean_squared_error
 
 from timelab.pair import from_frames
+from timelab.utils import all_equal
 
-
-TEST_DATA = os.path.join(os.path.dirname(__file__), 'test_data/multi_asset.pkl')
+TEST_DATA = os.path.join(os.path.dirname(__file__), "test_data/multi_asset.pkl")
 
 
 def assert_all(panel):
@@ -28,24 +29,12 @@ def assert_all(panel):
     # All yindex must be smaller than the next yindex
     # Must check if y is always a future x
 
-    assert all_equal(
-        [i.xunits for i in panel.pairs]
-    ), "Pairs must have the same units."
-    assert all_equal(
-        [i.xchannels for i in panel.pairs]
-    ), "Pairs must have the same channels."
-    assert all_equal(
-        [i.horizon for i in panel.pairs]
-    ), "Pairs must have the same horizon."
-    assert all_equal(
-        [i.lookback for i in panel.pairs]
-    ), "Pairs must have the same lookback."
-    assert all_equal(
-        [i.X.shape for i in panel.pairs]
-    ), "Pairs must have the same shape."
-    assert all_equal(
-        [i.y.shape for i in panel.pairs]
-    ), "Pairs must have the same shape."
+    assert all_equal([i.xunits for i in panel.pairs]), "Pairs must have the same units."
+    assert all_equal([i.xchannels for i in panel.pairs]), "Pairs must have the same channels."
+    assert all_equal([i.horizon for i in panel.pairs]), "Pairs must have the same horizon."
+    assert all_equal([i.lookback for i in panel.pairs]), "Pairs must have the same lookback."
+    assert all_equal([i.X.shape for i in panel.pairs]), "Pairs must have the same shape."
+    assert all_equal([i.y.shape for i in panel.pairs]), "Pairs must have the same shape."
     assert panel.lookback is not None, "lookback was not defined."
     assert panel.horizon is not None, "horizon was not defined."
     assert panel.gap is not None, "gap was not defined."
@@ -59,22 +48,23 @@ def assert_all(panel):
     #         "Attribute pairs does not consist of a list of TimePairs."
     #     )
 
+
 class TestPair(unittest.TestCase):
     df = pd.read_pickle(TEST_DATA)
-    df = df[['LNC', 'MAS', 'CSX']]
+    df = df[["LNC", "MAS", "CSX"]]
 
     xframe = df.iloc[:50]
     yframe = df.iloc[50:]
 
-    xframe_stock = xframe['LNC']
-    yframe_stock = yframe['LNC']
+    xframe_stock = xframe["LNC"]
+    yframe_stock = yframe["LNC"]
 
     def test_from_frames(self):
         pair_stock = from_frames(self.xframe_stock, self.yframe_stock)
 
         # Test xframe and yframe
-        x_mse = mean_squared_error(pair_stock.xframe.sum()['main'], self.xframe_stock.sum())
-        y_mse = mean_squared_error(pair_stock.yframe.sum()['main'], self.yframe_stock.sum())
+        x_mse = mean_squared_error(pair_stock.xframe.sum()["main"], self.xframe_stock.sum())
+        y_mse = mean_squared_error(pair_stock.yframe.sum()["main"], self.yframe_stock.sum())
         self.assertEqual(x_mse, 0)
         self.assertEqual(y_mse, 0)
 
@@ -93,5 +83,5 @@ class TestPair(unittest.TestCase):
         return
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

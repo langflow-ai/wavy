@@ -1,7 +1,6 @@
+import exchange_calendars as ecals
 import numpy as np
 import pandas as pd
-import exchange_calendars as ecals
-
 
 """
 Calendars:
@@ -47,7 +46,7 @@ N        nanoseconds
 """
 
 
-COMMON_FREQS = ['N', 'U', 'L', 'S', 'T', 'H', 'D', 'W', 'M', 'Y']
+COMMON_FREQS = ["N", "U", "L", "S", "T", "H", "D", "W", "M", "Y"]
 
 
 def available_calendars():
@@ -58,17 +57,17 @@ def available_calendars():
 def index_info(df):
     index_df = pd.DataFrame(index=df.index)
     idx = index_df.index
-    index_df['weekday'] = idx.weekday
-    index_df['day'] = idx.day
-    index_df['week'] = idx.isocalendar().week  # .week deprecated
-    index_df['month'] = idx.month
-    index_df['year'] = idx.year
-    index_df['hour'] = idx.hour
-    index_df['minute'] = idx.minute
-    index_df['second'] = idx.second
+    index_df["weekday"] = idx.weekday
+    index_df["day"] = idx.day
+    index_df["week"] = idx.isocalendar().week  # .week deprecated
+    index_df["month"] = idx.month
+    index_df["year"] = idx.year
+    index_df["hour"] = idx.hour
+    index_df["minute"] = idx.minute
+    index_df["second"] = idx.second
     # index_df['milisecond'] = idx.milisecond # ! Did pandas forget it?
-    index_df['microsecond'] = idx.microsecond
-    index_df['nanosecond'] = idx.nanosecond
+    index_df["microsecond"] = idx.microsecond
+    index_df["nanosecond"] = idx.nanosecond
     return index_df
 
 
@@ -97,14 +96,13 @@ def match_calendar(df, calendar, rule):
     return df[to_nanos(df_index).isin(to_nanos(cal_index))]
 
 
-def custom_resample(df, rule=None, calendar=None, weekdays=None,
-                    between_time=[], holidays=[]):
+def custom_resample(df, rule=None, calendar=None, weekdays=None, between_time=[], holidays=[]):
 
     minfreq = find_closest(df)
 
     if rule:
         if COMMON_FREQS.index(rule) < COMMON_FREQS.index(minfreq):
-            raise ArgumentError("rule frequency must be greater than min frequency")
+            raise RuntimeError("rule frequency must be greater than min frequency")
     else:
         rule = minfreq
 
@@ -129,27 +127,27 @@ def find_closest(df):
 
     Returns:
         [type]: [description]
-    """""
+    """ ""
 
     for f in COMMON_FREQS:
-        if minfreq(df) <= to_nano(pd.Timedelta('1' + f)):
+        if minfreq(df) <= to_nano(pd.Timedelta("1" + f)):
             return f
 
 
 # TODO: Merge two functions
 def to_nano(date):
     if isinstance(date, pd.Timedelta):
-        return int(date.total_seconds() * 10**9)
+        return int(date.total_seconds() * 10 ** 9)
     elif isinstance(date, pd.Timestamp):
-        return (date - pd.Timestamp("1970-01-01")) // pd.Timedelta('1ns')
+        return (date - pd.Timestamp("1970-01-01")) // pd.Timedelta("1ns")
 
 
 # TODO: Merge two functions
 def to_nanos(dates):
     if isinstance(dates[0], pd.Timedelta):
-        return [int(date.total_seconds() * 10**9) for date in dates]
+        return [int(date.total_seconds() * 10 ** 9) for date in dates]
     elif isinstance(dates[0], pd.Timestamp):
-        return (dates - pd.Timestamp("1970-01-01")) // pd.Timedelta('1ns')
+        return (dates - pd.Timestamp("1970-01-01")) // pd.Timedelta("1ns")
 
 
 def minfreq(data):

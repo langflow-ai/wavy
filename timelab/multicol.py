@@ -12,9 +12,7 @@ def from3d(arr, units, channels, timestamps):
     return MultiColumn(df)
 
 
-def rebuild_from_index(
-    array, index, units, channels, to_datetime=True, smash_dims=False
-):
+def rebuild_from_index(array, index, units, channels, to_datetime=True, smash_dims=False):
 
     # Needs to verify shape with dims
     if to_datetime:
@@ -36,9 +34,7 @@ def rebuild_from_index(
 def rebuild_from_array(array, df):
     # Needs to verify shape with dims
     # ! rebuilding may lead to unexpected column order if reproducing a dataframe
-    df = pd.DataFrame(
-        index=df.index, columns=pd.MultiIndex.from_tuples(df.columns.tolist())
-    )
+    df = pd.DataFrame(index=df.index, columns=pd.MultiIndex.from_tuples(df.columns.tolist()))
     df.loc[:, (slice(None), slice(None))] = array
     return MultiColumn(df)
 
@@ -67,8 +63,8 @@ def unsmash(df, sep="_", level_name="main"):
         channels = [i.split(sep)[0] for i in cols]
         try:
             units = [i.split(sep)[1] for i in cols]
-        except:
-            units = [level_name]*len(cols)
+        except Exception:
+            units = [level_name] * len(cols)
         tuples = list(zip(units, channels))
         multicols = pd.MultiIndex.from_tuples(tuples)
         new = pd.DataFrame(df.values, index=df.index, columns=multicols)
@@ -164,9 +160,7 @@ class MultiColumn(pd.DataFrame):
             temp = self[unit]
             temp_tranform = func(temp)
             if not isinstance(temp_tranform, pd.Series):
-                temp_tranform = pd.Series(
-                    data=temp_tranform, index=[str(temp.index[0])]
-                )
+                temp_tranform = pd.Series(data=temp_tranform, index=[str(temp.index[0])])
             result[unit] = temp_tranform
         result.columns = pd.MultiIndex.from_product([result.columns, [name]])
         result = result[units]

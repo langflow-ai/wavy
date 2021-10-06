@@ -1,6 +1,4 @@
 import random
-import warnings
-from collections import OrderedDict
 from copy import copy
 from itertools import groupby
 
@@ -8,9 +6,8 @@ import numpy as np
 import pandas as pd
 import plotly as px
 import plotly.graph_objects as go
-from pandas import MultiIndex
 
-pd.set_option('multi_sparse', True)  # To see multilevel indexes
+pd.set_option("multi_sparse", True)  # To see multilevel indexes
 pd.options.plotting.backend = "plotly"
 
 cmap1 = px.colors.qualitative.Plotly
@@ -19,17 +16,11 @@ cmap2 = cmap1[::-1]
 
 def ffill(arr, axis):
     arr = arr.astype(float)
-    idx_shape = tuple([slice(None)] + [np.newaxis]
-                      * (len(arr.shape) - axis - 1))
+    idx_shape = tuple([slice(None)] + [np.newaxis] * (len(arr.shape) - axis - 1))
     idx = np.where(~np.isnan(arr), np.arange(arr.shape[axis])[idx_shape], 0)
     np.maximum.accumulate(idx, axis=axis, out=idx)
     slc = [
-        np.arange(k)[
-            tuple(
-                slice(None) if dim == i else np.newaxis
-                for dim in range(len(arr.shape))
-            )
-        ]
+        np.arange(k)[tuple(slice(None) if dim == i else np.newaxis for dim in range(len(arr.shape)))]
         for i, k in enumerate(arr.shape)
     ]
 
@@ -39,17 +30,10 @@ def ffill(arr, axis):
 
 def bfill(arr, axis):
     arr = arr.astype(float)
-    idx_shape = tuple([slice(None)] + [np.newaxis]
-                      * (len(arr.shape) - axis - 1))
-    idx = np.where(~np.isnan(arr), np.arange(arr.shape[axis])[
-                   idx_shape], arr.shape[axis] - 1)
+    idx_shape = tuple([slice(None)] + [np.newaxis] * (len(arr.shape) - axis - 1))
+    idx = np.where(~np.isnan(arr), np.arange(arr.shape[axis])[idx_shape], arr.shape[axis] - 1)
     slc = [
-        np.arange(k)[
-            tuple(
-                slice(None) if dim == i else np.newaxis
-                for dim in range(len(arr.shape))
-            )
-        ]
+        np.arange(k)[tuple(slice(None) if dim == i else np.newaxis for dim in range(len(arr.shape)))]
         for i, k in enumerate(arr.shape)
     ]
 
@@ -65,12 +49,15 @@ def get_null_indexes(x):
     return s[s == True].index.tolist()
 
 
-def line_plot(df, return_traces=False, prefix='', dash='solid', cmap=cmap1, mode="lines"):
+def line_plot(df, return_traces=False, prefix="", dash="solid", cmap=cmap1, mode="lines"):
     fig = go.Figure()
     for idx, col in enumerate(df.columns):
-        fig.add_trace(go.Scatter(x=df.index, y=df[col], name=prefix + col, mode=mode,
-                                 line=dict(color=cmap[idx], width=2, dash=dash)))
-    fig.update_layout(title='', xaxis_title='Timestamps', yaxis_title='Values')
+        fig.add_trace(
+            go.Scatter(
+                x=df.index, y=df[col], name=prefix + col, mode=mode, line=dict(color=cmap[idx], width=2, dash=dash)
+            )
+        )
+    fig.update_layout(title="", xaxis_title="Timestamps", yaxis_title="Values")
     if return_traces:
         return fig
     else:
@@ -87,21 +74,21 @@ def pair_plot(pair, unit, channels=None):
 
     for _, channel in enumerate(channels):
         c = random.choice(cmap1)
-        fig.add_trace(go.Scatter(x=x.index, y=x[channel], name="x_" + channel,
-                                 line=dict(width=2, color=c)))
+        fig.add_trace(go.Scatter(x=x.index, y=x[channel], name="x_" + channel, line=dict(width=2, color=c)))
 
-        fig.add_trace(go.Scatter(x=y.index, y=y[channel], name="y_" + channel,
-                                 line=dict(width=2, dash='dot', color=c)))
+        fig.add_trace(
+            go.Scatter(x=y.index, y=y[channel], name="y_" + channel, line=dict(width=2, dash="dot", color=c))
+        )
 
-    fig.update_layout(title='', xaxis_title='Timestamps', yaxis_title='Values')
+    fig.update_layout(title="", xaxis_title="Timestamps", yaxis_title="Values")
     fig.show()
 
 
 def pred_plot(y_test, y_pred, unit, channels=None, mode="lines"):
-    test_trace = multi_plot(y_test, unit, channels, prefix='test_',
-                            return_traces=True, cmap=cmap1, mode=mode)
-    pred_trace = multi_plot(y_pred, unit, channels, prefix='pred_', return_traces=True, dash='dot', cmap=cmap2,
-                            mode=mode)
+    test_trace = multi_plot(y_test, unit, channels, prefix="test_", return_traces=True, cmap=cmap1, mode=mode)
+    pred_trace = multi_plot(
+        y_pred, unit, channels, prefix="pred_", return_traces=True, dash="dot", cmap=cmap2, mode=mode
+    )
     fig = copy(test_trace)
     for trace in pred_trace.data:
         fig.add_trace(trace)
@@ -133,7 +120,7 @@ def drop_zero_rows(df):
 
     """
     df = df.replace(0, np.nan)
-    df = df.dropna(how='all')
+    df = df.dropna(how="all")
     df = df.fillna(0)
     return df
 
@@ -176,7 +163,7 @@ def smash_array(array):
         array = np.hstack([array[i] for i in range(len(array))])
         return array
     else:
-        raise("Array must have 3 or 4 dimensions")
+        raise ("Array must have 3 or 4 dimensions")
 
 
 def shift(array, n):
@@ -194,6 +181,7 @@ def shift(array, n):
 
 
 # Rolling Functions
+
 
 def last_max(x):
     """

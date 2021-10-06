@@ -1,6 +1,12 @@
 from tensorflow.keras import Model
-from tensorflow.keras.layers import (Dense, Flatten, Input, Reshape,
-                                     SeparableConv1D, concatenate)
+from tensorflow.keras.layers import (
+    Dense,
+    Flatten,
+    Input,
+    Reshape,
+    SeparableConv1D,
+    concatenate,
+)
 from tensorflow.nn import relu, sigmoid
 
 from .panel import TimePanel
@@ -8,7 +14,6 @@ from .utils import smash_array
 
 
 class SeparateUnitModel:
-
     def __init__(self, panel, hidden_size=10, filters=10):
         self.model = self.build_model(panel, hidden_size, filters)
         self.panel = panel
@@ -20,18 +25,15 @@ class SeparateUnitModel:
             val = self.panel.val
 
         if train is None:
-            raise ValueError(
-                "Train panel must not be None. Try set panel training split before fitting.")
+            raise ValueError("Train panel must not be None. Try set panel training split before fitting.")
 
-        X_train = [smash_array(unit_train.X)
-                   for unit_train in train.split_units()]
+        X_train = [smash_array(unit_train.X) for unit_train in train.split_units()]
         y_train = train.y
 
         X_val = [smash_array(unit_val.X) for unit_val in val.split_units()]
         y_val = val.y
 
-        self.model.fit(X_train, y_train, validation_data=(
-            X_val, y_val), **kwargs)
+        self.model.fit(X_train, y_train, validation_data=(X_val, y_val), **kwargs)
         return self
 
     def predict(self, test: TimePanel = None):
@@ -53,23 +55,18 @@ class SeparateUnitModel:
         # Convoluting on the time dimension
         # [lookback] timesteps reduced to [filters] nodes
         name = input_.name
-        hidden = SeparableConv1D(
-            filters, lookback, name='hidden.' + name, activation=relu)(input_)
-        hidden = Flatten(name='flatten.' + name)(hidden)
-        hidden = Dense(hidden_size, activation=relu,
-                       name='dense.' + name)(hidden)
+        hidden = SeparableConv1D(filters, lookback, name="hidden." + name, activation=relu)(input_)
+        hidden = Flatten(name="flatten." + name)(hidden)
+        hidden = Dense(hidden_size, activation=relu, name="dense." + name)(hidden)
         return hidden
 
     def build_model(self, panel, hidden_size, filters):
-        inputs = [self.build_unit_input(unit_panel)
-                  for unit_panel in panel.split_units()]
-        hidden = [self.build_unit_hidden(input_, panel.lookback, hidden_size, filters)
-                  for input_ in inputs]
+        inputs = [self.build_unit_input(unit_panel) for unit_panel in panel.split_units()]
+        hidden = [self.build_unit_hidden(input_, panel.lookback, hidden_size, filters) for input_ in inputs]
         x = concatenate(hidden)
         x = Dense(panel.y.shape[1], activation=sigmoid)(x)
         outputs = Reshape(panel.y.shape[1:])(x)
 
         model = Model(inputs=inputs, outputs=outputs)
-        model.compile(optimizer="Adam", loss="binary_crossentropy",
-                      metrics=["binary_crossentropy", 'AUC'])
+        model.compile(optimizer="Adam", loss="binary_crossentropy", metrics=["binary_crossentropy", "AUC"])
         return model

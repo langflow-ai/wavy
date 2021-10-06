@@ -1,5 +1,5 @@
-from copy import copy
 import warnings
+from copy import copy
 
 import numpy as np
 import pandas as pd
@@ -9,43 +9,43 @@ from tqdm import tqdm
 from . import frequency as freq
 from .multicol import MultiColumn, rebuild_from_index
 from .pair import TimePair
-from .utils import all_equal, bfill, ffill, get_null_indexes, smash_array
+from .utils import bfill, ffill, get_null_indexes, smash_array
 
 
 def from_xy_data(xdata, ydata, lookback, horizon, gap=0):
     """
-    Gets TimePanels from x,y DataFrames
+     Gets TimePanels from x,y DataFrames
 
-    Parameters
-    ----------
-    xdata : DataFrame
-        Inputs to the model.
-    ydata : DataFrame
-        Outputs to the model.
-    lookback : int
-        How many time steps from the past are considered for the xdata.
-    horizon : int
-        How many time steps to the future are considered for the ydata.
-    gap : int, optional
-        How many time steps are ignored between the lookback and the horizon. The default is 0.
+     Parameters
+     ----------
+     xdata : DataFrame
+         Inputs to the model.
+     ydata : DataFrame
+         Outputs to the model.
+     lookback : int
+         How many time steps from the past are considered for the xdata.
+     horizon : int
+         How many time steps to the future are considered for the ydata.
+     gap : int, optional
+         How many time steps are ignored between the lookback and the horizon. The default is 0.
 
-    Raises
-    ------
-   ValueError
-        If the number of total time steps in the given dataset is not enough to create a TimePair.
-        I.e. the number of time steps has to be greater than or equal to 'lookback + horizon + gap'.
+     Raises
+     ------
+    ValueError
+         If the number of total time steps in the given dataset is not enough to create a TimePair.
+         I.e. the number of time steps has to be greater than or equal to 'lookback + horizon + gap'.
 
-    Returns
-    -------
-    TimePanel
-        TimePanel object containing all (input,output) TimePairs of te given dataset.
+     Returns
+     -------
+     TimePanel
+         TimePanel object containing all (input,output) TimePairs of te given dataset.
 
     """
 
     try:
         if not freq.infer(xdata) or not freq.infer(ydata):
             warnings.warn("Frequency is either not constant or negative.")
-    except:
+    except Exception:
         pass
 
     if xdata.isnull().values.any() or ydata.isnull().values.any():
@@ -85,11 +85,11 @@ def from_xy_data(xdata, ydata, lookback, horizon, gap=0):
     indexes = tqdm(indexes)
     pairs = [
         TimePair(
-            X[:, i - lookback: i, :],
-            y[:, i + gap: i + gap + horizon, :],
+            X[:, i - lookback : i, :],
+            y[:, i + gap : i + gap + horizon, :],
             indexes=(
-                x_data_indexes[i - lookback: i],
-                y_data_indexes[i + gap: i + gap + horizon],
+                x_data_indexes[i - lookback : i],
+                y_data_indexes[i + gap : i + gap + horizon],
             ),
             xunits=xunits,
             yunits=yunits,
@@ -105,13 +105,13 @@ def from_xy_data(xdata, ydata, lookback, horizon, gap=0):
     return TimePanel(pairs)
 
 
-
 def from_ypred(panel, ypred):
     panel_ = copy(panel)
     for i, pair in enumerate(panel_.pairs):
         # TODO: Replace with setitem
         pair.y = ypred[i]
     return panel_
+
 
 # def _from_xypred_data(xdata, ydata, y_pred, lookback, horizon, gap=0):
 #     """
@@ -320,7 +320,7 @@ def from_arrays(
     """
 
     xindex = index[: -horizon - gap]
-    yindex = index[lookback + gap:]
+    yindex = index[lookback + gap :]
     xdata = TimePanel.make_xdata(X, index, xindex, xunits, xchannels)
     ydata = TimePanel.make_ydata(y, index, yindex, yunits, ychannels)
     return from_xy_data(xdata, ydata, lookback, horizon, gap)
@@ -379,7 +379,7 @@ class TimePanel:
 
     @property
     def shape(self):
-        return pd.DataFrame([self.xshape, self.yshape], index=['X', 'y'])
+        return pd.DataFrame([self.xshape, self.yshape], index=["X", "y"])
 
     def _findna(self):
         X_indexes = get_null_indexes(self.X)
@@ -398,8 +398,7 @@ class TimePanel:
         """ ""
 
         null_indexes = self._findna()
-        new_pairs = [i for idx, i in enumerate(
-            self.pairs) if idx not in null_indexes]
+        new_pairs = [i for idx, i in enumerate(self.pairs) if idx not in null_indexes]
         print(len(self.pairs) - len(new_pairs))
         return TimePanel(new_pairs)
 
@@ -510,9 +509,7 @@ class TimePanel:
 
         """
 
-        ypred = [
-            model.predict(self.X[:, unit, :, :]) for unit, _ in enumerate(self.units)
-        ]
+        ypred = [model.predict(self.X[:, unit, :, :]) for unit, _ in enumerate(self.units)]
 
         return _from_xypred_data(
             self.xdata,
@@ -562,10 +559,7 @@ class TimePanel:
 
         """
 
-        pairs = [
-            pair.xapply(func=func, on=on, new_channel=new_channel)
-            for pair in tqdm(self.pairs)
-        ]
+        pairs = [pair.xapply(func=func, on=on, new_channel=new_channel) for pair in tqdm(self.pairs)]
         return TimePanel(pairs)
 
     def yapply(self, func, on="timestamps", new_channel=None):
@@ -605,10 +599,7 @@ class TimePanel:
 
         """
 
-        pairs = [
-            pair.yapply(func=func, on=on, new_channel=new_channel)
-            for pair in tqdm(self.pairs)
-        ]
+        pairs = [pair.yapply(func=func, on=on, new_channel=new_channel) for pair in tqdm(self.pairs)]
         return TimePanel(pairs)
 
     def xframe(self, idx):
@@ -676,24 +667,19 @@ class TimePanel:
 
         if mode not in ["X", "y"]:
             raise ValueError("Mode must be 'X' or 'y'.")
-        pairs = [
-            pair.add(new_panel[index], mode=mode)
-            for index, pair in tqdm(enumerate(self.pairs))
-        ]
+        pairs = [pair.add(new_panel[index], mode=mode) for index, pair in tqdm(enumerate(self.pairs))]
 
         return TimePanel(pairs)
 
     @staticmethod
     def channel_apply_numpy(x, func, ychannels):
         units = np.arange(0, x.shape[0])
-        result = [
-            func(pd.DataFrame(x[unit, :, :], columns=ychannels)) for unit in units
-        ]
+        result = [func(pd.DataFrame(x[unit, :, :], columns=ychannels)) for unit in units]
         return np.array(result)
 
     def fillna(self, value=None, method=None):
         # TODO: Make explicit for y and X
-        """ Fills the numpy array with parameter value
+        """Fills the numpy array with parameter value
         or using one of the methods 'ffill' or 'bfill'.
 
         Parameters
@@ -717,18 +703,16 @@ class TimePanel:
             New TimePanel after filling NaN values.
         """
         if method not in ["ffill", "bfill", None]:
-            raise ValueError(
-                f"Parameter method must be 'ffill' or 'bfill' but you passed '{method}'."
-            )
+            raise ValueError(f"Parameter method must be 'ffill' or 'bfill' but you passed '{method}'.")
 
         if value is not None:
             if isinstance(value, (int, float)):
-                def func(x, axis=None): return np.nan_to_num(
-                    x.astype(float), nan=value)
+
+                def func(x, axis=None):
+                    return np.nan_to_num(x.astype(float), nan=value)
+
             else:
-                raise ValueError(
-                    f"Parameter value must be int or float. It is {type(value)}."
-                )
+                raise ValueError(f"Parameter value must be int or float. It is {type(value)}.")
 
         elif method == "ffill":
             func = ffill
@@ -747,12 +731,8 @@ class TimePanel:
     def make_xdata(X, index, xindex, xunits, xchannels):
         X = smash_array(X)
         all_X = TimePanel.get_all_unique(X)
-        xdata_ = rebuild_from_index(
-            all_X, xindex, xunits, xchannels, to_datetime=True)
-        xdata = pd.DataFrame(
-            index=index, columns=pd.MultiIndex.from_product(
-                [xunits, xchannels])
-        )
+        xdata_ = rebuild_from_index(all_X, xindex, xunits, xchannels, to_datetime=True)
+        xdata = pd.DataFrame(index=index, columns=pd.MultiIndex.from_product([xunits, xchannels]))
         xdata.loc[xindex, (xunits, xchannels)] = xdata_.values
         return MultiColumn(xdata)
 
@@ -760,12 +740,8 @@ class TimePanel:
     def make_ydata(y, index, yindex, yunits, ychannels):
         y = smash_array(y)
         all_y = TimePanel.get_all_unique(y)
-        ydata_ = rebuild_from_index(
-            all_y, yindex, yunits, ychannels, to_datetime=True)
-        ydata = pd.DataFrame(
-            index=index, columns=pd.MultiIndex.from_product(
-                [yunits, ychannels])
-        )
+        ydata_ = rebuild_from_index(all_y, yindex, yunits, ychannels, to_datetime=True)
+        ydata = pd.DataFrame(index=index, columns=pd.MultiIndex.from_product([yunits, ychannels]))
         ydata.loc[yindex, (yunits, ychannels)] = ydata_.values
         return MultiColumn(ydata)
 
@@ -780,9 +756,7 @@ class TimePanel:
             Dataframe with all the X values.
 
         """
-        return self.make_xdata(
-            self.X, self.index, self.xindex, self.xunits, self.xchannels
-        )
+        return self.make_xdata(self.X, self.index, self.xindex, self.xunits, self.xchannels)
 
     @property
     def ydata(self):
@@ -795,9 +769,7 @@ class TimePanel:
             Dataframe with all the y values.
 
         """
-        return self.make_ydata(
-            self.y, self.index, self.yindex, self.yunits, self.ychannels
-        )
+        return self.make_ydata(self.y, self.index, self.yindex, self.yunits, self.ychannels)
 
     @property
     def xindex(self):
@@ -868,7 +840,7 @@ class TimePanel:
 
         """
         if self.val_size and self.train_size:
-            return self[self.train_size: int(self.train_size + self.val_size)]
+            return self[self.train_size : int(self.train_size + self.val_size)]
 
     @property
     def test(self):
@@ -883,7 +855,7 @@ class TimePanel:
 
         """
         if self.val_size and self.train_size:
-            return self[self.train_size + self.val_size:]
+            return self[self.train_size + self.val_size :]
 
     def view(self):
         """
@@ -987,10 +959,7 @@ class TimePanel:
 
         """
 
-        pairs = [
-            pair.filter(xunits, xchannels, yunits, ychannels)
-            for pair in tqdm(self.pairs)
-        ]
+        pairs = [pair.filter(xunits, xchannels, yunits, ychannels) for pair in tqdm(self.pairs)]
         return TimePanel(pairs)
 
     def split_units(self, yunits=False):
@@ -1016,18 +985,13 @@ class TimePanel:
             TimePanel(
                 [
                     TimePair(
-                        X=self.pairs[i]
-                        .X[index_unit, :, :]
-                        .reshape(1, self.lookback, -1),
-                        y=self.pairs[i].y[index_unit, :, :].reshape(
-                            1, self.horizon, -1)
+                        X=self.pairs[i].X[index_unit, :, :].reshape(1, self.lookback, -1),
+                        y=self.pairs[i].y[index_unit, :, :].reshape(1, self.horizon, -1)
                         if yunits
                         else self.pairs[i].y,
                         indexes=self.pairs[i].indexes,
                         xunits=[self.pairs[i].xunits[index_unit]],
-                        yunits=[self.pairs[i].yunits[index_unit]]
-                        if yunits
-                        else self.pairs[i].yunits,
+                        yunits=[self.pairs[i].yunits[index_unit]] if yunits else self.pairs[i].yunits,
                         xchannels=self.pairs[i].xchannels,
                         ychannels=self.pairs[i].ychannels,
                         lookback=self.pairs[i].lookback,
@@ -1047,9 +1011,7 @@ class TimePanel:
 
         xdata = self.xdata.swaplevel(i=-2, j=-1, axis=1)
         ydata = self.ydata.swaplevel(i=-2, j=-1, axis=1)
-        return from_xy_data(
-            xdata, ydata, horizon=self.horizon, lookback=self.lookback, gap=self.gap
-        )
+        return from_xy_data(xdata, ydata, horizon=self.horizon, lookback=self.lookback, gap=self.gap)
 
     def plot_data(self, start=None, end=None, channels=None, units=None, on="xdata"):
         """
@@ -1136,7 +1098,7 @@ class TimePanel:
 
         Returns:
             [type]: [description]
-        """""
+        """ ""
         pairs = []
         for i, pair in enumerate(self.pairs):
             pair_ = copy(pair)
@@ -1157,7 +1119,6 @@ class TimePanel:
             pairs.append(pair_)
         return TimePanel(pairs)
 
-
     def xflat(self):
         """
         Flattens X output for shallow ML models.
@@ -1170,8 +1131,7 @@ class TimePanel:
             DataFrame: DataFrame where each "xframe" is represented in a row.
         """
         # avoid indexing to 0
-        index = self.xindex if self.lookback == 1 else self.xindex[: -
-                                                                   self.lookback + 1]
+        index = self.xindex if self.lookback == 1 else self.xindex[: -self.lookback + 1]
 
         xflat = np.array([i.flatten() for i in self.X])
         xflat = pd.DataFrame(xflat, index=index)
@@ -1202,7 +1162,7 @@ class TimePanel:
         return f"<TimePanel, size {self.__len__()}>"
 
     def __getitem__(self, key):
-        start, stop, selection = None, None, None
+        _, _, selection = None, None, None
 
         if isinstance(key, int):
             selection = self.pairs[key]
@@ -1210,53 +1170,31 @@ class TimePanel:
                 return selection
 
         elif isinstance(key, str):
-            selection = [
-                pair
-                for pair in self.pairs
-                if pd.Timestamp(pair.xstart) == pd.Timestamp(key)
-            ]
+            selection = [pair for pair in self.pairs if pd.Timestamp(pair.xstart) == pd.Timestamp(key)]
             if selection:
                 return selection[0]  # No xstart repeat
 
         elif isinstance(key, slice):
             selection = self.pairs
-            if isinstance(key.start, pd.Timestamp) or isinstance(
-                key.stop, pd.Timestamp
-            ):
+            if isinstance(key.start, pd.Timestamp) or isinstance(key.stop, pd.Timestamp):
                 if key.start:
-                    selection = [
-                        pair
-                        for pair in selection
-                        if pd.Timestamp(pair.xstart) >= key.start
-                    ]
+                    selection = [pair for pair in selection if pd.Timestamp(pair.xstart) >= key.start]
                 if key.stop:
-                    selection = [
-                        pair
-                        for pair in selection
-                        if pd.Timestamp(pair.xstart) < key.stop
-                    ]
+                    selection = [pair for pair in selection if pd.Timestamp(pair.xstart) < key.stop]
 
             elif isinstance(key.start, int) or isinstance(key.stop, int):
                 if key.start and key.stop:
-                    selection = selection[key.start: key.stop]
+                    selection = selection[key.start : key.stop]
                 elif key.start:
-                    selection = selection[key.start:]
+                    selection = selection[key.start :]
                 elif key.stop:
                     selection = selection[: key.stop]
 
             elif isinstance(key.start, str) or isinstance(key.stop, str):
                 if key.start:
-                    selection = [
-                        pair
-                        for pair in selection
-                        if pd.Timestamp(pair.xstart) >= pd.Timestamp(key.start)
-                    ]
+                    selection = [pair for pair in selection if pd.Timestamp(pair.xstart) >= pd.Timestamp(key.start)]
                 if key.stop:
-                    selection = [
-                        pair
-                        for pair in selection
-                        if pd.Timestamp(pair.xstart) < pd.Timestamp(key.stop)
-                    ]
+                    selection = [pair for pair in selection if pd.Timestamp(pair.xstart) < pd.Timestamp(key.stop)]
 
         if selection:
             return TimePanel(selection)

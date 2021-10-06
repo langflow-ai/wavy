@@ -42,9 +42,7 @@ def find_gap(x_indexes, y_indexes):
             return int(gap[0] - 1)
         else:
             print("Gap not found")
-            raise ValueError(
-                f"{x_y_diff.total_seconds()} % {diff.total_seconds()} != 0"
-            )
+            raise ValueError(f"{x_y_diff.total_seconds()} % {diff.total_seconds()} != 0")
 
 
 def from_dataframe(
@@ -68,9 +66,9 @@ def from_dataframe(
 
 def from_frames(xframe, yframe, gap=None):
     """
-        Pair of two time series dataframes.
-        xframe: multi-level columns dataframe
-        yframe: multi-level columns dataframe
+    Pair of two time series dataframes.
+    xframe: multi-level columns dataframe
+    yframe: multi-level columns dataframe
     """
 
     xframe = MultiColumn(xframe)
@@ -136,13 +134,9 @@ class TimePair:
         if not isinstance(yunits, list):
             raise TypeError(f"Attribute 'yunits' must be a list, it is {type(yunits)}")
         if not isinstance(xchannels, list):
-            raise TypeError(
-                f"Attribute 'xchannels' must be a list, it is {type(xchannels)}"
-            )
+            raise TypeError(f"Attribute 'xchannels' must be a list, it is {type(xchannels)}")
         if not isinstance(ychannels, list):
-            raise TypeError(
-                f"Attribute 'ychannels' must be a list, it is {type(ychannels)}"
-            )
+            raise TypeError(f"Attribute 'ychannels' must be a list, it is {type(ychannels)}")
 
         # Assert or warn that no unit (column level 0) repeat names
 
@@ -159,9 +153,7 @@ class TimePair:
         else:
             self.gap = find_gap(*indexes)
             if lookback == 1 and horizon == 1:
-                raise ValueError(
-                    "If lookback and horizon equals 1, gap should be provided."
-                )
+                raise ValueError("If lookback and horizon equals 1, gap should be provided.")
 
         self.xstart = self.indexes[0][0]
         self.ystart = self.indexes[1][0]
@@ -182,9 +174,7 @@ class TimePair:
         Dataframe with the X values of this pair.
 
         """
-        return rebuild_from_index(
-            self.X, self.indexes[0], self.xunits, self.xchannels, smash_dims=True
-        )
+        return rebuild_from_index(self.X, self.indexes[0], self.xunits, self.xchannels, smash_dims=True)
 
     @property
     def yframe(self):
@@ -192,9 +182,7 @@ class TimePair:
         Dataframe with the y values of this pair.
 
         """
-        return rebuild_from_index(
-            self.y, self.indexes[1], self.yunits, self.ychannels, smash_dims=True
-        )
+        return rebuild_from_index(self.y, self.indexes[1], self.yunits, self.ychannels, smash_dims=True)
 
     def _sel_units(self, xunits=None, yunits=None):
 
@@ -250,7 +238,7 @@ class TimePair:
                 lookback = 1
         else:
             lookback = 1
-            shape = (1,1)
+            shape = (1, 1)
 
         if on == "channels":
             assert new_channel, "Must set new channel name"
@@ -299,7 +287,7 @@ class TimePair:
                 horizon = 1
         else:
             horizon = 1
-            shape = (1,1)
+            shape = (1, 1)
 
         if on == "channels":
             assert new_channel, "Must set new channel name"
@@ -407,10 +395,7 @@ class TimePair:
 
         if mode == "X":
             if new_pair.X.shape[1] != self.X.shape[1]:
-                new_pair.X = (
-                    np.ones((new_pair.X.shape[0], self.X.shape[1], new_pair.X.shape[2]))
-                    * new_pair.X
-                )
+                new_pair.X = np.ones((new_pair.X.shape[0], self.X.shape[1], new_pair.X.shape[2])) * new_pair.X
             X = np.concatenate((self.X, new_pair.X), axis=2)
             xchannels = self.xchannels + new_pair.xchannels
             y = self.y
@@ -418,10 +403,7 @@ class TimePair:
 
         elif mode == "y":
             if new_pair.y.shape[1] != self.y.shape[1]:
-                new_pair.y = (
-                    np.ones((new_pair.y.shape[0], self.y.shape[1], new_pair.y.shape[2]))
-                    * new_pair.y
-                )
+                new_pair.y = np.ones((new_pair.y.shape[0], self.y.shape[1], new_pair.y.shape[2])) * new_pair.y
             X = self.X
             xchannels = self.xchannels
             y = np.concatenate((self.y, new_pair.y), axis=2)
