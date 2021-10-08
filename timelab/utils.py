@@ -1,11 +1,9 @@
-import random
 from copy import copy
 from itertools import groupby
 
 import numpy as np
 import pandas as pd
 import plotly as px
-import plotly.graph_objects as go
 
 pd.set_option("multi_sparse", True)  # To see multilevel indexes
 pd.options.plotting.backend = "plotly"
@@ -48,51 +46,12 @@ def get_null_indexes(x):
     s = pd.Series(s).isna()
     return s[s == True].index.tolist()
 
-
-def line_plot(df, return_traces=False, prefix="", dash="solid", cmap=cmap1, mode="lines"):
-    fig = go.Figure()
-    for idx, col in enumerate(df.columns):
-        fig.add_trace(
-            go.Scatter(
-                x=df.index, y=df[col], name=prefix + col, mode=mode, line=dict(color=cmap[idx], width=2, dash=dash)
-            )
-        )
-    fig.update_layout(title="", xaxis_title="Timestamps", yaxis_title="Values")
-    if return_traces:
-        return fig
-    else:
-        fig.show()
-
-
-def pair_plot(pair, unit, channels=None):
-    if not channels:
-        channels = pair.xframe[unit].columns
-    x = pair.xframe[unit][channels]
-    y = pair.yframe[unit][channels]
-
-    fig = go.Figure()
-
-    for _, channel in enumerate(channels):
-        c = random.choice(cmap1)
-        fig.add_trace(go.Scatter(x=x.index, y=x[channel], name="x_" + channel, line=dict(width=2, color=c)))
-
-        fig.add_trace(
-            go.Scatter(x=y.index, y=y[channel], name="y_" + channel, line=dict(width=2, dash="dot", color=c))
-        )
-
-    fig.update_layout(title="", xaxis_title="Timestamps", yaxis_title="Values")
-    fig.show()
-
-
-def pred_plot(y_test, y_pred, unit, channels=None, mode="lines"):
-    test_trace = multi_plot(y_test, unit, channels, prefix="test_", return_traces=True, cmap=cmap1, mode=mode)
-    pred_trace = multi_plot(
-        y_pred, unit, channels, prefix="pred_", return_traces=True, dash="dot", cmap=cmap2, mode=mode
-    )
-    fig = copy(test_trace)
-    for trace in pred_trace.data:
-        fig.add_trace(trace)
-    fig.show()
+# TODO: Check how this works
+def get_all_unique(array):
+    all_ = [i for i in array[0]]
+    for i in array[1:]:
+        all_.append(i[-1])
+    return np.array(all_)
 
 
 def all_equal(iterable):
@@ -163,7 +122,7 @@ def smash_array(array):
         array = np.hstack([array[i] for i in range(len(array))])
         return array
     else:
-        raise ("Array must have 3 or 4 dimensions")
+        raise ValueError("Array must have 3 or 4 dimensions")
 
 
 def shift(array, n):

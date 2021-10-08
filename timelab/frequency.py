@@ -102,14 +102,14 @@ def custom_resample(df, rule=None, calendar=None, weekdays=None, between_time=[]
 
     if rule:
         if COMMON_FREQS.index(rule) < COMMON_FREQS.index(minfreq):
-            raise RuntimeError("rule frequency must be greater than min frequency")
+            raise ValueError("rule frequency must be greater than min frequency")
     else:
         rule = minfreq
 
     df = df.resample(rule).asfreq()
 
     if calendar:
-        df = match_calendar(df, cal, rule)
+        df = match_calendar(df, calendar, rule)
     if weekdays:
         df = df.loc[df.index.weekday.isin(weekdays)]
     if holidays:
