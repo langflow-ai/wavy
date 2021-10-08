@@ -1,3 +1,5 @@
+from copy import copy
+from typing import List
 import numpy as np
 import pandas as pd
 
@@ -46,20 +48,13 @@ def find_gap(x_indexes, y_indexes):
 
 
 def from_dataframe(
-    dataframe,
-    lookback,
-    horizon,
-    gap=0,
-    xunits=None,
-    xchannels=None,
-    yunits=None,
-    ychannels=None,
+    dataframe, lookback, horizon, gap=0, xunits=None, xchannels=None, yunits=None, ychannels=None,
 ):
     # Add start index as parameter
     xframe = dataframe.iloc[:lookback, :]
     yframe = dataframe.iloc[lookback + gap : lookback + gap + horizon, :]
     xframe = MultiColumn(xframe).filter(xunits, xchannels)
-    yframe = MultiColumn(yframe).filter(xunits, xchannels)
+    yframe = MultiColumn(yframe).filter(yunits, ychannels)
 
     return from_frames(xframe, yframe, gap)
 
@@ -74,9 +69,8 @@ def from_frames(xframe, yframe, gap=None):
     xframe = MultiColumn(xframe)
     yframe = MultiColumn(yframe)
 
-    x_idx = list(map(str, xframe.index))
-    y_idx = list(map(str, yframe.index))
-    indexes = (x_idx, y_idx)
+    xindex = list(map(str, xframe.index))
+    yindex = list(map(str, yframe.index))
 
     xunits = xframe.units
     yunits = yframe.units
@@ -85,13 +79,6 @@ def from_frames(xframe, yframe, gap=None):
     lookback = len(xframe)
     horizon = len(yframe)
 
-    # Assert frequency is constant
-    # ! Must find a way to check when size is 2
-    #     if lookback > 2:
-    #         assert check_frequency(xframe)
-    #     if horizon > 2:
-    #         assert check_frequency(yframe)
-
     # TODO: Needs tests
     X = np.array([xframe[i].values for i in xunits])
     y = np.array([yframe[i].values for i in yunits])
@@ -99,12 +86,13 @@ def from_frames(xframe, yframe, gap=None):
     # y = yframe.values
 
     return TimePair(
-        X=X,
-        y=y,
-        indexes=indexes,
+        xvalues=X,
+        yvalues=y,
+        xindex=xindex,
         xunits=xunits,
         xchannels=xchannels,
         yunits=yunits,
+        yindex=yindex,
         ychannels=ychannels,
         lookback=lookback,
         horizon=horizon,
@@ -112,25 +100,34 @@ def from_frames(xframe, yframe, gap=None):
     )
 
 
+class PairBlock:
+    def __init__(self, pair, values, units, channels, index):
+        self._pair = pair
+        self.units = units
+        self.channels = channels
+        self.index = index
+        self.start = self.index[0]
+        self.end = self.index[-1]
+        self.values = values
+
+    @property
+    def frame(self):
+        """
+        Dataframe with the X values of this pair.
+
+        """
+        return rebuild_from_index(self.values, self.index, self.units, self.channels, smash_dims=True)
+
+
 class TimePair:
     # Constant Frequency => X_freq == y_freq
 
     def __init__(
-        self,
-        X,
-        y,
-        indexes,
-        xunits,
-        xchannels,
-        yunits,
-        ychannels,
-        lookback,
-        horizon,
-        gap=None,
+        self, xvalues, yvalues, xunits, xchannels, xindex, yunits, ychannels, yindex, lookback, horizon, gap=None
     ):
 
         if not isinstance(xunits, list):
-            raise TypeError(f"Attribute 'xunits' must be a list, it is {type(xunits)}")
+            raise TypeError(f"Attribute 'xunits' must be a list, it is {type(xunits)}, {xunits}")
         if not isinstance(yunits, list):
             raise TypeError(f"Attribute 'yunits' must be a list, it is {type(yunits)}")
         if not isinstance(xchannels, list):
@@ -139,50 +136,83 @@ class TimePair:
             raise TypeError(f"Attribute 'ychannels' must be a list, it is {type(ychannels)}")
 
         # Assert or warn that no unit (column level 0) repeat names
-
-        self.indexes = indexes
-        self.xunits = xunits
-        self.yunits = yunits
-        self.xchannels = xchannels
-        self.ychannels = ychannels
+        self._x = PairBlock(pair=self, values=xvalues, units=xunits, channels=xchannels, index=xindex)
+        self._y = PairBlock(pair=self, values=yvalues, units=yunits, channels=ychannels, index=yindex)
         self.lookback = lookback
         self.horizon = horizon
 
         if gap is not None:
             self.gap = gap
         else:
-            self.gap = find_gap(*indexes)
+            self.gap = find_gap(xindex, yindex)
             if lookback == 1 and horizon == 1:
                 raise ValueError("If lookback and horizon equals 1, gap should be provided.")
 
-        self.xstart = self.indexes[0][0]
-        self.ystart = self.indexes[1][0]
-        self.xend = self.indexes[0][-1]
-        self.yend = self.indexes[1][-1]
-
         # Assert data indexes don't overlap (y must come after x)
-        assert (
-            self.xend < self.ystart
-        ), f"Data indexes can't overlap (y must come after x). xend: {self.xend} ystart: {self.ystart}"
+        if self._x.end >= self._y.start:
+            raise ValueError(
+                f"Data indexes can't overlap (y must come after x). xend: {self._x.end} ystart: {self._y.start}"
+            )
 
-        self.X = X
-        self.y = y
+        self._active_block = None
+
+    def __eq__(self, other):
+        x_equals = np.all(np.nan_to_num(self.x.values, nan=0) == np.nan_to_num(other.x.values, nan=0))
+        y_equals = np.all(np.all(np.nan_to_num(self.x.values, nan=0) == np.nan_to_num(other.x.values, nan=0)))
+
+        return x_equals and y_equals
+
+    @property
+    def x(self):
+        pair = copy(self)
+        pair._active_block = "x"
+        return pair
+
+    @property
+    def y(self):
+        pair = copy(self)
+        pair._active_block = "y"
+        return pair
 
     @property
     def xframe(self):
-        """
-        Dataframe with the X values of this pair.
-
-        """
-        return rebuild_from_index(self.X, self.indexes[0], self.xunits, self.xchannels, smash_dims=True)
+        return self._x.frame
 
     @property
     def yframe(self):
-        """
-        Dataframe with the y values of this pair.
+        return self._y.frame
 
-        """
-        return rebuild_from_index(self.y, self.indexes[1], self.yunits, self.ychannels, smash_dims=True)
+    @property
+    def units(self):
+        return self._get_attribute("units")
+
+    @property
+    def channels(self):
+        return self._get_attribute("channels")
+
+    @property
+    def start(self):
+        return self._get_attribute("start")
+
+    @property
+    def end(self):
+        return self._get_attribute("end")
+
+    @property
+    def index(self):
+        return self._get_attribute("index")
+
+    @property
+    def values(self):
+        return self._get_attribute("values")
+
+    def _get_attribute(self, name):
+        if self._active_block == "x":
+            return getattr(self._x, name)
+        elif self._active_block == "y":
+            return getattr(self._y, name)
+        elif self._active_block is None:
+            return (getattr(self._x, name), getattr(self._y, name))
 
     def _sel_units(self, xunits=None, yunits=None):
 
@@ -192,31 +222,42 @@ class TimePair:
             yunits = [yunits]
 
         if not xunits:
-            xunits = self.xunits
+            xunits = self._x.units
         if not yunits:
-            yunits = self.yunits
+            yunits = self._y.units
 
         # Improve variable naming
-        xus = (self.xunits.index(xu) for xu in xunits)
-        yus = (self.yunits.index(yu) for yu in yunits)
+        xus = [self._x.units.index(xu) for xu in xunits]
+        yus = [self._y.units.index(yu) for yu in yunits]
 
-        X_sel = self.X[xus, :, :]
-        y_sel = self.y[yus, :, :]
+        X_sel = self._x.values[xus, :, :]
+        y_sel = self._y.values[yus, :, :]
 
         return TimePair(
-            X_sel,
-            y_sel,
-            self.indexes,
-            xunits,
-            self.xchannels,
-            yunits,
-            self.ychannels,
-            self.lookback,
-            self.horizon,
-            self.gap,
+            xvalues=X_sel,
+            yvalues=y_sel,
+            xindex=self._x.index,
+            xunits=xunits,
+            xchannels=self._x.channels,
+            yunits=yunits,
+            yindex=self._y.index,
+            ychannels=self._y.channels,
+            lookback=self.lookback,
+            horizon=self.horizon,
+            gap=self.gap,
         )
 
-    def xapply(self, func, on="timestamps", new_channel=None):
+    def apply(self, func, on="timestamps", new_channel=None):
+        if self._active_block == "x":
+            result = self._xapply(func, on, new_channel)
+        elif self._active_block == "y":
+            result = self._yapply(func, on, new_channel)
+        elif self._active_block is None:
+            result = self._xapply(func, on, new_channel)
+            result = result._yapply(func, on, new_channel)
+        return result
+
+    def _xapply(self, func, on="timestamps", new_channel=None):
         """
         Parameters:
         func :  array function with axis argument
@@ -228,14 +269,11 @@ class TimePair:
         func_ = add_pair(func, self)
         func_ = add_axis(func_)
 
-        X_ = func_(self.X, axis=axis_map[on])
+        X_ = func_(self._x.values, axis=axis_map[on])
         # check if the answer is an scalar or an array
         if hasattr(X_, "__len__"):
             shape = X_.shape
-            if X_.ndim == 3:
-                lookback = shape[1]
-            else:
-                lookback = 1
+            lookback = shape[1] if X_.ndim == 3 else 1
         else:
             lookback = 1
             shape = (1, 1)
@@ -243,29 +281,28 @@ class TimePair:
         if on == "channels":
             assert new_channel, "Must set new channel name"
             xchannels = [new_channel]
-            indexes = (self.indexes[0][:lookback], self.indexes[1])
             X_ = X_.reshape((shape[0], lookback, 1))
 
         elif on == "timestamps":
             assert not new_channel, "No channel is created if applying on timestamps"
-            xchannels = self.xchannels
-            indexes = (self.indexes[0][:lookback], self.indexes[1])
+            xchannels = self._x.channels
             X_ = X_.reshape((shape[0], lookback, shape[-1]))
 
         return TimePair(
-            X_,
-            self.y,
-            indexes,
-            self.xunits,
-            xchannels,
-            self.yunits,
-            self.ychannels,
-            lookback,
-            self.horizon,
-            self.gap,
+            xvalues=X_,
+            yvalues=self._y.values,
+            xindex=self._x.index[:lookback],
+            xunits=self._x.units,
+            xchannels=xchannels,
+            yunits=self._y.units,
+            yindex=self._y.index,
+            ychannels=self._y.channels,
+            lookback=lookback,
+            horizon=self.horizon,
+            gap=self.gap,
         )
 
-    def yapply(self, func, on="timestamps", new_channel=None):
+    def _yapply(self, func, on="timestamps", new_channel=None):
         """
         Parameters:
         func :  array function with axis argument
@@ -277,14 +314,11 @@ class TimePair:
         func_ = add_pair(func, self)
         func_ = add_axis(func_)
 
-        y_ = func_(self.y, axis=axis_map[on])
+        y_ = func_(self._y.values, axis=axis_map[on])
         # check if the answer is an scalar or an array
         if hasattr(y_, "__len__"):
             shape = y_.shape
-            if y_.ndim == 3:
-                horizon = shape[1]
-            else:
-                horizon = 1
+            horizon = shape[1] if y_.ndim == 3 else 1
         else:
             horizon = 1
             shape = (1, 1)
@@ -292,29 +326,26 @@ class TimePair:
         if on == "channels":
             assert new_channel, "Must set new channel name"
             ychannels = [new_channel]
-            indexes = (self.indexes[0], self.indexes[1][:horizon])
             y_ = y_.reshape((shape[0], horizon, 1))
 
         elif on == "timestamps":
             assert not new_channel, "No channel is created if applying on timestamps"
-            ychannels = self.ychannels
-            indexes = (self.indexes[0], self.indexes[1][:horizon])
+            ychannels = self._y.channels
             y_ = y_.reshape((shape[0], horizon, shape[-1]))
 
-        pair = TimePair(
-            self.X,
-            y_,
-            indexes,
-            self.xunits,
-            self.xchannels,
-            self.yunits,
-            ychannels,
-            self.lookback,
-            horizon,
-            self.gap,
+        return TimePair(
+            xvalues=self._x.values,
+            yvalues=y_,
+            xindex=self._x.index,
+            xunits=self._x.units,
+            xchannels=self._x.channels,
+            yunits=self._y.units,
+            yindex=self._y.index[:horizon],
+            ychannels=ychannels,
+            lookback=self.lookback,
+            horizon=horizon,
+            gap=self.gap,
         )
-
-        return pair
 
     def _sel_channels(self, xchannels=None, ychannels=None):
 
@@ -324,30 +355,31 @@ class TimePair:
             ychannels = [ychannels]
 
         if not xchannels:
-            xchannels = self.xchannels
+            xchannels = self._x.channels
         if not ychannels:
-            ychannels = self.ychannels
+            ychannels = self._y.channels
 
-        xcs = (self.xchannels.index(xc) for xc in xchannels)
-        ycs = (self.ychannels.index(yc) for yc in ychannels)
+        xcs = [self._x.channels.index(xc) for xc in xchannels]
+        ycs = [self._y.channels.index(yc) for yc in ychannels]
 
-        X_sel = self.X[:, :, xcs]
-        y_sel = self.y[:, :, ycs]
+        X_sel = self._x.values[:, :, xcs]
+        y_sel = self._y.values[:, :, ycs]
 
         return TimePair(
-            X_sel,
-            y_sel,
-            self.indexes,
-            self.xunits,
-            xchannels,
-            self.yunits,
-            ychannels,
-            self.lookback,
-            self.horizon,
-            self.gap,
+            xvalues=X_sel,
+            yvalues=y_sel,
+            xindex=self._x.index,
+            xunits=self._x.units,
+            xchannels=xchannels,
+            yunits=self._y.units,
+            yindex=self._y.index,
+            ychannels=ychannels,
+            lookback=self.lookback,
+            horizon=self.horizon,
+            gap=self.gap,
         )
 
-    def filter(self, xunits=None, xchannels=None, yunits=None, ychannels=None):
+    def filter(self, units=None, channels=None):
         """
         Returns the pair with only the select units and channels
 
@@ -369,12 +401,19 @@ class TimePair:
             New TimePair with only the selected channels and units.
 
         """
+        if self._active_block == "x":
+            selected = self._sel_units(xunits=units, yunits=None)
+            selected = selected._sel_channels(xchannels=channels, ychannels=None)
+        elif self._active_block == "y":
+            selected = self._sel_units(xunits=None, yunits=units)
+            selected = selected._sel_channels(xchannels=None, ychannels=channels)
+        elif self._active_block is None:
+            selected = self._sel_units(xunits=units, yunits=units)
+            selected = selected._sel_channels(xchannels=channels, ychannels=channels)
 
-        selected = self._sel_units(xunits=xunits, yunits=yunits)
-        selected = selected._sel_channels(xchannels=xchannels, ychannels=ychannels)
         return selected
 
-    def add(self, new_pair, mode):
+    def add_channel(self, new_pair):
         """
         Returns the pair with the new channel
 
@@ -393,31 +432,39 @@ class TimePair:
 
         """
 
-        if mode == "X":
-            if new_pair.X.shape[1] != self.X.shape[1]:
-                new_pair.X = np.ones((new_pair.X.shape[0], self.X.shape[1], new_pair.X.shape[2])) * new_pair.X
-            X = np.concatenate((self.X, new_pair.X), axis=2)
-            xchannels = self.xchannels + new_pair.xchannels
-            y = self.y
-            ychannels = self.ychannels
+        if self._active_block == "x":
+            if new_pair._x.values.shape[1] != self._x.values.shape[1]:
+                new_pair._x.values = (
+                    np.ones((new_pair._x.values.shape[0], self._x.values.shape[1], new_pair._x.values.shape[2]))
+                    * new_pair._x.values
+                )
+            X = np.concatenate((self._x.values, new_pair._x.values), axis=2)
+            xchannels = self._x.channels + new_pair._x.channels
+            y = self._y.values
+            ychannels = self._y.channels
 
-        elif mode == "y":
-            if new_pair.y.shape[1] != self.y.shape[1]:
-                new_pair.y = np.ones((new_pair.y.shape[0], self.y.shape[1], new_pair.y.shape[2])) * new_pair.y
-            X = self.X
-            xchannels = self.xchannels
-            y = np.concatenate((self.y, new_pair.y), axis=2)
-            ychannels = self.ychannels + new_pair.ychannels
+        elif self._active_block == "y":
+            if new_pair._y.values.shape[1] != self._y.values.shape[1]:
+                new_pair._y.values = (
+                    np.ones((new_pair._y.values.shape[0], self._y.values.shape[1], new_pair._y.values.shape[2]))
+                    * new_pair._y.values
+                )
+            X = self._x.values
+            xchannels = self._x.channels
+            y = np.concatenate((self._y.values, new_pair._y.values), axis=2)
+            ychannels = self._y.channels + new_pair._y.channels
 
         return TimePair(
-            X,
-            y,
-            self.indexes,
-            self.xunits,
-            xchannels,
-            self.yunits,
-            ychannels,
-            self.lookback,
-            self.horizon,
-            self.gap,
+            xvalues=X,
+            yvalues=y,
+            xindex=self._x.index,
+            xunits=self._x.units,
+            xchannels=xchannels,
+            yunits=self._y.units,
+            yindex=self._y.index,
+            ychannels=ychannels,
+            lookback=self.lookback,
+            horizon=self.horizon,
+            gap=self.gap,
         )
+

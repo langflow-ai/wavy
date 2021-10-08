@@ -111,16 +111,18 @@ class MultiColumn(pd.DataFrame):
         if type(channels) == str:
             channels = [channels]
 
-        if units is not None:
-            if not all(unit in self.columns.levels[0] for unit in units):
-                raise ValueError(
-                    f"One of the units is not in columns.\nUnits: {units}\nColumns: {list(self.columns.levels[0])}"
-                )
-        if channels is not None:
-            if not all(channel in self.columns.levels[1] for channel in channels):
-                raise ValueError(
-                    f"One of the channels is not in columns.\nChannels:{channels}\nColumns:{list(self.columns.levels[1])}"
-                )
+        if units is not None and any(
+            unit not in self.columns.levels[0] for unit in units
+        ):
+            raise ValueError(
+                f"One of the units is not in columns.\nUnits: {units}\nColumns: {list(self.columns.levels[0])}"
+            )
+        if channels is not None and not all(
+            channel in self.columns.levels[1] for channel in channels
+        ):
+            raise ValueError(
+                f"One of the channels is not in columns.\nChannels:{channels}\nColumns:{list(self.columns.levels[1])}"
+            )
         selection = self.filter_units(units)
         selection = selection.filter_channels(channels)
         return selection
