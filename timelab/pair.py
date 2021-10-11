@@ -101,7 +101,8 @@ def from_frames(xframe, yframe, gap=None):
 
 
 class PairBlock:
-    def __init__(self, pair, values, units, channels, index):
+    def __init__(self, pair, values, units, channels, index, name):
+        self.name = name
         self._pair = pair
         self.units = units
         self.channels = channels
@@ -136,8 +137,8 @@ class TimePair:
             raise TypeError(f"Attribute 'ychannels' must be a list, it is {type(ychannels)}")
 
         # Assert or warn that no unit (column level 0) repeat names
-        self._x = PairBlock(pair=self, values=xvalues, units=xunits, channels=xchannels, index=xindex)
-        self._y = PairBlock(pair=self, values=yvalues, units=yunits, channels=ychannels, index=yindex)
+        self._x = PairBlock(pair=self, values=xvalues, units=xunits, channels=xchannels, index=xindex, name='x')
+        self._y = PairBlock(pair=self, values=yvalues, units=yunits, channels=ychannels, index=yindex, name='y')
         self.lookback = lookback
         self.horizon = horizon
 
@@ -184,36 +185,38 @@ class TimePair:
 
     @property
     def units(self):
-        return self._get_attribute("units")
+        return self._get_block_attr("units")
 
     @property
     def channels(self):
-        return self._get_attribute("channels")
+        return self._get_block_attr("channels")
 
     @property
     def start(self):
-        return self._get_attribute("start")
+        return self._get_block_attr("start")
 
     @property
     def end(self):
-        return self._get_attribute("end")
+        return self._get_block_attr("end")
 
     @property
     def index(self):
-        return self._get_attribute("index")
+        return self._get_block_attr("index")
 
     @property
     def values(self):
-        return self._get_attribute("values")
+        return self._get_block_attr("values")
 
-    def _get_attribute(self, name):
+    # TODO: Repeated function from Panel, merge
+    def _get_block_attr(self, name):
         if self._active_block == "x":
             return getattr(self._x, name)
         elif self._active_block == "y":
             return getattr(self._y, name)
-        elif self._active_block is None:
+        if self._active_block is None:
             return (getattr(self._x, name), getattr(self._y, name))
 
+    # TODO: Implement from block
     def _sel_units(self, xunits=None, yunits=None):
 
         if isinstance(xunits, str):
@@ -249,14 +252,16 @@ class TimePair:
 
     def apply(self, func, on="timestamps", new_channel=None):
         if self._active_block == "x":
-            result = self._xapply(func, on, new_channel)
+            result = self._xapply(func=func, on=on, new_channel=new_channel)
         elif self._active_block == "y":
-            result = self._yapply(func, on, new_channel)
+            result = self._yapply(func=func, on=on, new_channel=new_channel)
         elif self._active_block is None:
-            result = self._xapply(func, on, new_channel)
-            result = result._yapply(func, on, new_channel)
+            result = self._xapply(func=func, on=on, new_channel=new_channel)
+            result = result._yapply(func=func, on=on, new_channel=new_channel)
         return result
 
+
+    # TODO: Implement from block
     def _xapply(self, func, on="timestamps", new_channel=None):
         """
         Parameters:
@@ -302,6 +307,7 @@ class TimePair:
             gap=self.gap,
         )
 
+    # TODO: Implement from block
     def _yapply(self, func, on="timestamps", new_channel=None):
         """
         Parameters:
@@ -347,6 +353,7 @@ class TimePair:
             gap=self.gap,
         )
 
+    # TODO: Implement from block
     def _sel_channels(self, xchannels=None, ychannels=None):
 
         if isinstance(xchannels, str):
@@ -379,6 +386,7 @@ class TimePair:
             gap=self.gap,
         )
 
+    # TODO: Implement filter from block
     def filter(self, units=None, channels=None):
         """
         Returns the pair with only the select units and channels
@@ -413,6 +421,7 @@ class TimePair:
 
         return selected
 
+    # TODO: Implement from block
     def add_channel(self, new_pair):
         """
         Returns the pair with the new channel
