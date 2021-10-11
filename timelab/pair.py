@@ -386,7 +386,7 @@ class TimePair:
             gap=self.gap,
         )
 
-    # TODO: Implement filter from block
+    # TODO: Implement from block
     def filter(self, units=None, channels=None):
         """
         Returns the pair with only the select units and channels

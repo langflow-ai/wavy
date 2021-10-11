@@ -803,6 +803,7 @@ class TimePanel:
         if self._active_block is None:
             pairs = [pair.filter(units, channels) for pair in tqdm(self.pairs)]
         else:
+            # TODO This part should be implemented on block
             pairs = [getattr(pair, self._active_block).filter(units, channels) for pair in tqdm(self.pairs)]
         return TimePanel(pairs)
 
