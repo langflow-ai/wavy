@@ -3,6 +3,8 @@ from typing import List
 import numpy as np
 import pandas as pd
 
+from .utils import _get_active, _get_block_attr
+
 from .multicol import MultiColumn, rebuild_from_index
 
 
@@ -100,16 +102,34 @@ def from_frames(xframe, yframe, gap=None):
     )
 
 
+def from_blocks(x_block, y_block):
+    return TimePair(
+        xvalues=x_block.values,
+        yvalues=y_block.values,
+        xindex=x_block.index,
+        xunits=x_block.units,
+        xchannels=x_block.channels,
+        yunits=y_block.units,
+        yindex=y_block.index,
+        ychannels=y_block.channels,
+        lookback=y_block.lookback,
+        horizon=y_block.horizon,
+        gap=y_block.gap,
+    )
+
+
 class PairBlock:
-    def __init__(self, pair, values, units, channels, index, name):
+    def __init__(self, values, units, channels, index, name, lookback, horizon, gap):
         self.name = name
-        self._pair = pair
         self.units = units
         self.channels = channels
         self.index = index
         self.start = self.index[0]
         self.end = self.index[-1]
         self.values = values
+        self.lookback = lookback
+        self.horizon = horizon
+        self.gap = gap
 
     @property
     def frame(self):
@@ -118,6 +138,41 @@ class PairBlock:
 
         """
         return rebuild_from_index(self.values, self.index, self.units, self.channels, smash_dims=True)
+
+    def _sel_units(self, units=None):
+
+        if isinstance(units, str):
+            units = [units]
+
+        if not units:
+            units = self.units
+
+        # Improve variable naming
+        return [self.units.index(unit) for unit in units]
+
+    def _sel_channels(self, channels=None):
+
+        if isinstance(channels, str):
+            channels = [channels]
+
+        if not channels:
+            channels = self.channels
+
+        return [self.channels.index(channel) for channel in channels]
+
+    def filter(self, units=None, channels=None):
+        units = self._sel_units(units=units)
+        channels = self._sel_channels(channels=channels)
+        return PairBlock(
+            self.values[units or slice(None), :, channels or slice(None)],
+            units,
+            channels or self.channels,
+            self.index,
+            self.name,
+            self.lookback,
+            self.horizon,
+            self.gap,
+        )
 
 
 class TimePair:
@@ -137,17 +192,36 @@ class TimePair:
             raise TypeError(f"Attribute 'ychannels' must be a list, it is {type(ychannels)}")
 
         # Assert or warn that no unit (column level 0) repeat names
-        self._x = PairBlock(pair=self, values=xvalues, units=xunits, channels=xchannels, index=xindex, name='x')
-        self._y = PairBlock(pair=self, values=yvalues, units=yunits, channels=ychannels, index=yindex, name='y')
         self.lookback = lookback
         self.horizon = horizon
 
-        if gap is not None:
-            self.gap = gap
-        else:
+        if gap is None:
             self.gap = find_gap(xindex, yindex)
             if lookback == 1 and horizon == 1:
                 raise ValueError("If lookback and horizon equals 1, gap should be provided.")
+        else:
+            self.gap = gap
+
+        self._x = PairBlock(
+            values=xvalues,
+            units=xunits,
+            channels=xchannels,
+            index=xindex,
+            name="x",
+            lookback=self.lookback,
+            horizon=self.horizon,
+            gap=self.gap,
+        )
+        self._y = PairBlock(
+            values=yvalues,
+            units=yunits,
+            channels=ychannels,
+            index=yindex,
+            name="y",
+            lookback=self.lookback,
+            horizon=self.horizon,
+            gap=self.gap,
+        )
 
         # Assert data indexes don't overlap (y must come after x)
         if self._x.end >= self._y.start:
@@ -185,70 +259,27 @@ class TimePair:
 
     @property
     def units(self):
-        return self._get_block_attr("units")
+        return _get_block_attr("units")
 
     @property
     def channels(self):
-        return self._get_block_attr("channels")
+        return _get_block_attr("channels")
 
     @property
     def start(self):
-        return self._get_block_attr("start")
+        return _get_block_attr("start")
 
     @property
     def end(self):
-        return self._get_block_attr("end")
+        return _get_block_attr("end")
 
     @property
     def index(self):
-        return self._get_block_attr("index")
+        return _get_block_attr("index")
 
     @property
     def values(self):
-        return self._get_block_attr("values")
-
-    # TODO: Repeated function from Panel, merge
-    def _get_block_attr(self, name):
-        if self._active_block == "x":
-            return getattr(self._x, name)
-        elif self._active_block == "y":
-            return getattr(self._y, name)
-        if self._active_block is None:
-            return (getattr(self._x, name), getattr(self._y, name))
-
-    # TODO: Implement from block
-    def _sel_units(self, xunits=None, yunits=None):
-
-        if isinstance(xunits, str):
-            xunits = [xunits]
-        if isinstance(yunits, str):
-            yunits = [yunits]
-
-        if not xunits:
-            xunits = self._x.units
-        if not yunits:
-            yunits = self._y.units
-
-        # Improve variable naming
-        xus = [self._x.units.index(xu) for xu in xunits]
-        yus = [self._y.units.index(yu) for yu in yunits]
-
-        X_sel = self._x.values[xus, :, :]
-        y_sel = self._y.values[yus, :, :]
-
-        return TimePair(
-            xvalues=X_sel,
-            yvalues=y_sel,
-            xindex=self._x.index,
-            xunits=xunits,
-            xchannels=self._x.channels,
-            yunits=yunits,
-            yindex=self._y.index,
-            ychannels=self._y.channels,
-            lookback=self.lookback,
-            horizon=self.horizon,
-            gap=self.gap,
-        )
+        return _get_block_attr("values")
 
     def apply(self, func, on="timestamps", new_channel=None):
         if self._active_block == "x":
@@ -259,7 +290,6 @@ class TimePair:
             result = self._xapply(func=func, on=on, new_channel=new_channel)
             result = result._yapply(func=func, on=on, new_channel=new_channel)
         return result
-
 
     # TODO: Implement from block
     def _xapply(self, func, on="timestamps", new_channel=None):
@@ -409,17 +439,17 @@ class TimePair:
             New TimePair with only the selected channels and units.
 
         """
-        if self._active_block == "x":
-            selected = self._sel_units(xunits=units, yunits=None)
-            selected = selected._sel_channels(xchannels=channels, ychannels=None)
-        elif self._active_block == "y":
-            selected = self._sel_units(xunits=None, yunits=units)
-            selected = selected._sel_channels(xchannels=None, ychannels=channels)
-        elif self._active_block is None:
-            selected = self._sel_units(xunits=units, yunits=units)
-            selected = selected._sel_channels(xchannels=channels, ychannels=channels)
+        if self._active_block is None:
 
-        return selected
+            x_block = self._x.filter(units=units, channels=channels)
+            y_block = self._y.filter(units=units, channels=channels)
+            return from_blocks(x_block, y_block)
+        else:
+            pair_block = _get_active(self).filter(units=units, channels=channels)
+            if self._active_block == "x":
+                return from_blocks(pair_block, self._y)
+            else:
+                return from_blocks(self._x, pair_block)
 
     # TODO: Implement from block
     def add_channel(self, new_pair):
@@ -476,4 +506,3 @@ class TimePair:
             horizon=self.horizon,
             gap=self.gap,
         )
-

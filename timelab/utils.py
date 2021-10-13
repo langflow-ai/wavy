@@ -1,6 +1,7 @@
 from copy import copy
 from itertools import groupby
 
+
 import numpy as np
 import pandas as pd
 import plotly as px
@@ -45,6 +46,7 @@ def get_null_indexes(x):
     s = np.sum(s, axis=1)
     s = pd.Series(s).isna()
     return s[s == True].index.tolist()
+
 
 # TODO: Check how this works
 def get_all_unique(array):
@@ -154,3 +156,16 @@ def last_min(x):
     Return True if last element is the smallest one
     """
     return x[-1] < np.min(x[:-1])
+
+
+def _get_active(obj):
+    return getattr(obj, "_" + obj._active_block)
+
+
+def _get_block_attr(obj, name):
+    if obj._active_block == "x":
+        return getattr(obj._x, name)
+    elif obj._active_block == "y":
+        return getattr(obj._y, name)
+    if obj._active_block is None:
+        return (getattr(obj._x, name), getattr(obj._y, name))

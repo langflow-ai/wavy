@@ -1,3 +1,4 @@
+from re import X
 import warnings
 from copy import copy
 
@@ -9,7 +10,7 @@ from tqdm import tqdm
 from . import frequency as freq
 from .multicol import MultiColumn, rebuild_from_index
 from .pair import TimePair
-from .utils import bfill, ffill, get_null_indexes, smash_array, get_all_unique
+from .utils import bfill, ffill, get_null_indexes, smash_array, get_all_unique, _get_active, _get_block_attr
 
 
 def from_xy_data(xdata, ydata, lookback, horizon, gap=0):
@@ -210,23 +211,21 @@ def from_arrays(
 
 
 class PanelBlock:
-
     def __init__(self, pairs, name):
         self.name = name
-        self.pairs = pairs
-        self.pair_blocks = [getattr(pair, '_' + self.name) for pair in pairs]
-        self.values = np.array([pair_block.values for pair_block in self.pair_blocks])
-        self.first = self.pair_blocks[0]
-        self.last = self.pair_blocks[-1]
+        self.pairs = [getattr(pair, self.name) for pair in pairs]
+        self.values = np.array([pair.values for pair in self.pairs])
+        self.first = self.pairs[0]
+        self.last = self.pairs[1]
 
         self.units = self.first.units
         self.channels = self.first.channels
         self.start = self.first.start
-        self.end = self.first.end
+        self.end = self.last.end
 
-        self.lookback = self.pairs[0].lookback
-        self.horizon = self.pairs[0].horizon
-        self.gap = self.pairs[0].gap
+        self.lookback = self.first.lookback
+        self.horizon = self.first.horizon
+        self.gap = self.first.gap
 
     """
     All functions are properties for calling on timepanel
@@ -235,7 +234,6 @@ class PanelBlock:
     @property
     def shape(self):
         return pd.Series(self.values.shape, index=self.dims)
-
 
     def findna(self):
         return set(get_null_indexes(self.values))
@@ -246,34 +244,30 @@ class PanelBlock:
         return [pair for idx, pair in enumerate(self.pairs) if idx not in null_indexes]
 
     def apply(self, func, on="timestamps", new_channel=None):
-        return [
-            getattr(pair, self.name).apply(func=func, on=on, new_channel=new_channel)
-            for pair in tqdm(self.pairs)
-        ]
+        return [pair.apply(func=func, on=on, new_channel=new_channel) for pair in tqdm(self.pairs)]
 
-    # TODO: Implement filter from block
-    # def filter(self, units=None, channels=None):
-    #     """
-    #     Selects only the given channels and units and returns another TimePanel.
+    def filter(self, units=None, channels=None):
+        """
+        Selects only the given channels and units and returns another TimePanel.
 
-    #     Parameters
-    #     ----------
-    #     xunits : str, optional
-    #         Selected xunits.
-    #     xchannels : str, optional
-    #         Selected xchannels.
-    #     yunits : str, optional
-    #         Selected yunits.
-    #     ychannels : str, optional
-    #         Selected ychannels.
+        Parameters
+        ----------
+        xunits : str, optional
+            Selected xunits.
+        xchannels : str, optional
+            Selected xchannels.
+        yunits : str, optional
+            Selected yunits.
+        ychannels : str, optional
+            Selected ychannels.
 
-    #     Returns
-    #     -------
-    #     TimePanel
-    #         New TimePanel with only the selected channels and units.
+        Returns
+        -------
+        TimePanel
+            New TimePanel with only the selected channels and units.
 
-    #     """
-    #     return [pair_block.filter(units, channels) for pair_block in tqdm(self.pair_blocks)]
+        """
+        return [pair.filter(units, channels) for pair in tqdm(self.pairs)]
 
 
 class TimePanel:
@@ -300,18 +294,6 @@ class TimePanel:
 
         self.train_size, self.val_size, self.test_size = None, None, None
 
-    def _get_active(self):
-        return getattr(self, "_" + self._active_block)
-
-    # TODO: Repeated function from Pair, merge
-    def _get_block_attr(self, name):
-        if self._active_block == "x":
-            return getattr(self._x, name)
-        elif self._active_block == "y":
-            return getattr(self._y, name)
-        if self._active_block is None:
-            return (getattr(self._x, name), getattr(self._y, name))
-
     @property
     def x(self):
         panel = copy(self)
@@ -332,47 +314,57 @@ class TimePanel:
     def shape(self):
         if self._active_block is None:
             return pd.DataFrame([self.x.shape, self.y.shape], index=["X", "y"])
-        return self._get_block_attr("shape")
+        return _get_block_attr(self, "shape")
+
+    @property
+    def pairs(self):
+        if self._active_block is None:
+            return self._pairs
+        return _get_block_attr(self, "pairs")
+
+    @pairs.setter
+    def pairs(self, pairs):
+        self._pairs = pairs
 
     @property
     def first(self):
-        return self._get_block_attr("first")
+        return _get_block_attr(self, "first")
 
     @property
     def last(self):
-        return self._get_block_attr("last")
+        return _get_block_attr(self, "last")
 
     @property
     def units(self):
-        return self._get_block_attr("units")
+        return _get_block_attr(self, "units")
 
     @property
     def channels(self):
-        return self._get_block_attr("channels")
+        return _get_block_attr(self, "channels")
 
     @property
     def start(self):
-        return self._get_block_attr("start")
+        return _get_block_attr(self, "start")
 
     @property
     def end(self):
-        return self._get_block_attr("end")
+        return _get_block_attr(self, "end")
 
     @property
     def values(self):
-        return self._get_block_attr("values")
+        return _get_block_attr(self, "values")
 
     @property
     def gap(self):
-        return self._get_block_attr("gap")
+        return _get_block_attr(self, "gap")
 
     @property
     def lookback(self):
-        return self._get_block_attr("lookback")
+        return _get_block_attr(self, "lookback")
 
     @property
     def horizon(self):
-        return self._get_block_attr("horizon")
+        return _get_block_attr(self, "horizon")
 
     @property
     def X_(self):
@@ -397,16 +389,16 @@ class TimePanel:
 
         if self._active_block is None:
             return sorted(list(set(self.x.index + self.y.index)))
-        indexes = np.array([getattr(pair, "_" + self._active_block).index for pair in self.pairs])
+        indexes = np.array([pair.index for pair in self.pairs])
         return [str(idx) for idx in get_all_unique(indexes)]
 
     def findna(self):
         if self._active_block is None:
-            return [pair for pair in self.x.findna() if pair in self.y.findna()]
-        return self._get_block_attr("findna")()
+            return {pair for pair in self.x.findna() if pair in self.y.findna()}
+        return _get_block_attr(self, "findna")()
 
     def dropna(self):
-        """ Remove pairs with nan values
+        """Remove pairs with nan values
 
         Args:
             panel ([type]): [description]
@@ -417,13 +409,13 @@ class TimePanel:
         if self._active_block is None:
             pairs = [pair for pair in self.x.dropna() if pair in self.y.dropna()]
         else:
-            pairs = self._get_block_attr("dropna")()
+            pairs = _get_block_attr(self, "dropna")()
         if not pairs:
             # TODO: Return empty TimePanel
             raise RuntimeError("Cannot dropna if all TimePairs contain NaN values.")
         return TimePanel(pairs)
 
-    # def infer_freq(self):
+        # def infer_freq(self):
         # TODO: Fix
         """
         Infer panel data frequency.
@@ -438,11 +430,12 @@ class TimePanel:
 
     def apply(self, func, on="timestamps", new_channel=None):
         if self._active_block is None:
-            result = self._x.apply(func=func, on=on, new_channel=new_channel)
-            result = TimePanel(result)
-            result = result._y.apply(func=func, on=on, new_channel=new_channel)
-            return TimePanel(result)
-        return TimePanel(self._get_active().apply(func=func, on=on, new_channel=new_channel))
+            pairs = self.x.apply(func=func, on=on, new_channel=new_channel)
+            panel = TimePanel(pairs)
+            pairs = panel.y.apply(func=func, on=on, new_channel=new_channel)
+            return TimePanel(pairs)
+        pairs = self.apply(func=func, on=on, new_channel=new_channel)
+        return TimePanel(pairs)
 
     def xframe(self, idx):
         """
@@ -502,18 +495,10 @@ class TimePanel:
 
         """
         if self._active_block is None:
-            panel = self.x.add_channel(
-                new_panel
-            )
-            panel = panel.y.add_channel(
-                new_panel
-            )
+            panel = self.x.add_channel(new_panel)
+            panel = panel.y.add_channel(new_panel)
             return panel
-        else:
-            pairs = [
-                getattr(pair, self._active_block).add_channel(new_panel[index])
-                for index, pair in tqdm(enumerate(self.pairs))
-            ]
+        pairs = [pair.add_channel(new_panel[index]) for index, pair in tqdm(enumerate(self.pairs))]
         return TimePanel(pairs)
 
     def fillna(self, value=None, method=None):
@@ -559,11 +544,12 @@ class TimePanel:
             func = bfill
 
         if self._active_block is None:
-            time_panel = self.x.apply(func)
-            time_panel = time_panel.y.apply(func)
+            pairs = self.x.apply(func)
+            pairs = TimePanel(pairs).y.apply(func)
+            return TimePanel(pairs)
         else:
-            time_panel = self._get_active().apply(func)
-        return time_panel
+            pairs = _get_active(self).apply(func)
+        return TimePanel(pairs)
 
     @staticmethod
     def make_dataframe(data, index, block_index, units, channels):
@@ -590,7 +576,7 @@ class TimePanel:
             ydata = self.make_dataframe(self.y_, self.index, self.y.index, self.y.units, self.y.channels)
             return xdata, ydata
         attr = getattr(self, self._active_block)
-        return self.make_dataframe(attr.values, attr.index, attr.index, attr.units, attr.channels)
+        return self.make_dataframe(attr.values, self.index, attr.index, attr.units, attr.channels)
 
     def train_test_split(self, test_size=0.2):
         """
@@ -801,10 +787,11 @@ class TimePanel:
 
         """
         if self._active_block is None:
-            pairs = [pair.filter(units, channels) for pair in tqdm(self.pairs)]
+            panel = TimePanel([pair.filter(units, channels) for pair in tqdm(self.x.pairs)])
+            pairs = [pair.y.filter(units, channels) for pair in tqdm(panel.y.pairs)]
         else:
             # TODO This part should be implemented on block
-            pairs = [getattr(pair, self._active_block).filter(units, channels) for pair in tqdm(self.pairs)]
+            pairs = [pair.filter(units, channels) for pair in tqdm(self.pairs)]
         return TimePanel(pairs)
 
     def split_units(self, yunits=False):
