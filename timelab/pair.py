@@ -259,27 +259,27 @@ class TimePair:
 
     @property
     def units(self):
-        return _get_block_attr("units")
+        return _get_block_attr(self, "units")
 
     @property
     def channels(self):
-        return _get_block_attr("channels")
+        return _get_block_attr(self, "channels")
 
     @property
     def start(self):
-        return _get_block_attr("start")
+        return _get_block_attr(self, "start")
 
     @property
     def end(self):
-        return _get_block_attr("end")
+        return _get_block_attr(self, "end")
 
     @property
     def index(self):
-        return _get_block_attr("index")
+        return _get_block_attr(self, "index")
 
     @property
     def values(self):
-        return _get_block_attr("values")
+        return _get_block_attr(self, "values")
 
     def apply(self, func, on="timestamps", new_channel=None):
         if self._active_block == "x":
