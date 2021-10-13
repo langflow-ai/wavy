@@ -82,14 +82,12 @@ def from_frames(xframe, yframe, gap=None):
     horizon = len(yframe)
 
     # TODO: Needs tests
-    X = np.array([xframe[i].values for i in xunits])
-    y = np.array([yframe[i].values for i in yunits])
-    # X = xframe.values
-    # y = yframe.values
+    xvalues = np.array([xframe[i].values for i in xunits])
+    yvalues = np.array([yframe[i].values for i in yunits])
 
     return TimePair(
-        xvalues=X,
-        yvalues=y,
+        xvalues=xvalues,
+        yvalues=yvalues,
         xindex=xindex,
         xunits=xunits,
         xchannels=xchannels,
@@ -237,6 +235,11 @@ class TimePair:
 
         return x_equals and y_equals
 
+    def __repr__(self):
+        if self._active_block:
+            return "<TimePair Active Block>"
+        return f"<TimePair, lookback {self.lookback}, horizon {self.horizon}>"
+
     @property
     def x(self):
         pair = copy(self)
@@ -279,7 +282,15 @@ class TimePair:
 
     @property
     def values(self):
+        if self._active_block is None:
+            raise AttributeError("'TimePair' object has no attribute 'values'")
         return _get_block_attr(self, "values")
+
+    @values.setter
+    def values(self, values):
+        if self._active_block is None:
+            self._values = values
+        _get_active(self).values = values
 
     def apply(self, func, on="timestamps", new_channel=None):
         if self._active_block == "x":

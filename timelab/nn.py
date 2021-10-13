@@ -27,10 +27,10 @@ class SeparateUnitModel:
         if train is None:
             raise ValueError("Train panel must not be None. Try set panel training split before fitting.")
 
-        X_train = [smash_array(unit_train.X) for unit_train in train.split_units()]
+        X_train = [smash_array(unit_train.x.values) for unit_train in train.split_units()]
         y_train = train.y
 
-        X_val = [smash_array(unit_val.X) for unit_val in val.split_units()]
+        X_val = [smash_array(unit_val.x.values) for unit_val in val.split_units()]
         y_val = val.y
 
         self.model.fit(X_train, y_train, validation_data=(X_val, y_val), **kwargs)
@@ -39,13 +39,13 @@ class SeparateUnitModel:
     def predict(self, test: TimePanel = None):
         if not test:
             test = self.panel.test
-        X_test = [smash_array(unit_test.X) for unit_test in test.split_units()]
+        X_test = [smash_array(unit_test.x.values) for unit_test in test.split_units()]
         return self.model.predict(X_test)
 
     def build_unit_input(self, unit_panel):
-        assert len(unit_panel.xunits) == 1
-        input_shape = unit_panel.X.shape[2:]
-        return Input(shape=input_shape, name=unit_panel.xunits[0])
+        assert len(unit_panel.x.units) == 1
+        input_shape = unit_panel.x.values.shape[2:]
+        return Input(shape=input_shape, name=unit_panel.x.units[0])
 
     def build_unit_hidden(self, input_, lookback, hidden_size, filters):
         # TODO: Add to hidden_size and filter

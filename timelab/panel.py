@@ -226,11 +226,13 @@ class PanelBlock:
         self.lookback = self.first.lookback
         self.horizon = self.first.horizon
         self.gap = self.first.gap
+
         self.dims = dims
 
-    """
-    All functions are properties for calling on timepanel
-    """
+    @property
+    def index(self):
+        indexes = np.array([pair.index for pair in self.pairs])
+        return [str(idx) for idx in get_all_unique(indexes)]
 
     @property
     def shape(self):
@@ -241,7 +243,7 @@ class PanelBlock:
 
     def dropna(self):
         """ Drops the pair containing NaN values"""
-        null_indexes = self.findna
+        null_indexes = self.findna()
         return [pair for idx, pair in enumerate(self.pairs) if idx not in null_indexes]
 
     def apply(self, func, on="timestamps", new_channel=None):
@@ -269,6 +271,34 @@ class PanelBlock:
 
         """
         return [pair.filter(units, channels) for pair in tqdm(self.pairs)]
+
+    def replace(self, data):
+        pairs = []
+        for i, pair in enumerate(self.pairs):
+            pair_ = copy(pair)
+            setattr(pair_, 'values', data[i])
+            pairs.append(pair_)
+        return pairs
+
+    def flat(self):
+        """
+        Flattens X output for shallow ML models.
+
+        Args:
+            use_index (bool, optional): If True, uses "yindex" for dates to match with ML y_true.
+            Defaults to True.
+
+        Returns:
+            DataFrame: DataFrame where each "xframe" is represented in a row.
+        """
+        # avoid indexing to 0
+        if self.name == 'x':
+            timesteps = self.lookback
+        elif self.name == 'y':
+            timesteps = self.horizon
+        index = self.index if timesteps == 1 else self.index[: -timesteps + 1]
+        flat = np.array([i.flatten() for i in self.values])
+        return pd.DataFrame(flat, index=index)
 
 
 class TimePanel:
@@ -387,11 +417,9 @@ class TimePanel:
 
         """
         # TODO: Improve code, should be partially on block
-
         if self._active_block is None:
             return sorted(list(set(self.x.index + self.y.index)))
-        indexes = np.array([pair.index for pair in self.pairs])
-        return [str(idx) for idx in get_all_unique(indexes)]
+        return _get_block_attr(self, 'index')
 
     def findna(self):
         if self._active_block is None:
@@ -527,6 +555,9 @@ class TimePanel:
         TimePanel
             New TimePanel after filling NaN values.
         """
+        if value is None and method is None:
+            raise ValueError("Must specify a fill 'value' or 'method'.")
+
         if method not in ["ffill", "bfill", None]:
             raise ValueError(f"Parameter method must be 'ffill' or 'bfill' but you passed '{method}'.")
 
@@ -795,6 +826,18 @@ class TimePanel:
             pairs = [pair.filter(units, channels) for pair in tqdm(self.pairs)]
         return TimePanel(pairs)
 
+    def replace(self, data):
+        if self._active_block is None:
+            raise AttributeError("'TimePanel' object has no attribute 'replace'")
+        if data.shape != _get_active(self).values.shape:
+            raise ValueError(f"Data must have the shape of {self._active_block}.values")
+        return TimePanel(_get_block_attr(self, "replace")(data))
+
+    def flat(self):
+        if self._active_block is None:
+            raise AttributeError("'TimePanel' object has no attribute 'flat'")
+        return _get_block_attr(self, "flat")()
+
     def split_units(self, yunits=False):
         """
         Return a list of panels, one panel for each unit.
@@ -811,17 +854,17 @@ class TimePanel:
             List of panels, one panel for each unit.
         """
 
-        index_units = np.arange(0, len(self.xunits))
+        index_units = np.arange(0, len(self.x.units))
         indexes = np.arange(0, len(self.pairs))
 
         return [
             TimePanel(
                 [
                     TimePair(
-                        xvalues=self.pairs[i].X_[index_unit, :, :].reshape(1, self.lookback, -1),
-                        yvalues=self.pairs[i].y_[index_unit, :, :].reshape(1, self.horizon, -1)
+                        xvalues=self.pairs[i].x.values[index_unit, :, :].reshape(1, self.lookback, -1),
+                        yvalues=self.pairs[i].y.values[index_unit, :, :].reshape(1, self.horizon, -1)
                         if yunits
-                        else self.pairs[i].y,
+                        else self.pairs[i].y.values,
                         xindex=self.pairs[i].x.index,
                         xunits=[self.pairs[i].x.units[index_unit]],
                         yunits=[self.pairs[i].y.units[index_unit]] if yunits else self.pairs[i].y.units,
@@ -847,57 +890,12 @@ class TimePanel:
         ydata = self.ydata.swaplevel(i=-2, j=-1, axis=1)
         return from_xy_data(xdata, ydata, horizon=self.horizon, lookback=self.lookback, gap=self.gap)
 
-    # TODO: Stopped here (08/10)
-    def replace(self, data):
-        if self._active_block is None:
-            raise NotImplementedError("Replace must be applied to attributes TimePanel.x or TimePanel.y")
-        pairs = []
-        for i, pair in enumerate(self.pairs):
-            pair_ = copy(pair)
-
-            setattr(pair_, self._active_block, data[i])
-            pairs.append(pair_)
-        return TimePanel(pairs)
-
-    def xflat(self):
-        """
-        Flattens X output for shallow ML models.
-
-        Args:
-            use_index (bool, optional): If True, uses "yindex" for dates to match with ML y_true.
-            Defaults to True.
-
-        Returns:
-            DataFrame: DataFrame where each "xframe" is represented in a row.
-        """
-        # avoid indexing to 0
-        index = self.xindex if self.lookback == 1 else self.xindex[: -self.lookback + 1]
-
-        xflat = np.array([i.flatten() for i in self.X])
-        xflat = pd.DataFrame(xflat, index=index)
-        return xflat
-
-    def yflat(self):
-        """
-        Flattens y output for shallow ML models.
-
-        Args:
-            use_index (bool, optional): If True, uses "yindex" for dates to match with ML y_true.
-            Defaults to True.
-
-        Returns:
-            DataFrame: DataFrame where each "yframe" is represented in a row.
-        """
-
-        index = self.yindex if self.horizon == 1 else self.yindex[: -self.horizon + 1]
-        yflat = np.array([i.flatten() for i in self.y])
-        yflat = pd.DataFrame(yflat, index=index)
-        return yflat
-
     def __len__(self):
         return len(self.pairs)
 
     def __repr__(self):
+        if self._active_block:
+            return "<TimePanel Active Block>"
         self.view()
         return f"<TimePanel, size {self.__len__()}>"
 
