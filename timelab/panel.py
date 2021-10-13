@@ -211,7 +211,7 @@ def from_arrays(
 
 
 class PanelBlock:
-    def __init__(self, pairs, name):
+    def __init__(self, pairs, name, dims):
         self.name = name
         self.pairs = [getattr(pair, self.name) for pair in pairs]
         self.values = np.array([pair.values for pair in self.pairs])
@@ -226,6 +226,7 @@ class PanelBlock:
         self.lookback = self.first.lookback
         self.horizon = self.first.horizon
         self.gap = self.first.gap
+        self.dims = dims
 
     """
     All functions are properties for calling on timepanel
@@ -286,8 +287,8 @@ class TimePanel:
             raise ValueError("Cannot instantiate TimePanel with empty pairs")
 
         self.pairs = pairs
-        self._x = PanelBlock(self.pairs, "x")
-        self._y = PanelBlock(self.pairs, "y")
+        self._x = PanelBlock(self.pairs, "x", self.dims)
+        self._y = PanelBlock(self.pairs, "y", self.dims)
 
         # TODO: either remove or improve infer_freq
         # self.freq = self.infer_freq()
@@ -314,7 +315,7 @@ class TimePanel:
     def shape(self):
         if self._active_block is None:
             return pd.DataFrame([self.x.shape, self.y.shape], index=["X", "y"])
-        return _get_block_attr(self, "shape")
+        return _get_active(self).shape
 
     @property
     def pairs(self):
@@ -434,7 +435,7 @@ class TimePanel:
             panel = TimePanel(pairs)
             pairs = panel.y.apply(func=func, on=on, new_channel=new_channel)
             return TimePanel(pairs)
-        pairs = self.apply(func=func, on=on, new_channel=new_channel)
+        pairs = _get_active(self).apply(func=func, on=on, new_channel=new_channel)
         return TimePanel(pairs)
 
     def xframe(self, idx):
