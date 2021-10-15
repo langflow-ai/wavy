@@ -5,3 +5,4 @@ from .pair import *
 from .panel import *
 from .plotting import *
 from .utils import *
+from .block import *

@@ -13,6 +13,13 @@ cmap1 = px.colors.qualitative.Plotly
 cmap2 = cmap1[::-1]
 
 
+def replace(ls, value, new_value):
+    ls = copy(ls)
+    idx = ls.index(value)
+    ls[idx] = new_value
+    return ls
+
+
 def ffill(arr, axis):
     arr = arr.astype(float)
     idx_shape = tuple([slice(None)] + [np.newaxis] * (len(arr.shape) - axis - 1))
@@ -125,6 +132,10 @@ def smash_array(array):
         return array
     else:
         raise ValueError("Array must have 3 or 4 dimensions")
+
+
+def add_dim(x):
+    return np.array([x])
 
 
 def shift(array, n):

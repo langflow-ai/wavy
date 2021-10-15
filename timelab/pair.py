@@ -135,42 +135,8 @@ class PairBlock:
         Dataframe with the X values of this pair.
 
         """
-        return rebuild_from_index(self.values, self.index, self.units, self.channels, smash_dims=True)
+        return rebuild_from_index(self.values, self.index, self.units, self.channels, smash=True)
 
-    def _sel_units(self, units=None):
-
-        if isinstance(units, str):
-            units = [units]
-
-        if not units:
-            units = self.units
-
-        # Improve variable naming
-        return [self.units.index(unit) for unit in units]
-
-    def _sel_channels(self, channels=None):
-
-        if isinstance(channels, str):
-            channels = [channels]
-
-        if not channels:
-            channels = self.channels
-
-        return [self.channels.index(channel) for channel in channels]
-
-    def filter(self, units=None, channels=None):
-        units = self._sel_units(units=units)
-        channels = self._sel_channels(channels=channels)
-        return PairBlock(
-            self.values[units or slice(None), :, channels or slice(None)],
-            units,
-            channels or self.channels,
-            self.index,
-            self.name,
-            self.lookback,
-            self.horizon,
-            self.gap,
-        )
 
 
 class TimePair:
@@ -292,175 +258,121 @@ class TimePair:
             self._values = values
         _get_active(self).values = values
 
-    def apply(self, func, on="timestamps", new_channel=None):
-        if self._active_block == "x":
-            result = self._xapply(func=func, on=on, new_channel=new_channel)
-        elif self._active_block == "y":
-            result = self._yapply(func=func, on=on, new_channel=new_channel)
-        elif self._active_block is None:
-            result = self._xapply(func=func, on=on, new_channel=new_channel)
-            result = result._yapply(func=func, on=on, new_channel=new_channel)
-        return result
+    # def apply(self, func, on="timestamps", new_channel=None):
+    #     if self._active_block == "x":
+    #         result = self._xapply(func=func, on=on, new_channel=new_channel)
+    #     elif self._active_block == "y":
+    #         result = self._yapply(func=func, on=on, new_channel=new_channel)
+    #     elif self._active_block is None:
+    #         result = self._xapply(func=func, on=on, new_channel=new_channel)
+    #         result = result._yapply(func=func, on=on, new_channel=new_channel)
+    #     return result
 
-    # TODO: Implement from block
-    def _xapply(self, func, on="timestamps", new_channel=None):
-        """
-        Parameters:
-        func :  array function with axis argument
-        on :    "channels", "timestamps"
-        """
 
-        axis_map = {"timestamps": 1, "channels": 2}
+    # # TODO: Implement from multicol in block
+    # def _xapply(self, func, on="timestamps", new_channel=None):
+    #     """
+    #     Parameters:
+    #     func :  array function with axis argument
+    #     on :    "channels", "timestamps"
+    #     """
 
-        func_ = add_pair(func, self)
-        func_ = add_axis(func_)
+    #     axis_map = {"timestamps": 1, "channels": 2}
 
-        X_ = func_(self._x.values, axis=axis_map[on])
-        # check if the answer is an scalar or an array
-        if hasattr(X_, "__len__"):
-            shape = X_.shape
-            lookback = shape[1] if X_.ndim == 3 else 1
-        else:
-            lookback = 1
-            shape = (1, 1)
+    #     func_ = add_pair(func, self)
+    #     func_ = add_axis(func_)
 
-        if on == "channels":
-            assert new_channel, "Must set new channel name"
-            xchannels = [new_channel]
-            X_ = X_.reshape((shape[0], lookback, 1))
+    #     X_ = func_(self._x.values, axis=axis_map[on])
+    #     # check if the answer is an scalar or an array
+    #     if hasattr(X_, "__len__"):
+    #         shape = X_.shape
+    #         lookback = shape[1] if X_.ndim == 3 else 1
+    #     else:
+    #         lookback = 1
+    #         shape = (1, 1)
 
-        elif on == "timestamps":
-            assert not new_channel, "No channel is created if applying on timestamps"
-            xchannels = self._x.channels
-            X_ = X_.reshape((shape[0], lookback, shape[-1]))
+    #     if on == "channels":
+    #         assert new_channel, "Must set new channel name"
+    #         xchannels = [new_channel]
+    #         X_ = X_.reshape((shape[0], lookback, 1))
 
-        return TimePair(
-            xvalues=X_,
-            yvalues=self._y.values,
-            xindex=self._x.index[:lookback],
-            xunits=self._x.units,
-            xchannels=xchannels,
-            yunits=self._y.units,
-            yindex=self._y.index,
-            ychannels=self._y.channels,
-            lookback=lookback,
-            horizon=self.horizon,
-            gap=self.gap,
-        )
+    #     elif on == "timestamps":
+    #         assert not new_channel, "No channel is created if applying on timestamps"
+    #         xchannels = self._x.channels
+    #         X_ = X_.reshape((shape[0], lookback, shape[-1]))
 
-    # TODO: Implement from block
-    def _yapply(self, func, on="timestamps", new_channel=None):
-        """
-        Parameters:
-        func :  array function with axis argument
-        on :    "channels", "timestamps"
-        """
+    #     return TimePair(
+    #         xvalues=X_,
+    #         yvalues=self._y.values,
+    #         xindex=self._x.index[:lookback],
+    #         xunits=self._x.units,
+    #         xchannels=xchannels,
+    #         yunits=self._y.units,
+    #         yindex=self._y.index,
+    #         ychannels=self._y.channels,
+    #         lookback=lookback,
+    #         horizon=self.horizon,
+    #         gap=self.gap,
+    #     )
 
-        axis_map = {"timestamps": 1, "channels": 2}
+    # # TODO: Implement from block
+    # def _yapply(self, func, on="timestamps", new_channel=None):
+    #     """
+    #     Parameters:
+    #     func :  array function with axis argument
+    #     on :    "channels", "timestamps"
+    #     """
 
-        func_ = add_pair(func, self)
-        func_ = add_axis(func_)
+    #     axis_map = {"timestamps": 1, "channels": 2}
 
-        y_ = func_(self._y.values, axis=axis_map[on])
-        # check if the answer is an scalar or an array
-        if hasattr(y_, "__len__"):
-            shape = y_.shape
-            horizon = shape[1] if y_.ndim == 3 else 1
-        else:
-            horizon = 1
-            shape = (1, 1)
+    #     func_ = add_pair(func, self)
+    #     func_ = add_axis(func_)
 
-        if on == "channels":
-            assert new_channel, "Must set new channel name"
-            ychannels = [new_channel]
-            y_ = y_.reshape((shape[0], horizon, 1))
+    #     y_ = func_(self._y.values, axis=axis_map[on])
+    #     # check if the answer is an scalar or an array
+    #     if hasattr(y_, "__len__"):
+    #         shape = y_.shape
+    #         horizon = shape[1] if y_.ndim == 3 else 1
+    #     else:
+    #         horizon = 1
+    #         shape = (1, 1)
 
-        elif on == "timestamps":
-            assert not new_channel, "No channel is created if applying on timestamps"
-            ychannels = self._y.channels
-            y_ = y_.reshape((shape[0], horizon, shape[-1]))
+    #     if on == "channels":
+    #         assert new_channel, "Must set new channel name"
+    #         ychannels = [new_channel]
+    #         y_ = y_.reshape((shape[0], horizon, 1))
 
-        return TimePair(
-            xvalues=self._x.values,
-            yvalues=y_,
-            xindex=self._x.index,
-            xunits=self._x.units,
-            xchannels=self._x.channels,
-            yunits=self._y.units,
-            yindex=self._y.index[:horizon],
-            ychannels=ychannels,
-            lookback=self.lookback,
-            horizon=horizon,
-            gap=self.gap,
-        )
+    #     elif on == "timestamps":
+    #         assert not new_channel, "No channel is created if applying on timestamps"
+    #         ychannels = self._y.channels
+    #         y_ = y_.reshape((shape[0], horizon, shape[-1]))
 
-    # TODO: Implement from block
-    def _sel_channels(self, xchannels=None, ychannels=None):
+    #     return TimePair(
+    #         xvalues=self._x.values,
+    #         yvalues=y_,
+    #         xindex=self._x.index,
+    #         xunits=self._x.units,
+    #         xchannels=self._x.channels,
+    #         yunits=self._y.units,
+    #         yindex=self._y.index[:horizon],
+    #         ychannels=ychannels,
+    #         lookback=self.lookback,
+    #         horizon=horizon,
+    #         gap=self.gap,
+    #     )
 
-        if isinstance(xchannels, str):
-            xchannels = [xchannels]
-        if isinstance(ychannels, str):
-            ychannels = [ychannels]
-
-        if not xchannels:
-            xchannels = self._x.channels
-        if not ychannels:
-            ychannels = self._y.channels
-
-        xcs = [self._x.channels.index(xc) for xc in xchannels]
-        ycs = [self._y.channels.index(yc) for yc in ychannels]
-
-        X_sel = self._x.values[:, :, xcs]
-        y_sel = self._y.values[:, :, ycs]
-
-        return TimePair(
-            xvalues=X_sel,
-            yvalues=y_sel,
-            xindex=self._x.index,
-            xunits=self._x.units,
-            xchannels=xchannels,
-            yunits=self._y.units,
-            yindex=self._y.index,
-            ychannels=ychannels,
-            lookback=self.lookback,
-            horizon=self.horizon,
-            gap=self.gap,
-        )
-
-    # TODO: Implement from block
     def filter(self, units=None, channels=None):
-        """
-        Returns the pair with only the select units and channels
-
-        Parameters
-        ----------
-        xunits : str, optional
-            Selected xunits.
-        xchannels : str, optional
-            Selected xchannels.
-        yunits : str, optional
-            Selected yunits.
-        ychannels : str, optional
-            Selected ychannels.
-
-
-        Returns
-        -------
-        selected : TimePair
-            New TimePair with only the selected channels and units.
-
-        """
         if self._active_block is None:
+            xframe = self.xframe.filter(units=units, channels=channels)
+            yframe = self.yframe.filter(units=units, channels=channels)
+        elif self._active_block == "x":
+            xframe = self.xframe.filter(units=units, channels=channels)
+            yframe = self.yframe
+        elif self._active_block == "y":
+            xframe = self.xframe
+            yframe = self.yframe.filter(units=units, channels=channels)
+        return from_frames(xframe, yframe, self.gap)
 
-            x_block = self._x.filter(units=units, channels=channels)
-            y_block = self._y.filter(units=units, channels=channels)
-            return from_blocks(x_block, y_block)
-        else:
-            pair_block = _get_active(self).filter(units=units, channels=channels)
-            if self._active_block == "x":
-                return from_blocks(pair_block, self._y)
-            else:
-                return from_blocks(self._x, pair_block)
 
     # TODO: Implement from block
     def add_channel(self, new_pair):

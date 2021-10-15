@@ -1,6 +1,6 @@
-from re import X
 import warnings
 from copy import copy
+from re import X
 
 import numpy as np
 import pandas as pd
@@ -10,7 +10,8 @@ from tqdm import tqdm
 from . import frequency as freq
 from .multicol import MultiColumn, rebuild_from_index
 from .pair import TimePair
-from .utils import bfill, ffill, get_null_indexes, smash_array, get_all_unique, _get_active, _get_block_attr
+from .utils import (_get_active, _get_block_attr, bfill, ffill, get_all_unique,
+                    get_null_indexes, smash_array)
 
 
 def from_xy_data(xdata, ydata, lookback, horizon, gap=0):
@@ -320,6 +321,10 @@ class TimePanel:
         self._x = PanelBlock(self.pairs, "x", self.dims)
         self._y = PanelBlock(self.pairs, "y", self.dims)
 
+        self.lookback = self.pairs[0].lookback
+        self.horizon = self.pairs[0].horizon
+        self.gap = self.pairs[0].gap
+
         # TODO: either remove or improve infer_freq
         # self.freq = self.infer_freq()
 
@@ -384,18 +389,6 @@ class TimePanel:
     @property
     def values(self):
         return _get_block_attr(self, "values")
-
-    @property
-    def gap(self):
-        return _get_block_attr(self, "gap")
-
-    @property
-    def lookback(self):
-        return _get_block_attr(self, "lookback")
-
-    @property
-    def horizon(self):
-        return _get_block_attr(self, "horizon")
 
     @property
     def X_(self):
@@ -838,7 +831,7 @@ class TimePanel:
             raise AttributeError("'TimePanel' object has no attribute 'flat'")
         return _get_block_attr(self, "flat")()
 
-    def split_units(self, yunits=False):
+    def split_units(self):
         """
         Return a list of panels, one panel for each unit.
 
@@ -853,33 +846,9 @@ class TimePanel:
         panels : List of TimePanels
             List of panels, one panel for each unit.
         """
-
-        index_units = np.arange(0, len(self.x.units))
-        indexes = np.arange(0, len(self.pairs))
-
-        return [
-            TimePanel(
-                [
-                    TimePair(
-                        xvalues=self.pairs[i].x.values[index_unit, :, :].reshape(1, self.lookback, -1),
-                        yvalues=self.pairs[i].y.values[index_unit, :, :].reshape(1, self.horizon, -1)
-                        if yunits
-                        else self.pairs[i].y.values,
-                        xindex=self.pairs[i].x.index,
-                        xunits=[self.pairs[i].x.units[index_unit]],
-                        yunits=[self.pairs[i].y.units[index_unit]] if yunits else self.pairs[i].y.units,
-                        yindex=self.pairs[i].y.index,
-                        xchannels=self.pairs[i].x.channels,
-                        ychannels=self.pairs[i].y.channels,
-                        lookback=self.pairs[i].lookback,
-                        horizon=self.pairs[i].horizon,
-                        gap=self.pairs[i].gap,
-                    )
-                    for i in indexes
-                ]
-            )
-            for index_unit in tqdm(index_units)
-        ]
+        if self._active_block is None:
+            raise AttributeError("'TimePanel' object has no attribute 'split_units'")
+        return [self.filter(unit) for unit in self.units]
 
     def swap_dims(self):
         """

@@ -12,7 +12,7 @@ def from3d(arr, units, channels, timestamps):
     return MultiColumn(df)
 
 
-def rebuild_from_index(array, index, units, channels, to_datetime=True, smash_dims=False):
+def rebuild_from_index(array, index, units, channels, to_datetime=True, smash=False):
 
     # Needs to verify shape with dims
     if to_datetime:
@@ -22,7 +22,7 @@ def rebuild_from_index(array, index, units, channels, to_datetime=True, smash_di
     columns = pd.MultiIndex.from_product([units, channels])
     df = pd.DataFrame(index=index, columns=columns)
 
-    if smash_dims:
+    if smash:
         array = smash_array(array)
 
     # ! Watch out for these reshapes
@@ -40,13 +40,12 @@ def rebuild_from_array(array, df):
 
 
 def rebuild(df):
-    # ! rebuilding may lead to unexpected column order if reproducing a dataframe
+    # ! rebuilding may lead to unexpected column order?
     df = pd.DataFrame(
         df.values,
         index=df.index,
         columns=pd.MultiIndex.from_tuples(df.columns.tolist()),
     )
-
     return MultiColumn(df)
 
 
@@ -72,7 +71,7 @@ def unsmash(df, sep="_", level_name="main"):
 
 
 class MultiColumn(pd.DataFrame):
-    def __init__(self, df, sep=None, *args, **kwargs):
+    def __init__(self, df, *args, **kwargs):
         super().__init__(df, *args, **kwargs)
 
     @property
@@ -81,28 +80,27 @@ class MultiColumn(pd.DataFrame):
 
     @property
     def units(self):
-        # OrderedDict to keep order
         units = [c[0] for c in self.columns]
+        # OrderedDict to keep order
         return list(OrderedDict.fromkeys(units))
 
     @property
     def channels(self):
-        # OrderedDict to keep order
         channels = [c[1] for c in self.columns]
+        # OrderedDict to keep order
         return list(OrderedDict.fromkeys(channels))
 
     def filter_units(self, units):
         if not units:
             return self
-        selection = self.loc[:, (units, slice(None))]
-        return rebuild(selection)
+        filtered = self.loc[:, (units, slice(None))]
+        return rebuild(filtered)
 
     def filter_channels(self, channels):
-        units = self.units
         if not channels:
             return self
-        selection = self.loc[:, (slice(None), channels)][units]
-        return rebuild(selection)
+        filtered = self.loc[:, (slice(None), channels)][self.units]
+        return rebuild(filtered)
 
     def filter(self, units=None, channels=None):
 
@@ -155,18 +153,33 @@ class MultiColumn(pd.DataFrame):
                 inconsistent.append(unit)
         return inconsistent
 
-    def channel_apply(self, func, name):
-        units = self.units
-        result = pd.DataFrame()
-        for unit in units:
-            temp = self[unit]
-            temp_tranform = func(temp)
-            if not isinstance(temp_tranform, pd.Series):
-                temp_tranform = pd.Series(data=temp_tranform, index=[str(temp.index[0])])
-            result[unit] = temp_tranform
-        result.columns = pd.MultiIndex.from_product([result.columns, [name]])
-        result = result[units]
-        return MultiColumn(result)
+    def apply_(self, func, on='timestamps', units=None, channels=None):
+        assert(on in ["timestamps", "channels"])
+        if on == 'channels':
+            data = self.apply(func, axis=1).to_frame()
+            return rebuild_from_index(data.values, index=data.index,
+                                      units=self.units, channels=['channel_0'])
+
+        elif on == 'timestamps':
+            return MultiColumn(self.apply(func, axis=0).to_frame().T)
+
+
+
+    # def apply(self):
+
+
+    # def channel_apply(self, func, name):
+    #     units = self.units
+    #     result = pd.DataFrame()
+    #     for unit in units:
+    #         temp = self[unit]
+    #         temp_tranform = func(temp)
+    #         if not isinstance(temp_tranform, pd.Series):
+    #             temp_tranform = pd.Series(data=temp_tranform, index=[str(temp.index[0])])
+    #         result[unit] = temp_tranform
+    #     result.columns = pd.MultiIndex.from_product([result.columns, [name]])
+    #     result = result[units]
+    #     return MultiColumn(result)
 
     def channel_set(self, channels, values):
         """
@@ -209,6 +222,3 @@ class MultiColumn(pd.DataFrame):
 
     def pandas(self):
         return pd.DataFrame(self.values, index=self.index, columns=self.columns)
-
-    def copy(self):
-        return MultiColumn(self.pandas())
