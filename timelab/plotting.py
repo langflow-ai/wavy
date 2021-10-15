@@ -62,33 +62,33 @@ def pair_plot(pair, unit, channels=None):
 
 def plot_data(self, start=None, end=None, channels=None, units=None, on="xdata"):
     """
-        Plots the data according to the given parameters.
+    Plots the data according to the given parameters.
 
-        Parameters
-        ----------
-        start : Timestamp
-            First date to be plotted.
-        end : Timestamp
-            Last date to be plotted.
-        channels : str or list of strs
-            Channels to be plotted. If none is inserted, all the channels will be plotted.
-        units : str or list of strs
-            Units to be plotted. If none is inserted, all the units will be plotted.
-        on : str
-            Data to be plotted, options:
-                "xdata",
-                "ydata"
+    Parameters
+    ----------
+    start : Timestamp
+        First date to be plotted.
+    end : Timestamp
+        Last date to be plotted.
+    channels : str or list of strs
+        Channels to be plotted. If none is inserted, all the channels will be plotted.
+    units : str or list of strs
+        Units to be plotted. If none is inserted, all the units will be plotted.
+    on : str
+        Data to be plotted, options:
+            "xdata",
+            "ydata"
 
-        Raises
-        ------
-        ValueError
-            When no start or end date is inserted.
+    Raises
+    ------
+    ValueError
+        When no start or end date is inserted.
 
-        Returns
-        -------
-        None.
+    Returns
+    -------
+    None.
 
-        """
+    """
 
     if start is None:
         raise ValueError("Must enter the start date!")
@@ -121,4 +121,3 @@ def plot_data(self, start=None, end=None, channels=None, units=None, on="xdata")
 
             fig = px.line(data_aux, x=indexes, y=channel, title=unit)
             fig.show()
-

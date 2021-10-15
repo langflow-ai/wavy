@@ -1,6 +1,5 @@
 import warnings
 from copy import copy
-from re import X
 
 import numpy as np
 import pandas as pd
@@ -10,8 +9,15 @@ from tqdm import tqdm
 from . import frequency as freq
 from .multicol import MultiColumn, rebuild_from_index
 from .pair import TimePair
-from .utils import (_get_active, _get_block_attr, bfill, ffill, get_all_unique,
-                    get_null_indexes, smash_array)
+from .utils import (
+    _get_active,
+    _get_block_attr,
+    bfill,
+    ffill,
+    get_all_unique,
+    get_null_indexes,
+    smash_array,
+)
 
 
 def from_xy_data(xdata, ydata, lookback, horizon, gap=0):
@@ -114,7 +120,15 @@ def from_ypred(panel, ypred):
 
 
 def from_data(
-    data, lookback, horizon, gap=0, freq=None, xunits=None, yunits=None, xchannels=None, ychannels=None,
+    data,
+    lookback,
+    horizon,
+    gap=0,
+    freq=None,
+    xunits=None,
+    yunits=None,
+    xchannels=None,
+    ychannels=None,
 ):
     """
     Gets TimePanels from a DataFrame.
@@ -163,7 +177,18 @@ def from_data(
 
 
 def from_arrays(
-    X, y, index, xindex, yindex, lookback, horizon, gap, xunits, yunits, xchannels, ychannels,
+    X,
+    y,
+    index,
+    xindex,
+    yindex,
+    lookback,
+    horizon,
+    gap,
+    xunits,
+    yunits,
+    xchannels,
+    ychannels,
 ):
     """
     Gets TimePanels from arrays.
@@ -277,7 +302,7 @@ class PanelBlock:
         pairs = []
         for i, pair in enumerate(self.pairs):
             pair_ = copy(pair)
-            setattr(pair_, 'values', data[i])
+            setattr(pair_, "values", data[i])
             pairs.append(pair_)
         return pairs
 
@@ -293,9 +318,9 @@ class PanelBlock:
             DataFrame: DataFrame where each "xframe" is represented in a row.
         """
         # avoid indexing to 0
-        if self.name == 'x':
+        if self.name == "x":
             timesteps = self.lookback
-        elif self.name == 'y':
+        elif self.name == "y":
             timesteps = self.horizon
         index = self.index if timesteps == 1 else self.index[: -timesteps + 1]
         flat = np.array([i.flatten() for i in self.values])
@@ -412,7 +437,7 @@ class TimePanel:
         # TODO: Improve code, should be partially on block
         if self._active_block is None:
             return sorted(list(set(self.x.index + self.y.index)))
-        return _get_block_attr(self, 'index')
+        return _get_block_attr(self, "index")
 
     def findna(self):
         if self._active_block is None:

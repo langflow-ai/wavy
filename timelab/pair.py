@@ -1,11 +1,11 @@
 from copy import copy
 from typing import List
+
 import numpy as np
 import pandas as pd
 
-from .utils import _get_active, _get_block_attr
-
 from .multicol import MultiColumn, rebuild_from_index
+from .utils import _get_active, _get_block_attr
 
 
 def add_pair(func, pair):
@@ -50,7 +50,14 @@ def find_gap(x_indexes, y_indexes):
 
 
 def from_dataframe(
-    dataframe, lookback, horizon, gap=0, xunits=None, xchannels=None, yunits=None, ychannels=None,
+    dataframe,
+    lookback,
+    horizon,
+    gap=0,
+    xunits=None,
+    xchannels=None,
+    yunits=None,
+    ychannels=None,
 ):
     # Add start index as parameter
     xframe = dataframe.iloc[:lookback, :]
@@ -136,7 +143,6 @@ class PairBlock:
 
         """
         return rebuild_from_index(self.values, self.index, self.units, self.channels, smash=True)
-
 
 
 class TimePair:
@@ -268,7 +274,6 @@ class TimePair:
     #         result = result._yapply(func=func, on=on, new_channel=new_channel)
     #     return result
 
-
     # # TODO: Implement from multicol in block
     # def _xapply(self, func, on="timestamps", new_channel=None):
     #     """
@@ -372,7 +377,6 @@ class TimePair:
             xframe = self.xframe
             yframe = self.yframe.filter(units=units, channels=channels)
         return from_frames(xframe, yframe, self.gap)
-
 
     # TODO: Implement from block
     def add_channel(self, new_pair):

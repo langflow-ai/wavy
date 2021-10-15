@@ -109,15 +109,11 @@ class MultiColumn(pd.DataFrame):
         if type(channels) == str:
             channels = [channels]
 
-        if units is not None and any(
-            unit not in self.columns.levels[0] for unit in units
-        ):
+        if units is not None and any(unit not in self.columns.levels[0] for unit in units):
             raise ValueError(
                 f"One of the units is not in columns.\nUnits: {units}\nColumns: {list(self.columns.levels[0])}"
             )
-        if channels is not None and not all(
-            channel in self.columns.levels[1] for channel in channels
-        ):
+        if channels is not None and not all(channel in self.columns.levels[1] for channel in channels):
             raise ValueError(
                 f"One of the channels is not in columns.\nChannels:{channels}\nColumns:{list(self.columns.levels[1])}"
             )
@@ -153,20 +149,16 @@ class MultiColumn(pd.DataFrame):
                 inconsistent.append(unit)
         return inconsistent
 
-    def apply_(self, func, on='timestamps', units=None, channels=None):
-        assert(on in ["timestamps", "channels"])
-        if on == 'channels':
+    def apply_(self, func, on="timestamps", units=None, channels=None):
+        assert on in ["timestamps", "channels"]
+        if on == "channels":
             data = self.apply(func, axis=1).to_frame()
-            return rebuild_from_index(data.values, index=data.index,
-                                      units=self.units, channels=['channel_0'])
+            return rebuild_from_index(data.values, index=data.index, units=self.units, channels=["channel_0"])
 
-        elif on == 'timestamps':
+        elif on == "timestamps":
             return MultiColumn(self.apply(func, axis=0).to_frame().T)
 
-
-
     # def apply(self):
-
 
     # def channel_apply(self, func, name):
     #     units = self.units

@@ -1,6 +1,7 @@
-from collections import OrderedDict
-import pandas as pd
 import functools
+from collections import OrderedDict
+
+import pandas as pd
 
 from .utils import add_dim, replace
 
@@ -10,14 +11,19 @@ def rebuild(func):
     def wrapper(*args, **kwargs):
         df = func(*args, **kwargs)
         return from_dataframe(df)
+
     return wrapper
 
 
 def from_dataframe(df):
     # Recreate columns to avoid pandas issue
-    return TimeBlock(pd.DataFrame(df.values, index=df.index,
-                    columns=pd.MultiIndex.from_tuples(df.columns.tolist()),
-                    ))
+    return TimeBlock(
+        pd.DataFrame(
+            df.values,
+            index=df.index,
+            columns=pd.MultiIndex.from_tuples(df.columns.tolist()),
+        )
+    )
 
 
 def from_array(values, index=None, assets=None, channels=None):
@@ -72,8 +78,7 @@ class TimeBlock(pd.DataFrame):
             assets = [assets]
 
         if assets is not None and any(asset not in self.columns.levels[0] for asset in assets):
-            raise ValueError(
-                f"{assets} not found in columns. Columns: {list(self.columns.levels[0])}")
+            raise ValueError(f"{assets} not found in columns. Columns: {list(self.columns.levels[0])}")
 
         return self.loc[:, (assets, slice(None))] if assets else self
 
@@ -82,9 +87,7 @@ class TimeBlock(pd.DataFrame):
         if type(channels) == str:
             channels = [channels]
 
-        if channels is not None and any(
-            channel not in self.columns.levels[1] for channel in channels
-        ):
+        if channels is not None and any(channel not in self.columns.levels[1] for channel in channels):
             raise ValueError(f"{channels} not found in columns. Columns:{list(self.columns.levels[1])}")
 
         return self.loc[:, (slice(None), channels)][self.assets] if channels else self
@@ -114,11 +117,11 @@ class TimeBlock(pd.DataFrame):
         channels = replace(self.channels, value, new_value)
         return from_block(self, channels=channels)
 
-    def apply(self, func, on='timestamps'):
+    def apply(self, func, on="timestamps"):
 
-        if on == 'timestamps':
+        if on == "timestamps":
             return self._timestamp_apply(func)
-        elif on == 'channels':
+        elif on == "channels":
             return self._channel_apply(func)
 
         raise ValueError(f"{on} not acceptable for 'on'. Available values are ['timestamps', 'channels']")
@@ -131,7 +134,7 @@ class TimeBlock(pd.DataFrame):
         applied = [data.pandas().apply(func, axis=1).to_frame() for data in splits]
         applied = [from_array(data.values, index=data.index) for data in applied]
         applied = [data.rename_asset(0, asset) for data, asset in zip(applied, self.assets)]
-        return pd.concat(applied).rename_channel(0, 'new_channel')
+        return pd.concat(applied).rename_channel(0, "new_channel")
 
     def split_assets(self):
         return [self.filter(asset) for asset in self.assets]
