@@ -18,6 +18,7 @@ tensorflow = "^2.6.0"
 isort = "^5.6.4"
 pre-commit = "^2.9.3"
 removestar = "^1.3.1"
+pytest = "^6.2.5"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
