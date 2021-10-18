@@ -2,12 +2,10 @@ import os
 import unittest
 
 import pandas as pd
+from sklearn.metrics import mean_squared_error
 
 from timelab.pair import from_frames
 from timelab.utils import all_equal
-
-# from sklearn.metrics import mean_squared_error
-
 
 TEST_DATA = os.path.join(os.path.dirname(__file__), "test_data/multi_asset.pkl")
 
