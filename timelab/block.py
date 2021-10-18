@@ -1,7 +1,7 @@
 import functools
 from collections import OrderedDict
-import numpy as np
 
+import numpy as np
 import pandas as pd
 
 from .utils import add_dim
@@ -43,6 +43,7 @@ def rebuild(func):
         return from_dataframe(df)
 
     return wrapper
+
 
 class TimeBlock(pd.DataFrame):
     def __init__(self, df, *args, **kwargs):
@@ -162,8 +163,6 @@ class TimeBlock(pd.DataFrame):
         splits = [data.rename_assets(0, asset) for data, asset in zip(splits, self.assets)]
         return pd.concat(splits).rename_channels(0, "new_channel")
 
-
-
     def update(self, values=None, index=None, assets=None, channels=None):
         values = values if values is not None else self.values
         assets = assets if assets is not None else self.assets
@@ -191,5 +190,3 @@ class TimeBlock(pd.DataFrame):
 
     def numpy(self):
         return np.array([df.values for df in self.split_assets()])
-
-

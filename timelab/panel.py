@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 
-from .pair import TimePair
 from .block import TimeBlock
+from .pair import TimePair
 from .side import PanelSide
 
 
@@ -35,20 +35,10 @@ def from_xy_data(x, y, lookback, horizon, gap=0):
         xblocks.append(x.iloc[i - lookback : i])
         yblocks.append(y.iloc[i + gap : i + gap + horizon])
 
-
     return TimePanel(PanelSide(xblocks), PanelSide(yblocks))
 
 
-def from_data(
-        df,
-        lookback,
-        horizon,
-        gap=0,
-        x_assets=None,
-        y_assets=None,
-        x_channels=None,
-        y_channels=None
-        ):
+def from_data(df, lookback, horizon, gap=0, x_assets=None, y_assets=None, x_channels=None, y_channels=None):
 
     df = TimeBlock(df)
     xdata = df.filter(x_assets, x_channels)
@@ -147,7 +137,8 @@ class TimePanel:
                 "start": self.x.start,
                 "end": self.y.end,
             },
-            name="TimePanel")
+            name="TimePanel",
+        )
 
         print(summary)
         return f"<TimePanel, size {self.__len__()}>"
@@ -159,4 +150,3 @@ class TimePanel:
         if isinstance(key, tuple):
             return from_pairs([pair for i, pair in enumerate(self.pairs) if i in key])
         return self.pairs[key]
-

@@ -1,6 +1,8 @@
+import os
+
 import numpy as np
 import pandas as pd
-import os
+
 from timelab import block
 
 TEST_DATA = os.path.join(os.path.dirname(__file__), "test_data/multi_asset.pkl")
