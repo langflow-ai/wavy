@@ -7,26 +7,54 @@ from tqdm.auto import tqdm
 
 from .block import TimeBlock
 
+
 # Panel Side extende Panel block e ja tem funcoes todas como rename_channels, ...
 class PanelSide:
-
     def __init__(self, blocks):
         self.blocks = blocks
 
-    #     for func in dir(TimeBlock):
-    #         try:
-    #             block_func = getattr(TimeBlock, func)
-    #             new_func = self.wrap_block(block_func)
-    #             setattr(self, func, new_func)
-    #             print(func)
-    #         except:
-    #             pass
+    def wrap_block(self, func):
+        @functools.wraps(func)
+        def newfunc(*fargs, **fkeywords):
+            return PanelSide([getattr(block, func.__name__)(*fargs, **fkeywords) for block in self.blocks])
 
-    # def wrap_block(self, func):
-    #     @functools.wraps(func)
-    #     def newfunc(*fargs, **fkeywords):
-    #         return PanelSide([getattr(block, func.__name__)(*fargs, **fkeywords) for block in self.blocks])
-    #     return newfunc
+        return newfunc
+
+    def __getattr__(self, name):
+        try:
+            block_func = getattr(TimeBlock, name)
+            if callable(block_func):
+                return self.wrap_block(block_func)
+            return PanelSide([getattr(block, name) for block in self.blocks])
+        except AttributeError:
+            raise AttributeError(f"'PanelSide' object has no attribute '{name}'")
+
+    def __abs__(self, other):
+        return PanelSide([block.__abs__(other) for block in self.blocks])
+
+    def __add__(self, other):
+        return PanelSide([block.__add__(other) for block in self.blocks])
+
+    def __sub__(self, other):
+        return PanelSide([block.__sub__(other) for block in self.blocks])
+
+    def __mul__(self, other):
+        return PanelSide([block.__mul__(other) for block in self.blocks])
+
+    def __ge__(self, other):
+        return PanelSide([block.__ge__(other) for block in self.blocks])
+
+    def __gt__(self, other):
+        return PanelSide([block.__gt__(other) for block in self.blocks])
+
+    def __le__(self, other):
+        return PanelSide([block.__le__(other) for block in self.blocks])
+
+    def __lt__(self, other):
+        return PanelSide([block.__lt__(other) for block in self.blocks])
+
+    def __pow__(self, other):
+        return PanelSide([block.__pow__(other) for block in self.blocks])
 
     def __getitem__(self, key):
         return self.blocks.__getitem__(key)
@@ -78,8 +106,7 @@ class PanelSide:
         return PanelSide([block.filter(assets, channels) for block in tqdm(self.blocks)])
 
     def fillna(self, value=None, method=None):
-        return PanelSide([block.fillna(value=value,
-                                        method=method) for block in (self.blocks)])
+        return PanelSide([block.fillna(value=value, method=method) for block in (self.blocks)])
 
     def findna(self):
         values = np.sum(self.numpy(), axis=(3, 2, 1))
@@ -99,10 +126,7 @@ class PanelSide:
         return [self.filter(asset) for asset in self.assets]
 
     def replace(self, data):
-        blocks = [
-            block.update(values=data[i])
-            for i, block in enumerate(self.blocks)
-        ]
+        blocks = [block.update(values=data[i]) for i, block in enumerate(self.blocks)]
         return PanelSide(blocks)
 
     def add_channel(self, name, values):
@@ -110,7 +134,7 @@ class PanelSide:
 
     def data(self):
         df = pd.concat(self.blocks)
-        return df[~df.index.duplicated(keep='first')]
+        return df[~df.index.duplicated(keep="first")]
 
     def numpy(self):
         return np.array([block.numpy() for block in self.blocks])
@@ -123,7 +147,6 @@ class PanelSide:
 
 # for name in ['__add__','__mul__','__sub__']:
 #     setattr(PanelSide, name, operate(getattr(operator, name)))
-
 
 
 # def blockfunc(func):

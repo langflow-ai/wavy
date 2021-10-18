@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+
 class TimePair:
 
     DIMS = ("assets", "timesteps", "channels")
@@ -35,8 +36,7 @@ class TimePair:
 
     @property
     def shape(self):
-        return pd.DataFrame([self.x.numpy().shape, self.y.numpy().shape],
-        index=["x", "y"], columns=self.DIMS)
+        return pd.DataFrame([self.x.numpy().shape, self.y.numpy().shape], index=["x", "y"], columns=self.DIMS)
 
     def filter(self, assets=None, channels=None):
         x = self.x.filter(assets=assets, channels=channels)
