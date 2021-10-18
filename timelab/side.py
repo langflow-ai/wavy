@@ -1,4 +1,5 @@
 import functools
+import operator
 
 import numpy as np
 import pandas as pd
@@ -12,20 +13,20 @@ class PanelSide:
     def __init__(self, blocks):
         self.blocks = blocks
 
-        for func in dir(TimeBlock):
-            try:
-                block_func = getattr(TimeBlock, func)
-                new_func = self.wrap_block(block_func)
-                setattr(self, func, new_func)
-                print(func, 'True')
-            except:
-                print(func, 'False')
+    #     for func in dir(TimeBlock):
+    #         try:
+    #             block_func = getattr(TimeBlock, func)
+    #             new_func = self.wrap_block(block_func)
+    #             setattr(self, func, new_func)
+    #             print(func)
+    #         except:
+    #             pass
 
-    def wrap_block(self, func):
-        @functools.wraps(func)
-        def newfunc(*fargs, **fkeywords):
-            return PanelSide([getattr(block, func.__name__)(*fargs, **fkeywords) for block in self.blocks])
-        return newfunc
+    # def wrap_block(self, func):
+    #     @functools.wraps(func)
+    #     def newfunc(*fargs, **fkeywords):
+    #         return PanelSide([getattr(block, func.__name__)(*fargs, **fkeywords) for block in self.blocks])
+    #     return newfunc
 
     def __getitem__(self, key):
         return self.blocks.__getitem__(key)
@@ -125,7 +126,7 @@ class PanelSide:
 
 
 
-def blockfunc(func):
-    def inner(self):
-        return PanelSide([getatrr(block, func.__name__)() for block in self.blocks])
-    return inner
+# def blockfunc(func):
+#     def inner(self):
+#         return PanelSide([getatrr(block, func.__name__)() for block in self.blocks])
+#     return inner

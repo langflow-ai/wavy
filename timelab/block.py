@@ -32,7 +32,7 @@ def from_array(values, index=None, assets=None, channels=None):
 
     columns = pd.MultiIndex.from_product([assets, channels])
     df = pd.DataFrame(index=index, columns=columns)
-    df.loc[:, (slice(None), slice(None))] = values.reshape(df.pandas().shape)
+    df.loc[:, (slice(None), slice(None))] = values.reshape(df.shape)
     return TimeBlock(df)
 
 
@@ -150,7 +150,10 @@ class TimeBlock(pd.DataFrame):
         raise ValueError(f"{axis} not acceptable for 'axis'. Available values are [0, 1]")
 
     def _timestamp_apply(self, func):
-        return self.pandas().apply(func, axis=0).to_frame().T
+        df = self.pandas().apply(func, axis=0)
+        if isinstance(df, pd.Series):
+            return df.to_frame().T
+        return df.T
 
     def _channel_apply(self, func):
         splits = self.split_assets()
@@ -158,6 +161,8 @@ class TimeBlock(pd.DataFrame):
         splits = [from_array(data.values, index=data.index) for data in splits]
         splits = [data.rename_assets(0, asset) for data, asset in zip(splits, self.assets)]
         return pd.concat(splits).rename_channels(0, "new_channel")
+
+
 
     def update(self, values=None, index=None, assets=None, channels=None):
         values = values if values is not None else self.values
