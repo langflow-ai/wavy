@@ -46,14 +46,6 @@ def bfill(arr, axis):
     return arr[tuple(slc)]
 
 
-def get_null_indexes(x):
-    s = np.sum(x, axis=3)
-    s = np.sum(s, axis=2)
-    s = np.sum(s, axis=1)
-    s = pd.Series(s).isna()
-    return s[s == True].index.tolist()
-
-
 # TODO: Check how this works
 def get_all_unique(array):
     all_ = [i for i in array[0]]

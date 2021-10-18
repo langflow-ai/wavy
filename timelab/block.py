@@ -4,16 +4,7 @@ import numpy as np
 
 import pandas as pd
 
-from .utils import add_dim, replace
-
-
-def rebuild(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        df = func(*args, **kwargs)
-        return from_dataframe(df)
-
-    return wrapper
+from .utils import add_dim
 
 
 def from_dataframe(df):
@@ -41,29 +32,26 @@ def from_array(values, index=None, assets=None, channels=None):
 
     columns = pd.MultiIndex.from_product([assets, channels])
     df = pd.DataFrame(index=index, columns=columns)
-    df.loc[:, (slice(None), slice(None))] = values.reshape(df.shape)
+    df.loc[:, (slice(None), slice(None))] = values.reshape(df.pandas().shape)
     return TimeBlock(df)
 
 
-def from_block(block, values=None, index=None, assets=None, channels=None):
-    values = values if values is not None else block.values
-    assets = assets if assets is not None else block.assets
-    index = index if index is not None else block.index
-    channels = channels if channels is not None else block.channels
-    return from_array(values, index, assets, channels)
+def rebuild(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        df = func(*args, **kwargs)
+        return from_dataframe(df)
 
+    return wrapper
 
 class TimeBlock(pd.DataFrame):
     def __init__(self, df, *args, **kwargs):
         super().__init__(df, *args, **kwargs)
 
-        if any(asset in self.channels for asset in self.assets):
-            raise ValueError("assets and channels must not have duplicated names")
-
     def __eq__(self, other):
-        if not isinstance(other, (TimeBlock, pd.DataFrame)):
-            raise TypeError("'other' must be a TimeBlock or pandas DataFrame")
-        return np.all(np.nan_to_num(self.values, nan=0) == np.nan_to_num(other.values, nan=0))
+        if not isinstance(other, TimeBlock):
+            raise TypeError("'other' must be of type TimeBlock")
+        return np.all(self.fillna(0).values == other.fillna(0).values)
 
     @property
     def _constructor(self):
@@ -90,6 +78,12 @@ class TimeBlock(pd.DataFrame):
         return pd.Series(list(OrderedDict.fromkeys(channels)))
 
     @rebuild
+    def filter(self, assets=None, channels=None):
+        filtered = self.filter_assets(assets)
+        filtered = filtered.filter_channels(channels)
+        return filtered
+
+    @rebuild
     def filter_assets(self, assets):
         if type(assets) == str:
             assets = [assets]
@@ -108,11 +102,6 @@ class TimeBlock(pd.DataFrame):
             raise ValueError(f"{channels} not found in columns. Columns:{list(self.columns.levels[1])}")
 
         return self.loc[:, (slice(None), channels)][self.assets] if channels else self
-
-    def filter(self, assets=None, channels=None):
-        filtered = self.filter_assets(assets)
-        filtered = filtered.filter_channels(channels)
-        return filtered
 
     def drop(self, assets=None, channels=None):
         filtered = self.drop_assets(assets)
@@ -139,7 +128,7 @@ class TimeBlock(pd.DataFrame):
             raise ValueError("'values' must have the same length as 'new_values'")
 
         assets = self.assets.replace(to_replace=values, value=new_values)
-        return from_block(self, assets=assets.values)
+        return self.update(assets=assets.values)
 
     def rename_channels(self, values, new_values):
         values = values if isinstance(values, list) else [values]
@@ -149,7 +138,7 @@ class TimeBlock(pd.DataFrame):
             raise ValueError("'values' must have the same length as 'new_values'")
 
         channels = self.channels.replace(to_replace=values, value=new_values)
-        return from_block(self, channels=channels.values)
+        return self.update(channels=channels.values)
 
     def apply(self, func, axis=0):
 
@@ -167,23 +156,35 @@ class TimeBlock(pd.DataFrame):
         splits = self.split_assets()
         splits = [data.pandas().apply(func, axis=1).to_frame() for data in splits]
         splits = [from_array(data.values, index=data.index) for data in splits]
-        splits = [data.rename_asset(0, asset) for data, asset in zip(splits, self.assets)]
-        return pd.concat(splits).rename_channel(0, "new_channel")
+        splits = [data.rename_assets(0, asset) for data, asset in zip(splits, self.assets)]
+        return pd.concat(splits).rename_channels(0, "new_channel")
 
-    @rebuild
-    def add_channel(self, name, values):
-        for asset in self.assets:
-            self.loc[:, (asset, name)] = values
-        return self
+    def update(self, values=None, index=None, assets=None, channels=None):
+        values = values if values is not None else self.values
+        assets = assets if assets is not None else self.assets
+        index = index if index is not None else self.index
+        channels = channels if channels is not None else self.channels
+        return from_array(values, index, assets, channels)
+
+    # @rebuild
+    # def add_channel(self, name, values):
+    #     for asset in self.assets:
+    #         self.loc[:, (asset, name)] = values
+    #     return self
 
     def split_assets(self):
         return [self.filter(asset) for asset in self.assets]
-
-    def pandas(self):
-        return pd.DataFrame(self.values, index=self.index, columns=self.columns)
 
     def countna(self):
         s = pd.Series(dtype=int)
         for asset in self.assets:
             s[asset] = len(self[asset]) - len(self[asset].dropna())
         return s
+
+    def pandas(self):
+        return pd.DataFrame(self.values, index=self.index, columns=self.columns)
+
+    def numpy(self):
+        return np.array([df.values for df in self.split_assets()])
+
+
