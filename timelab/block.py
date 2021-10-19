@@ -20,9 +20,7 @@ def from_dataframe(df):
 
 def from_array(values, index=None, assets=None, channels=None):
 
-    if len(values.shape) == 2:
-        values = add_dim(values)
-
+    values = add_dim(values, n=3 - len(values.shape))
     if assets is None:
         assets = range(values.shape[0])
     if index is None:
@@ -45,6 +43,19 @@ def rebuild(func):
     return wrapper
 
 
+class AssetSeries(pd.Series):
+    def __init__(self, df, *args, **kwargs):
+        super().__init__(df, *args, **kwargs)
+
+    @property
+    def _constructor_expanddim(self):
+        return TimeBlock
+
+    @property
+    def _constructor(self):
+        return AssetSeries
+
+
 class TimeBlock(pd.DataFrame):
     def __init__(self, df, *args, **kwargs):
         super().__init__(df, *args, **kwargs)
@@ -57,6 +68,10 @@ class TimeBlock(pd.DataFrame):
     @property
     def _constructor(self):
         return TimeBlock
+
+    @property
+    def _constructor_sliced(self):
+        return AssetSeries
 
     @property
     def start(self):

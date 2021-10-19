@@ -7,7 +7,6 @@ from tqdm.auto import tqdm
 
 from .block import TimeBlock
 
-
 # Panel Side extende Panel block e ja tem funcoes todas como rename_channels, ...
 class PanelSide:
     def __init__(self, blocks):

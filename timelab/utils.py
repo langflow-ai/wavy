@@ -125,8 +125,10 @@ def smash_array(array):
         raise ValueError("Array must have 3 or 4 dimensions")
 
 
-def add_dim(x):
-    return np.array([x])
+def add_dim(x, n=1):
+    for _ in range(n):
+        x = np.array([x])
+    return x
 
 
 def shift(array, n):
