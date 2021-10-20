@@ -7,7 +7,7 @@ from tqdm.auto import tqdm
 
 from .block import TimeBlock
 
-# Panel Side extende Panel block e ja tem funcoes todas como rename_channels, ...
+
 class PanelSide:
     def __init__(self, blocks):
         self.blocks = blocks
@@ -34,49 +34,49 @@ class PanelSide:
     def __add__(self, other):
         if isinstance(other, PanelSide):
             return PanelSide([block.__add__(other_block) for block,
-            other_block in zip(self.blocks, other)])
+                              other_block in zip(self.blocks, other)])
         return PanelSide([block.__add__(other) for block in self.blocks])
 
     def __sub__(self, other):
         if isinstance(other, PanelSide):
             return PanelSide([block.__sub__(other_block) for block,
-            other_block in zip(self.blocks, other)])
+                              other_block in zip(self.blocks, other)])
         return PanelSide([block.__sub__(other) for block in self.blocks])
 
     def __mul__(self, other):
         if isinstance(other, PanelSide):
             return PanelSide([block.__mul__(other_block) for block,
-            other_block in zip(self.blocks, other)])
+                              other_block in zip(self.blocks, other)])
         return PanelSide([block.__mul__(other) for block in self.blocks])
 
     def __ge__(self, other):
         if isinstance(other, PanelSide):
             return PanelSide([block.__ge__(other_block) for block,
-            other_block in zip(self.blocks, other)])
+                              other_block in zip(self.blocks, other)])
         return PanelSide([block.__ge__(other) for block in self.blocks])
 
     def __gt__(self, other):
         if isinstance(other, PanelSide):
             return PanelSide([block.__gt__(other_block) for block,
-            other_block in zip(self.blocks, other)])
+                              other_block in zip(self.blocks, other)])
         return PanelSide([block.__gt__(other) for block in self.blocks])
 
     def __le__(self, other):
         if isinstance(other, PanelSide):
             return PanelSide([block.__le__(other_block) for block,
-            other_block in zip(self.blocks, other)])
+                              other_block in zip(self.blocks, other)])
         return PanelSide([block.__le__(other) for block in self.blocks])
 
     def __lt__(self, other):
         if isinstance(other, PanelSide):
             return PanelSide([block.__lt__(other_block) for block,
-            other_block in zip(self.blocks, other)])
+                              other_block in zip(self.blocks, other)])
         return PanelSide([block.__lt__(other) for block in self.blocks])
 
     def __pow__(self, other):
         if isinstance(other, PanelSide):
             return PanelSide([block.__pow__(other_block) for block,
-            other_block in zip(self.blocks, other)])
+                              other_block in zip(self.blocks, other)])
         return PanelSide([block.__pow__(other) for block in self.blocks])
 
     def __getitem__(self, key):
