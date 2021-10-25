@@ -13,7 +13,7 @@ from .panel import TimePanel
 from .utils import smash_array
 
 
-class SeparateUnitModel:
+class SeparateAssetModel:
     def __init__(self, panel, hidden_size=10, filters=10):
         self.model = self.build_model(panel, hidden_size, filters)
         self.panel = panel
@@ -27,11 +27,11 @@ class SeparateUnitModel:
         if train is None:
             raise ValueError("Train panel must not be None. Try set panel training split before fitting.")
 
-        X_train = [smash_array(unit_train.x.values) for unit_train in train.x.split_units()]
-        y_train = train.y.values
+        X_train = [asset_train.values for asset_train in train.x.split_assets()]
+        y_train = train.y.numpy()
 
-        X_val = [smash_array(unit_val.x.values) for unit_val in val.x.split_units()]
-        y_val = val.y.values
+        X_val = [asset_val.values for asset_val in val.x.split_assets()]
+        y_val = val.y.numpy()
 
         self.model.fit(X_train, y_train, validation_data=(X_val, y_val), **kwargs)
         return self
@@ -39,19 +39,19 @@ class SeparateUnitModel:
     def predict(self, test: TimePanel = None):
         if not test:
             test = self.panel.test
-        X_test = [smash_array(unit_test.x.values) for unit_test in test.x.split_units()]
+        X_test = [asset_test.values for asset_test in test.x.split_assets()]
         return self.model.predict(X_test)
 
-    def build_unit_input(self, unit_panel):
-        assert len(unit_panel.x.units) == 1
-        input_shape = unit_panel.x.values.shape[2:]
+    def build_asset_input(self, asset_side):
+        assert len(asset_side.assets) == 1
+        input_shape = asset_side.shape[2:]
         print(input_shape)
-        return Input(shape=input_shape, name=unit_panel.x.units[0])
+        return Input(shape=input_shape, name=asset_side.assets[0])
 
-    def build_unit_hidden(self, input_, lookback, hidden_size, filters):
+    def build_asset_hidden(self, input_, lookback, hidden_size, filters):
         # TODO: Add to hidden_size and filter
         # M1 = 1  # Multiplier to for the channel representation. Increases CONV filters.
-        # M2 = 1  # Multiplier to for the unit representation before concat. Nonsense if higher than [lookback]?
+        # M2 = 1  # Multiplier to for the asset representation before concat. Nonsense if higher than [lookback]?
 
         # Convoluting on the time dimension
         # [lookback] timesteps reduced to [filters] nodes
@@ -62,8 +62,8 @@ class SeparateUnitModel:
         return hidden
 
     def build_model(self, panel, hidden_size, filters):
-        inputs = [self.build_unit_input(unit_panel) for unit_panel in panel.x.split_units()]
-        hidden = [self.build_unit_hidden(input_, panel.lookback, hidden_size, filters) for input_ in inputs]
+        inputs = [self.build_asset_input(asset_side) for asset_side in panel.x.split_assets()]
+        hidden = [self.build_asset_hidden(input_, panel.lookback, hidden_size, filters) for input_ in inputs]
         x = concatenate(hidden)
         x = Dense(panel.y.shape[1], activation=sigmoid)(x)
         outputs = Reshape(panel.y.shape[1:])(x)

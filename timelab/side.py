@@ -10,6 +10,7 @@ from .block import TimeBlock
 
 class PanelSide:
     def __init__(self, blocks):
+        # TODO: blocks must have increasing indexes, add warning and reindex
         self.blocks = blocks
 
     def wrap_block(self, func):

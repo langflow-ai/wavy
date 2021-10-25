@@ -69,6 +69,7 @@ class TimePanel:
     @x.setter
     def x(self, value):
         if not isinstance(value, PanelSide):
+            print(type(value))
             raise ValueError("'x' must be of type PanelSide")
         if len(value) != len(self.x):
             raise ValueError("'x' must keep the same length")
@@ -143,10 +144,91 @@ class TimePanel:
         print(summary)
         return f"<TimePanel, size {self.__len__()}>"
 
+
+    def set_training_split(self, val_size=0.2, test_size=0.1):
+        """
+        Time series split into training, validation, and test sets, avoiding data leakage.
+        Splits the panel in training, validation, and test panels, accessed with the properties
+        .train, .val and .test. The sum of the three sizes inserted must equals one.
+
+        Parameters
+        ----------
+        val_size : float
+            Percentage of data used for the validation set.
+        test_size : float
+            Percentage of data used for the test set.
+
+        Returns
+        -------
+        panel : TimePanel
+            New panel with the pairs split into training, validation, and test sets.
+            To use each set, one must access the properties .train, .val and .test.
+
+
+        Examples
+        -------
+        >>> panel.set_training_split(0.2, 0.1)
+        >>> train = panel.train
+        >>> val = panel.val
+        >>> test = panel.test
+        """
+
+        train_size = len(self) - int(len(self) * test_size)
+
+        self.test_size = int(len(self) * test_size)
+        self.val_size = int(train_size * val_size)
+        self.train_size = train_size - self.val_size
+        assert self.train_size + self.val_size + self.test_size == len(self)
+
+    @property
+    def train(self):
+        """
+        Returns the TimePanel with the pairs of the training set, according to
+        the parameters given in the 'set_train_val_test_sets' function.
+
+        Returns
+        -------
+        TimePanel
+            TimePanel with the pairs of the training set.
+
+        """
+        if self.train_size:
+            return self[: self.train_size]
+
+    @property
+    def val(self):
+        """
+        Returns the TimePanel with the pairs of the validation set, according to
+        the parameters given in the 'set_train_val_test_sets' function.
+
+        Returns
+        -------
+        TimePanel
+            TimePanel with the pairs of the validation set.
+
+        """
+        if self.val_size and self.train_size:
+            return self[self.train_size : int(self.train_size + self.val_size)]
+
+    @property
+    def test(self):
+        """
+        Returns the TimePanel with the pairs of the testing set, according to
+        the parameters given in the 'set_train_val_test_sets' function.
+
+        Returns
+        -------
+        TimePanel
+            TimePanel with the pairs of the testing set.
+
+        """
+        if self.val_size and self.train_size:
+            return self[self.train_size + self.val_size :]
+
     def __len__(self):
         return len(self.pairs)
 
     def __getitem__(self, key):
         if isinstance(key, tuple):
             return from_pairs([pair for i, pair in enumerate(self.pairs) if i in key])
-        return self.pairs[key]
+        return from_pairs(self.pairs[key])
