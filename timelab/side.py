@@ -20,7 +20,18 @@ class PanelSide:
 
         return newfunc
 
+    # # TODO: Implement
+    # def __repr__(self):
+    #     return "<PanelSide>"
+
+    # # TODO: Implement
+    # def _repr_html_(self):
+    #     return "<p>PanelSide</p>"
+
     def __getattr__(self, name):
+        # Temporary fix
+        if "repr" in name:
+            return getattr(self.values, name)
         try:
             block_func = getattr(TimeBlock, name)
             if callable(block_func):
@@ -34,50 +45,42 @@ class PanelSide:
 
     def __add__(self, other):
         if isinstance(other, PanelSide):
-            return PanelSide([block.__add__(other_block) for block,
-                              other_block in zip(self.blocks, other)])
+            return PanelSide([block.__add__(other_block) for block, other_block in zip(self.blocks, other)])
         return PanelSide([block.__add__(other) for block in self.blocks])
 
     def __sub__(self, other):
         if isinstance(other, PanelSide):
-            return PanelSide([block.__sub__(other_block) for block,
-                              other_block in zip(self.blocks, other)])
+            return PanelSide([block.__sub__(other_block) for block, other_block in zip(self.blocks, other)])
         return PanelSide([block.__sub__(other) for block in self.blocks])
 
     def __mul__(self, other):
         if isinstance(other, PanelSide):
-            return PanelSide([block.__mul__(other_block) for block,
-                              other_block in zip(self.blocks, other)])
+            return PanelSide([block.__mul__(other_block) for block, other_block in zip(self.blocks, other)])
         return PanelSide([block.__mul__(other) for block in self.blocks])
 
     def __ge__(self, other):
         if isinstance(other, PanelSide):
-            return PanelSide([block.__ge__(other_block) for block,
-                              other_block in zip(self.blocks, other)])
+            return PanelSide([block.__ge__(other_block) for block, other_block in zip(self.blocks, other)])
         return PanelSide([block.__ge__(other) for block in self.blocks])
 
     def __gt__(self, other):
         if isinstance(other, PanelSide):
-            return PanelSide([block.__gt__(other_block) for block,
-                              other_block in zip(self.blocks, other)])
+            return PanelSide([block.__gt__(other_block) for block, other_block in zip(self.blocks, other)])
         return PanelSide([block.__gt__(other) for block in self.blocks])
 
     def __le__(self, other):
         if isinstance(other, PanelSide):
-            return PanelSide([block.__le__(other_block) for block,
-                              other_block in zip(self.blocks, other)])
+            return PanelSide([block.__le__(other_block) for block, other_block in zip(self.blocks, other)])
         return PanelSide([block.__le__(other) for block in self.blocks])
 
     def __lt__(self, other):
         if isinstance(other, PanelSide):
-            return PanelSide([block.__lt__(other_block) for block,
-                              other_block in zip(self.blocks, other)])
+            return PanelSide([block.__lt__(other_block) for block, other_block in zip(self.blocks, other)])
         return PanelSide([block.__lt__(other) for block in self.blocks])
 
     def __pow__(self, other):
         if isinstance(other, PanelSide):
-            return PanelSide([block.__pow__(other_block) for block,
-                              other_block in zip(self.blocks, other)])
+            return PanelSide([block.__pow__(other_block) for block, other_block in zip(self.blocks, other)])
         return PanelSide([block.__pow__(other) for block in self.blocks])
 
     def __getitem__(self, key):
@@ -88,7 +91,7 @@ class PanelSide:
 
     @property
     def values(self):
-        return np.array([block.values for block in self.blocks])
+        return np.array(self.blocks)
 
     @property
     def first(self):
@@ -113,6 +116,10 @@ class PanelSide:
     @property
     def end(self):
         return self.last.end
+
+    @property
+    def timesteps(self):
+        return self.first.index
 
     @property
     def index(self):
@@ -161,4 +168,6 @@ class PanelSide:
         return df[~df.index.duplicated(keep="first")]
 
     def numpy(self):
-        return np.array([block.numpy() for block in self.blocks])
+        new_shape = (len(self), len(self.timesteps), len(self.assets), len(self.channels))
+        values = self.values.reshape(*new_shape)
+        return values.transpose(0, 2, 1, 3)

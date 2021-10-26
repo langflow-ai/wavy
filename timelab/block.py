@@ -13,7 +13,7 @@ def from_dataframe(df):
         pd.DataFrame(
             df.values,
             index=df.index,
-            columns=pd.MultiIndex.from_tuples(df.columns.tolist()),
+            columns=df.columns,
         )
     )
 
@@ -104,8 +104,8 @@ class TimeBlock(pd.DataFrame):
         if type(assets) == str:
             assets = [assets]
 
-        if assets is not None and any(asset not in self.columns.levels[0] for asset in assets):
-            raise ValueError(f"{assets} not found in columns. Columns: {list(self.columns.levels[0])}")
+        # if assets is not None and any(asset not in self.columns.levels[0] for asset in assets):
+        #     raise ValueError(f"{assets} not found in columns. Columns: {list(self.columns.levels[0])}")
 
         return self.loc[:, (assets, slice(None))] if assets else self
 
@@ -114,8 +114,8 @@ class TimeBlock(pd.DataFrame):
         if type(channels) == str:
             channels = [channels]
 
-        if channels is not None and any(channel not in self.columns.levels[1] for channel in channels):
-            raise ValueError(f"{channels} not found in columns. Columns:{list(self.columns.levels[1])}")
+        # if channels is not None and any(channel not in self.columns.levels[1] for channel in channels):
+        #     raise ValueError(f"{channels} not found in columns. Columns:{list(self.columns.levels[1])}")
 
         return self.loc[:, (slice(None), channels)][self.assets] if channels else self
 
@@ -204,4 +204,6 @@ class TimeBlock(pd.DataFrame):
         return pd.DataFrame(self.values, index=self.index, columns=self.columns)
 
     def numpy(self):
-        return np.array([df.values for df in self.split_assets()])
+        new_shape = (len(self), len(self.assets), len(self.channels))
+        values = self.values.reshape(*new_shape)
+        return values.transpose(1, 0, 2)

@@ -34,7 +34,6 @@ def from_xy_data(x, y, lookback, horizon, gap=0):
     for i in indexes:
         xblocks.append(x.iloc[i - lookback : i])
         yblocks.append(y.iloc[i + gap : i + gap + horizon])
-
     return TimePanel(PanelSide(xblocks), PanelSide(yblocks))
 
 
@@ -70,7 +69,7 @@ class TimePanel:
     def x(self, value):
         if not isinstance(value, PanelSide):
             print(type(value))
-            raise ValueError("'x' must be of type PanelSide")
+            raise ValueError(f"'x' must be of type PanelSide, it is {type(value)}")
         if len(value) != len(self.x):
             raise ValueError("'x' must keep the same length")
         self._x = value
@@ -119,7 +118,8 @@ class TimePanel:
     def dropna(self, x=True, y=True):
         x_nan = self.x.findna() if x else []
         y_nan = self.y.findna() if y else []
-        idx = tuple(i for i in range(len(self)) if i not in set(x_nan + y_nan))
+        nan_values = set(x_nan + y_nan)
+        idx = {i for i in range(len(self)) if i not in nan_values}
         if not idx:
             raise ValueError("'dropna' would create empty TimePanel")
         return self[idx]
@@ -143,7 +143,6 @@ class TimePanel:
 
         print(summary)
         return f"<TimePanel, size {self.__len__()}>"
-
 
     def set_training_split(self, val_size=0.2, test_size=0.1):
         """
@@ -229,6 +228,7 @@ class TimePanel:
         return len(self.pairs)
 
     def __getitem__(self, key):
-        if isinstance(key, tuple):
+
+        if isinstance(key, set):
             return from_pairs([pair for i, pair in enumerate(self.pairs) if i in key])
         return from_pairs(self.pairs[key])
