@@ -1,5 +1,6 @@
-from typing import Iterable
 from itertools import compress
+from typing import Iterable
+
 import numpy as np
 import pandas as pd
 
