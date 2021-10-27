@@ -234,8 +234,9 @@ class TimePanel:
             key_set = set(key)
             if key_set == {False, True}:
                 pairs = list(compress(self.pairs, key))
-                return from_pairs(pairs)
+            else:
+                pairs = [pair for i, pair in enumerate(self.pairs) if i in key_set]
+        else:
+            pairs = self.pairs[key]
 
-            return from_pairs([pair for i, pair in enumerate(self.pairs) if i in key_set])
-
-        return from_pairs(self.pairs[key])
+        return from_pairs(pairs)
