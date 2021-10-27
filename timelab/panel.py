@@ -1,3 +1,5 @@
+from typing import Iterable
+from itertools import compress
 import numpy as np
 import pandas as pd
 
@@ -228,7 +230,12 @@ class TimePanel:
         return len(self.pairs)
 
     def __getitem__(self, key):
+        if isinstance(key, Iterable):
+            key_set = set(key)
+            if key_set == {False, True}:
+                pairs = list(compress(self.pairs, key))
+                return from_pairs(pairs)
 
-        if isinstance(key, set):
-            return from_pairs([pair for i, pair in enumerate(self.pairs) if i in key])
+            return from_pairs([pair for i, pair in enumerate(self.pairs) if i in key_set])
+
         return from_pairs(self.pairs[key])
