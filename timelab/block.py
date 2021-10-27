@@ -119,6 +119,9 @@ class TimeBlock(pd.DataFrame):
 
         return self.loc[:, (slice(None), channels)][self.assets] if channels else self
 
+    def add_level(df, level_name):
+        return pd.concat({level_name: df.T}, names=[level_name]).T
+
     def drop(self, assets=None, channels=None):
         filtered = self.drop_assets(assets)
         filtered = filtered.drop_channels(channels)

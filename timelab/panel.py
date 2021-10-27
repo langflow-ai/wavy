@@ -1,3 +1,5 @@
+from collections import Iterable
+
 import numpy as np
 import pandas as pd
 
@@ -24,9 +26,9 @@ def from_xy_data(x, y, lookback, horizon, gap=0):
 
     end = x_timesteps - horizon - gap + 1
 
-    # Get units and channels
-    # x = TimeBlock(x)
-    # y = TimeBlock(y)
+    # Convert to blocks
+    x = TimeBlock(x)
+    y = TimeBlock(y)
 
     indexes = np.arange(lookback, end)
     xblocks, yblocks = [], []
@@ -37,9 +39,19 @@ def from_xy_data(x, y, lookback, horizon, gap=0):
     return TimePanel(PanelSide(xblocks), PanelSide(yblocks))
 
 
-def from_data(df, lookback, horizon, gap=0, x_assets=None, y_assets=None, x_channels=None, y_channels=None):
+def from_data(df, lookback, horizon, gap=0, x_assets=None, y_assets=None, x_channels=None, y_channels=None, assets=None, channels=None):
+
+    if assets:
+        x_assets, y_assets = assets, assets
+    if channels:
+        x_channels, y_channels = channels, channels
+
 
     df = TimeBlock(df)
+
+    if df.T.index.nlevels == 1:
+        df = df.add_level('asset')
+
     xdata = df.filter(x_assets, x_channels)
     ydata = df.filter(y_assets, y_channels)
     return from_xy_data(xdata, ydata, lookback, horizon, gap)
@@ -72,6 +84,8 @@ class TimePanel:
             raise ValueError(f"'x' must be of type PanelSide, it is {type(value)}")
         if len(value) != len(self.x):
             raise ValueError("'x' must keep the same length")
+        if len({len(block) for block in value.blocks}) != 1:
+            raise ValueError("'x' blocks must have the same length")
         self._x = value
 
     @y.setter
@@ -80,6 +94,8 @@ class TimePanel:
             raise ValueError("'y' must be of type PanelSide")
         if len(value) != len(self.y):
             raise ValueError("'y' must keep the same length")
+        if len({len(block) for block in value.blocks}) != 1:
+            raise ValueError("'y' blocks must have the same length")
         self._y = value
 
     @property
@@ -228,7 +244,8 @@ class TimePanel:
         return len(self.pairs)
 
     def __getitem__(self, key):
+        if isinstance(key, Iterable):
+            key = set(key)
 
-        if isinstance(key, set):
             return from_pairs([pair for i, pair in enumerate(self.pairs) if i in key])
         return from_pairs(self.pairs[key])

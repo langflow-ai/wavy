@@ -10,7 +10,6 @@ from tensorflow.keras.layers import (
 from tensorflow.nn import relu, sigmoid
 
 from .panel import TimePanel
-from .utils import smash_array
 
 
 class SeparateAssetModel:
@@ -50,8 +49,8 @@ class SeparateAssetModel:
 
     def build_asset_hidden(self, input_, lookback, hidden_size, filters):
         # TODO: Add to hidden_size and filter
-        # M1 = 1  # Multiplier to for the channel representation. Increases CONV filters.
-        # M2 = 1  # Multiplier to for the asset representation before concat. Nonsense if higher than [lookback]?
+        # M1 = 1  # Multiplier for the channel representation. Increases CONV filters.
+        # M2 = 1  # Multiplier for the asset representation before concat. Nonsense if higher than [lookback]?
 
         # Convoluting on the time dimension
         # [lookback] timesteps reduced to [filters] nodes

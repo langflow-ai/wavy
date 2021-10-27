@@ -123,8 +123,7 @@ class PanelSide:
 
     @property
     def index(self):
-        indexes = np.array([block.index.values for block in self.blocks]).flatten()
-        return list(set(indexes))
+        return self.data().index
 
     @property
     def shape(self):
@@ -171,3 +170,11 @@ class PanelSide:
         new_shape = (len(self), len(self.timesteps), len(self.assets), len(self.channels))
         values = self.values.reshape(*new_shape)
         return values.transpose(0, 2, 1, 3)
+
+    def flat(self):
+        values = np.array([i.values.flatten() for i in self.blocks])
+        index = [i.index[-1] for i in self.blocks]
+        return pd.DataFrame(values, index=index)
+
+    def flatten(self):
+        return self.flat().values.flatten()
