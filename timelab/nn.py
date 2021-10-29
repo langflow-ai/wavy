@@ -1,3 +1,5 @@
+import numpy as np
+import tensorflow as tf
 from tensorflow.keras import Model
 from tensorflow.keras.layers import (
     Dense,
@@ -7,47 +9,73 @@ from tensorflow.keras.layers import (
     SeparableConv1D,
     concatenate,
 )
+
 from tensorflow.nn import relu, sigmoid
 
-from .panel import TimePanel
-
-
-class SeparateAssetModel:
-    def __init__(self, panel, hidden_size=10, filters=10):
-        self.model = self.build_model(panel, hidden_size, filters)
+class BaseModel:
+    def __init__(self, panel):
         self.panel = panel
+        self.set_arrays()
+        self.build_model()
 
-    def fit(self, train: TimePanel = None, val: TimePanel = None, **kwargs):
-        if not train:
-            train = self.panel.train
-        if not val:
-            val = self.panel.val
-
-        if train is None:
-            raise ValueError("Train panel must not be None. Try set panel training split before fitting.")
-
-        X_train = [asset_train.values for asset_train in train.x.split_assets()]
-        y_train = train.y.numpy()
-
-        X_val = [asset_val.values for asset_val in val.x.split_assets()]
-        y_val = val.y.numpy()
-
-        self.model.fit(X_train, y_train, validation_data=(X_val, y_val), **kwargs)
+    def fit(self, **kwargs):
+        self.model.fit(self.x_train, self.y_train,
+                       validation_data=(self.x_val, self.y_val),
+                       **kwargs)
         return self
 
-    def predict(self, test: TimePanel = None):
-        if not test:
-            test = self.panel.test
-        X_test = [asset_test.values for asset_test in test.x.split_assets()]
-        return self.model.predict(X_test)
+    def predict(self):
+        return self.model.predict(self.x_test)
+
+    def set_arrays(self):
+        self.x_train = self.panel.train.x.numpy()
+        self.x_val = self.panel.val.x.numpy()
+        self.x_test = self.panel.test.x.numpy()
+
+        self.y_train = self.panel.train.y.numpy()
+        self.y_val = self.panel.val.y.numpy()
+        self.y_test = self.panel.test.y.numpy()
+
+    def build_model(self):
+        raise NotImplementedError
+
+
+class Baseline(BaseModel):
+    def __init__(self, panel):
+        super().__init__(panel)
+
+    def build_model(self):
+        pass
+
+    def fit(self, **kwargs):
+        pass
+
+    def predict(self):
+        empty = np.zeros(self.panel.y.numpy().shape)[0:1]
+        empty[empty == 0] = np.nan
+        return np.concatenate([empty, self.panel.y.numpy()])[:-1]
+
+class SeparateAssetModel(BaseModel):
+    def __init__(
+        self,
+        panel,
+        optimizer="Adam",
+        loss="binary_crossentropy",
+        metrics=["binary_crossentropy", "AUC"],
+        hidden_size=10,
+        filters=10,
+    ):
+
+        self.hidden_size = hidden_size
+        self.filters = filters
+        super().__init__(panel=panel)
+        self.model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
 
     def build_asset_input(self, asset_side):
-        assert len(asset_side.assets) == 1
         input_shape = asset_side.shape[2:]
-        print(input_shape)
         return Input(shape=input_shape, name=asset_side.assets[0])
 
-    def build_asset_hidden(self, input_, lookback, hidden_size, filters):
+    def build_asset_hidden(self, input_):
         # TODO: Add to hidden_size and filter
         # M1 = 1  # Multiplier for the channel representation. Increases CONV filters.
         # M2 = 1  # Multiplier for the asset representation before concat. Nonsense if higher than [lookback]?
@@ -55,18 +83,35 @@ class SeparateAssetModel:
         # Convoluting on the time dimension
         # [lookback] timesteps reduced to [filters] nodes
         name = input_.name
-        hidden = SeparableConv1D(filters, lookback, name="hidden." + name, activation=relu)(input_)
+        hidden = SeparableConv1D(self.filters, self.panel.lookback, name="hidden." + name, activation=relu)(input_)
         hidden = Flatten(name="flatten." + name)(hidden)
-        hidden = Dense(hidden_size, activation=relu, name="dense." + name)(hidden)
+        hidden = Dense(self.hidden_size, activation=relu, name="dense." + name)(hidden)
         return hidden
 
-    def build_model(self, panel, hidden_size, filters):
-        inputs = [self.build_asset_input(asset_side) for asset_side in panel.x.split_assets()]
-        hidden = [self.build_asset_hidden(input_, panel.lookback, hidden_size, filters) for input_ in inputs]
-        x = concatenate(hidden)
-        x = Dense(panel.y.shape[1], activation=sigmoid)(x)
-        outputs = Reshape(panel.y.shape[1:])(x)
+    def set_arrays(self):
+        pass
 
-        model = Model(inputs=inputs, outputs=outputs)
-        model.compile(optimizer="Adam", loss="binary_crossentropy", metrics=["binary_crossentropy", "AUC"])
-        return model
+    def build_model(self):
+
+        x_train_assets = self.panel.train.x.split_assets()
+
+        inputs, x_ = [], []
+        for side in x_train_assets:
+            inputs.append(self.build_asset_input(side))
+            x_.append(side.values)
+
+        self.x_train = [side.values for side in x_train_assets]
+        self.x_val = [side.values for side in self.panel.val.x.split_assets()]
+        self.x_test = [side.values for side in self.panel.test.x.split_assets()]
+
+        self.y_train = self.panel.train.y.numpy()
+        self.y_val = self.panel.val.y.numpy()
+        self.y_test = self.panel.test.y.numpy()
+
+        hidden = [self.build_asset_hidden(input_) for input_ in inputs]
+
+        x = concatenate(hidden)
+        x = Dense(self.panel.y.shape[1], activation=sigmoid)(x)
+        outputs = Reshape(self.panel.y.shape[1:])(x)
+
+        self.model = Model(inputs=inputs, outputs=outputs)

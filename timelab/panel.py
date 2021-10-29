@@ -64,11 +64,7 @@ class TimePanel:
 
     def __init__(self, x, y):
         self._x, self._y = x, y
-        self.train_size, self.val_size, self.test_size = None, None, None
-
-        # freq checks
-        # if x.isnull().values.any() or y.isnull().values.any():
-        #     warnings.warn("Data contains null values.")
+        self.set_training_split()
 
     @property
     def x(self):
