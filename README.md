@@ -1,4 +1,4 @@
-![alt text](https://github.com/logspace-ai/wavy/blob/main/wavy_logo.png)
+![alt text](wavy_logo_cut.png)
 
 # Wavy
 Time Series Done The Right Way
