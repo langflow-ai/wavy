@@ -51,9 +51,9 @@ class Baseline(BaseModel):
         pass
 
     def predict(self):
-        empty = np.zeros(self.panel.y.numpy().shape)[0:1]
+        empty = np.zeros(self.panel.y.numpy().shape)[0:self.panel.horizon]
         empty[empty == 0] = np.nan
-        return np.concatenate([empty, self.panel.y.numpy()])[:-1]
+        return np.concatenate([empty, self.panel.y.numpy()])[:-self.panel.horizon]
 
 class SeparateAssetModel(BaseModel):
     def __init__(
