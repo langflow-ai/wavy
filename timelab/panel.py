@@ -10,6 +10,7 @@ from .side import PanelSide
 
 
 def from_pairs(pairs):
+    """ Create a panel from a list of pairs. """
     if len(pairs) == 0:
         raise ValueError("Cannot build TimePanel from empty list")
     blocks = [(pair.x, pair.y) for pair in pairs]
@@ -19,6 +20,7 @@ def from_pairs(pairs):
 
 
 def from_xy_data(x, y, lookback, horizon, gap=0):
+    """ Create a panel from two dataframes. """
 
     x_timesteps = len(x.index)
 
@@ -41,6 +43,7 @@ def from_xy_data(x, y, lookback, horizon, gap=0):
 
 
 def from_data(df, lookback, horizon, gap=0, x_assets=None, y_assets=None, x_channels=None, y_channels=None, assets=None, channels=None):
+    """ Create a panel from a dataframe. """
 
     if assets:
         x_assets, y_assets = assets, assets
@@ -129,6 +132,7 @@ class TimePanel:
         return TimePanel(x, y)
 
     def dropna(self, x=True, y=True):
+        """ Drop pairs with missing values from the panel. """
         x_nan = self.x.findna() if x else []
         y_nan = self.y.findna() if y else []
         nan_values = set(x_nan + y_nan)

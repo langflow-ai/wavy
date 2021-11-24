@@ -83,6 +83,20 @@ class PanelSide:
             return PanelSide([block.__pow__(other_block) for block, other_block in zip(self.blocks, other)])
         return PanelSide([block.__pow__(other) for block in self.blocks])
 
+    # def __rpow__(self, other):
+    #     if isinstance(other, PanelSide):
+    #         return PanelSide([block.__rpow__(other_block) for block, other_block in zip(self.blocks, other)])
+    #     return PanelSide([block.__rpow__(other) for block in self.blocks])
+
+    # def __radd__(self, other):
+    #     return self.__add__(other)
+
+    # def __repr__(self):
+    #     return str(self.blocks)
+
+    # def __str__(self):
+    #     return str(self.blocks)
+
     def __getitem__(self, key):
         return self.blocks.__getitem__(key)
 
