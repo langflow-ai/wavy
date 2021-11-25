@@ -246,23 +246,24 @@ class SeparateAssetModel(BaseModel):
 
     def build_asset_hidden(self, input_):
 
-        hidden_name = "hidden." + name
-        flatten_name = "flatten." + name
-        dense_name = "dense." + name
+        hidden_name = "hidden." + input_.name
+        flatten_name = "flatten." + input_.name
+        dense_name = "dense." + input_.name
 
         hidden = SeparableConv1D(self.filters,
         self.panel.lookback, name=hidden_name, activation=self.hidden_activation)(input_)
-
         hidden = Flatten(name=flatten_name)(hidden)
         hidden = Dense(self.hidden_size, activation=self.hidden_activation, name=dense_name)(hidden)
         return hidden
 
+    def create_hidden_layers(self, inputs):
+        return [self.build_asset_hidden(input_) for input_ in inputs]
+
     def build_model(self):
         inputs = [Input(**info) for info in self.input_info]
-
-        hidden = [self.build_asset_hidden(input_) for input_ in inputs]
+        hidden = self.create_hidden_layers(inputs)
         x = concatenate(hidden)
-        x = Dense(self.panel.y.shape[1], activation="sigmoid")(x)
+        x = Dense(self.panel.y.shape[1], activation=self.last_activation)(x)
         outputs = Reshape(self.panel.y.shape[1:])(x)
 
         self.model = Model(inputs=inputs, outputs=outputs)
