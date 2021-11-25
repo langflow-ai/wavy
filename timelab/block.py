@@ -18,6 +18,20 @@ def from_dataframe(df):
     )
 
 
+def from_dataframes(data):
+    """
+    Generate a TimeBlock from a list of dataframes.
+
+    Parameters:
+    -----------
+    data: list of dataframes or dict of dataframes with assets as keys
+
+    """
+    if isinstance(data, list):
+        data = {"asset_" + str(k): v for k, v in enumerate(data)}
+    return TimeBlock(pd.concat(data.values(), axis=1, keys=data.keys()))
+
+
 def from_array(values, index=None, assets=None, channels=None):
 
     values = add_dim(values, n=3 - len(values.shape))
