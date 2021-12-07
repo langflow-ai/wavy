@@ -5,17 +5,6 @@ from tensorflow.keras import Model, Sequential
 from tensorflow.keras.layers import Dense, Flatten, Input, Reshape, concatenate
 from tensorflow.keras.layers import Conv1D, SeparableConv1D, MaxPooling1D
 
-
-REGRESSION_PARAMS = dict(loss="MSE", optimizer="adam", metrics=["MAE"], last_activation="linear")
-
-CLASSIFIER_PARAMS = dict(
-    loss="binary_crossentropy", optimizer="adam", metrics=["AUC", "accuracy"], last_activation="sigmoid"
-)
-
-MULTI_CLASSIFIER_PARAMS = dict(
-    loss="categorical_crossentropy", optimizer="adam", metrics=["AUC", "accuracy"], last_activation="softmax"
-)
-
 class Baseline:
     """Baseline model to predict values by using last (horizon shifted) y values."""
 
@@ -38,9 +27,31 @@ class Baseline:
 class BaseModel:
     """Base class for panel models."""
 
-    def __init__(self, panel, loss, optimizer, metrics, use_assets, **kwargs):
+    REGRESSION_PARAMS = dict(
+        loss="MSE",
+        optimizer="adam",
+        metrics=["MAE"],
+        last_activation="linear"
+    )
+
+    CLASSIFIER_PARAMS = dict(
+        loss="binary_crossentropy",
+        optimizer="adam",
+        metrics=["AUC", "accuracy"],
+        last_activation="sigmoid"
+    )
+
+    MULTI_CLASSIFIER_PARAMS = dict(
+        loss="categorical_crossentropy",
+        optimizer="adam",
+        metrics=["AUC", "accuracy"],
+        last_activation="softmax"
+    )
+
+    def __init__(self, panel, model_type=None, use_assets=False, loss=None, optimizer=None, metrics=None):
 
         self.panel = panel
+        self.model_type = model_type
         self.use_assets = use_assets
         self.loss = loss
         self.optimizer = optimizer
@@ -48,7 +59,7 @@ class BaseModel:
 
         self.set_arrays()
         self.build_model()
-        self.compile_model(**kwargs)
+        self.compile_model()
 
     def fit(self, **kwargs):
         """Fit the model."""
@@ -82,8 +93,15 @@ class BaseModel:
             self.y_val = self.panel.val.y.values
             self.y_test = self.panel.test.y.values
 
-    def compile_model(self, **kwargs):
-        self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=self.metrics, **kwargs)
+    def compile_model(self):
+        if self.model_type == "regression":
+            self.model.compile(**REGRESSION_PARAMS)
+        elif self.model_type == "classifier":
+            self.model.compile(**CLASSIFIER_PARAMS)
+        elif self.model_type == "multi_classifier":
+            self.model.compile(**MULTI_CLASSIFIER_PARAMS)
+        else:
+            self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=self.metrics)
 
     def build_model(self):
         raise NotImplementedError
@@ -91,19 +109,26 @@ class BaseModel:
 
 class DenseModel(BaseModel):
     def __init__(
-        self, panel, dense_layers, dense_units, activation, last_activation, loss, optimizer, metrics, **kwargs
+        self,
+        panel,
+        model_type,
+        dense_layers=1,
+        dense_units=32,
+        activation="relu",
+        loss=None,
+        optimizer=None,
+        metrics=None,
+        last_activation=None
     ):
+
+        super().__init__(panel=panel, model_type=model_type, loss=loss, optimizer=optimizer, metrics=metrics, last_activation=last_activation, use_assets=False)
 
         self.dense_layers = dense_layers
         self.dense_units = dense_units
         self.activation = activation
-        self.last_activation = last_activation
-
-        super().__init__(panel=panel, loss=loss, optimizer=optimizer, metrics=metrics, use_assets=False, **kwargs)
 
     def build_model(self):
         dense = Dense(units=self.dense_units, activation=self.activation)
-
         layers = [Flatten()]  # (time, features) => (time*features)
         layers += [dense for _ in range(self.dense_layers)]
         layers += [Dense(units=self.panel.horizon, activation=self.last_activation), Reshape(self.y_train.shape[1:])]
@@ -115,17 +140,17 @@ class ConvModel(BaseModel):
     def __init__(
         self,
         panel,
-        loss,
-        optimizer,
-        metrics,
-        conv_layers,
-        conv_filters,
-        kernel_size,
-        dense_layers,
-        dense_units,
-        activation,
-        last_activation,
-        **kwargs,
+        model_type,
+        conv_layers=1,
+        conv_filters=32,
+        kernel_size=3,
+        dense_layers=1,
+        dense_units=32,
+        activation="relu",
+        loss=None,
+        optimizer=None,
+        metrics=None,
+        last_activation=None,
     ):
 
         self.conv_layers = conv_layers
@@ -134,8 +159,8 @@ class ConvModel(BaseModel):
         self.dense_layers = dense_layers
         self.dense_units = dense_units
         self.activation = activation
-        self.last_activation = last_activation
-        super().__init__(panel=panel, loss=loss, optimizer=optimizer, metrics=metrics, use_assets=False, **kwargs)
+
+        super().__init__(panel=panel, model_type=model_type, loss=loss, optimizer=optimizer, metrics=metrics, last_activation=last_activation, use_assets=False)
 
     def build_model(self):
         if self.panel.lookback % self.kernel_size != 0:
@@ -153,85 +178,27 @@ class ConvModel(BaseModel):
 
         self.model = tf.keras.Sequential(layers)
 
-
-class DenseRegressor(DenseModel):
-    def __init__(self, panel, dense_layers=1, dense_units=32):
-        super().__init__(
-            panel=panel, dense_layers=dense_layers, dense_units=dense_units, activation="relu", **REGRESSION_PARAMS
-        )
-
-
-class DenseClassifier(DenseModel):
-    def __init__(self, panel, dense_layers=1, dense_units=32):
-        super().__init__(
-            panel=panel, dense_layers=dense_layers, dense_units=dense_units, activation="relu", **CLASSIFIER_PARAMS
-        )
-
-
-class DenseMultiClassifier(DenseModel):
-    def __init__(self, panel, dense_layers=1, dense_units=32):
-        super().__init__(
-            panel=panel,
-            dense_layers=dense_layers,
-            dense_units=dense_units,
-            activation="relu",
-            **MULTI_CLASSIFIER_PARAMS,
-        )
-
-
-class LinearRegressor(DenseRegressor):
+class LinearRegression(DenseModel):
     def __init__(self, panel):
-        super().__init__(panel, dense_layers=0)
-
-
-class ConvRegressor(ConvModel):
-    def __init__(self, panel, conv_layers=1, conv_filters=32, kernel_size=3, dense_layers=1, dense_units=32):
-        super().__init__(
-            panel=panel,
-            conv_layers=conv_layers,
-            conv_filters=conv_filters,
-            kernel_size=kernel_size,
-            dense_layers=dense_layers,
-            dense_units=dense_units,
-            activation="relu",
-            **REGRESSION_PARAMS,
-        )
-
-
-class ConvClassifier(ConvModel):
-    def __init__(self, panel, conv_layers=1, conv_filters=32, kernel_size=3, dense_layers=1, dense_units=32):
-        super().__init__(
-            panel=panel,
-            conv_layers=conv_layers,
-            conv_filters=conv_filters,
-            kernel_size=kernel_size,
-            dense_layers=dense_layers,
-            dense_units=dense_units,
-            activation="relu",
-            **CLASSIFIER_PARAMS,
-        )
-
-
-class ConvMultiClassifier(ConvModel):
-    def __init__(self, panel, conv_layers=1, conv_filters=32, kernel_size=3, dense_layers=1, dense_units=32):
-        super().__init__(
-            panel=panel,
-            conv_layers=conv_layers,
-            conv_filters=conv_filters,
-            kernel_size=kernel_size,
-            dense_layers=dense_layers,
-            dense_units=dense_units,
-            activation="relu",
-            **MULTI_CLASSIFIER_PARAMS,
-        )
-
+        super().__init__(panel, model_type="regression", dense_layers=0)
 
 
 class SeparateAssetModel(BaseModel):
     def __init__(
-        self, panel, loss, optimizer, metrics, hidden_activation, use_assets=True, **kwargs
+        self,
+        panel,
+        loss,
+        optimizer,
+        metrics,
+        hidden_activation,
+        last_activation,
+        use_assets=True,
+        **kwargs
     ):
         super().__init__(panel=panel, loss=loss, optimizer=optimizer, metrics=metrics, use_assets=use_assets, **kwargs)
+
+        self.hidden_activation = hidden_activation
+        self.last_activation = last_activation
 
     def set_arrays(self):
         train_splits = self.panel.train.x.split_assets()
@@ -244,33 +211,52 @@ class SeparateAssetModel(BaseModel):
 
         self.input_info = [dict(shape=x.shape[2:], name=x.assets[0]) for x in train_splits]
 
+    def create_hidden_layers(self, inputs):
+        raise NotImplementedError
+
+class SeparateAssetConvModel(SeparateAssetModel):
+    def __init__(
+        self,
+        panel,
+        loss,
+        optimizer,
+        metrics,
+        hidden_activation,
+        last_activation,
+        hidden_size=10,
+        filters=10,
+        **kwargs
+
+    ):
+        super().__init__(
+            panel=panel,
+            loss=loss,
+            optimizer=optimizer,
+            metrics=metrics,
+            hidden_activation=hidden_activation,
+            last_activation=last_activation,
+            **kwargs
+        )
+
+        self.hidden_size = hidden_size
+        self.filters = filters
+
+
     def build_asset_hidden(self, input_):
 
         hidden_name = "hidden." + input_.name
         flatten_name = "flatten." + input_.name
         dense_name = "dense." + input_.name
 
-        hidden = SeparableConv1D(self.filters,
-        self.panel.lookback, name=hidden_name, activation=self.hidden_activation)(input_)
+        hidden = SeparableConv1D(self.filters, self.panel.lookback, name=hidden_name,
+                                 activation=self.hidden_activation)(input_)
         hidden = Flatten(name=flatten_name)(hidden)
-        hidden = Dense(self.hidden_size, activation=self.hidden_activation, name=dense_name)(hidden)
+        hidden = Dense(self.hidden_size, activation=self.hidden_activation,
+                       name=dense_name)(hidden)
         return hidden
 
     def create_hidden_layers(self, inputs):
         return [self.build_asset_hidden(input_) for input_ in inputs]
-
-    def build_model(self):
-        inputs = [Input(**info) for info in self.input_info]
-        hidden = self.create_hidden_layers(inputs)
-        x = concatenate(hidden)
-        x = Dense(self.panel.y.shape[1], activation=self.last_activation)(x)
-        outputs = Reshape(self.panel.y.shape[1:])(x)
-
-        self.model = Model(inputs=inputs, outputs=outputs)
-
-
-
-
 
 
 # class SeparateAssetModel(BaseModel):
