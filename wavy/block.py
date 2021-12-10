@@ -226,6 +226,14 @@ class TimeBlock(pd.DataFrame):
         # split assets in several blocks
         return [self.filter(asset) for asset in self.assets]
 
+    def sort_assets(self):
+        return self.reindex(sorted(self.columns), axis=1)
+
+    # TODO: add sort_channels (by asset, e.g. Apple --> A,B; Google --> A,B;)
+
+    def swap_cols(self):
+        return self.T.swaplevel(i=- 2, j=- 1, axis=0).T.sort_assets()
+
     def countna(self):
         # TODO add option to also count by channel
         # TODO check pandas countna function
