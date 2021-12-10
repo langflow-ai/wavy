@@ -11,6 +11,8 @@ pd.options.plotting.backend = "plotly"
 cmap1 = px.colors.qualitative.Plotly
 cmap2 = cmap1[::-1]
 
+def add_level(df, level_name):
+    return pd.concat({level_name: df.T}, names=[level_name]).T
 
 def replace(ls, value, new_value):
     ls = copy(ls)

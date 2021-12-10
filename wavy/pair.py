@@ -11,8 +11,8 @@ class TimePair:
         self.y = y
 
     def __eq__(self, other):
-        x_equals = self.x.__eq__(other.x)
-        y_equals = self.y.__eq__(other.y)
+        x_equals = self.x.equals(other.x)
+        y_equals = self.y.equals(other.y)
         return x_equals and y_equals
 
     def __repr__(self):

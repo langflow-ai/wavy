@@ -9,6 +9,9 @@ from .utils import add_dim
 
 def from_dataframe(df):
     # Recreate columns to avoid pandas issue
+    # avoid problem
+
+    # TODO add level if necessary (asset) -> utils.add_level
     return TimeBlock(
         pd.DataFrame(
             df.values,
@@ -18,9 +21,13 @@ def from_dataframe(df):
     )
 
 
-def from_dataframes(data):
+def from_dataframes(dataframes, headers=None):
+    # TODO add header name option  or dictionary {header: dataframe, ...}
+    # TODO list unfold dataframes**
+    # TODO assert accept only one level column
+    # TODO assert number of channels is the same for every asset
     """
-    Generate a TimeBlock from a list of dataframes.
+    Generate a TimeBlock from a list of dataframes. Each dataframe becomes one asset.
 
     Parameters:
     -----------
@@ -32,7 +39,11 @@ def from_dataframes(data):
     return TimeBlock(pd.concat(data.values(), axis=1, keys=data.keys()))
 
 
+# TODO add function from_array/from_numpy
+
+
 def from_array(values, index=None, assets=None, channels=None):
+    # TODO rename to from_matrix
 
     values = add_dim(values, n=3 - len(values.shape))
     if assets is None:
@@ -49,6 +60,8 @@ def from_array(values, index=None, assets=None, channels=None):
 
 
 def rebuild(func):
+    # TODO tests to check if can be removed
+    # Avoid problem with frozen list from pandas
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         df = func(*args, **kwargs)
@@ -58,6 +71,7 @@ def rebuild(func):
 
 
 class AssetSeries(pd.Series):
+    # TODO check pd.Series
     def __init__(self, df, *args, **kwargs):
         super().__init__(df, *args, **kwargs)
 
@@ -73,11 +87,6 @@ class AssetSeries(pd.Series):
 class TimeBlock(pd.DataFrame):
     def __init__(self, df, *args, **kwargs):
         super().__init__(df, *args, **kwargs)
-
-    def __eq__(self, other):
-        if not isinstance(other, TimeBlock):
-            raise TypeError("'other' must be of type TimeBlock")
-        return np.all(self.fillna(0).values == other.fillna(0).values)
 
     @property
     def _constructor(self):
@@ -115,6 +124,7 @@ class TimeBlock(pd.DataFrame):
 
     @rebuild
     def filter_assets(self, assets):
+        # TODO make internal
         if type(assets) == str:
             assets = [assets]
 
@@ -125,6 +135,7 @@ class TimeBlock(pd.DataFrame):
 
     @rebuild
     def filter_channels(self, channels):
+        # TODO make internal
         if type(channels) == str:
             channels = [channels]
 
@@ -133,21 +144,20 @@ class TimeBlock(pd.DataFrame):
 
         return self.loc[:, (slice(None), channels)][self.assets] if channels else self
 
-    def add_level(df, level_name):
-        return pd.concat({level_name: df.T}, names=[level_name]).T
-
     def drop(self, assets=None, channels=None):
         filtered = self.drop_assets(assets)
         filtered = filtered.drop_channels(channels)
         return filtered
 
     def drop_assets(self, assets):
+        # TODO make internal
         if isinstance(assets, str):
             assets = [assets]
         new_assets = [u for u in self.assets if u not in assets]
         return self.filter_assets(new_assets)
 
     def drop_channels(self, channels):
+        # TODO make internal
         if isinstance(channels, str):
             channels = [channels]
         new_channels = [c for c in self.channels if c not in channels]
@@ -174,7 +184,8 @@ class TimeBlock(pd.DataFrame):
         return self.update(channels=channels.values)
 
     def apply(self, func, axis=0):
-
+        # TODO fix datablock.apply(np.sum, axis=1) repeating rows (timestamps)
+        # ? think about overwriting pandas apply function
         if axis == 0:
             return self._timestamp_apply(func)
         elif axis == 1:
@@ -196,11 +207,14 @@ class TimeBlock(pd.DataFrame):
         return pd.concat(splits).rename_channels(0, "new_channel")
 
     def update(self, values=None, index=None, assets=None, channels=None):
+        # ? Should be internal?
         values = values if values is not None else self.values
         assets = assets if assets is not None else self.assets
         index = index if index is not None else self.index
         channels = channels if channels is not None else self.channels
         return from_array(values, index, assets, channels)
+
+    # TODO add rename assets/channels using dictionaries like pandas
 
     # @rebuild
     # def add_channel(self, name, values):
@@ -209,18 +223,31 @@ class TimeBlock(pd.DataFrame):
     #     return self
 
     def split_assets(self):
+        # split assets in several blocks
         return [self.filter(asset) for asset in self.assets]
 
     def countna(self):
+        # TODO add option to also count by channel
+        # TODO check pandas countna function
         s = pd.Series(dtype=int)
         for asset in self.assets:
             s[asset] = len(self[asset]) - len(self[asset].dropna())
         return s
 
+    # TODO Add function from_matrix / .matrix
+    # TODO Add function from_tensor / .tensor
+
     def pandas(self):
+        # TODO rename to as_dataframe
         return pd.DataFrame(self.values, index=self.index, columns=self.columns)
 
+    @property
     def numpy(self):
+        # TODO rename to tensor
         new_shape = (len(self), len(self.assets), len(self.channels))
         values = self.values.reshape(*new_shape)
         return values.transpose(1, 0, 2)
+
+    @property
+    def matrix(self):
+        return self.values
