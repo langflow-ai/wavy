@@ -12,7 +12,21 @@ cmap1 = px.colors.qualitative.Plotly
 cmap2 = cmap1[::-1]
 
 def add_level(df, level_name):
-    return pd.concat({level_name: df.T}, names=[level_name]).T
+    """
+    Add asset level to DataFrame
+
+    Args:
+        df (DataFrame): Pandas DataFrame
+        level_name (string): Asset level name
+
+    Returns:
+        ``DataFrame``: DataFrame with asset level added
+    """
+
+    # return pd.concat({level_name: df.T}, names=[level_name]).T
+    df.columns = pd.MultiIndex.from_product([[level_name], df.columns])
+    return df
+
 
 def replace(ls, value, new_value):
     ls = copy(ls)

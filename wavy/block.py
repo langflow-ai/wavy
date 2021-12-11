@@ -3,40 +3,106 @@ from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
+from pandas.core.frame import DataFrame
+from typing import List, overload
 
-from .utils import add_dim
+from .utils import add_dim, add_level
+from multipledispatch import dispatch
 
 
-def from_dataframe(df):
+def from_dataframe(df: DataFrame, asset: str ='asset'):
+    """
+    Generate TimeBlock from DataFrame
+
+    Args:
+        df (DataFrame): Pandas DataFrame
+        asset (string): Asset name
+
+    Returns:
+        ``TimeBlock``: Constructed TimeBlock
+    """
     # Recreate columns to avoid pandas issue
     # avoid problem
+    # TODO: [RN] check if problem still exists on newer versions
 
-    # TODO add level if necessary (asset) -> utils.add_level
-    return TimeBlock(
-        pd.DataFrame(
-            df.values,
-            index=df.index,
-            columns=df.columns,
-        )
-    )
+    # Add level if level equals to 1
+    # TODO: [RN] confirm add_level functions
+    if df.T.index.nlevels == 1:
+        df = add_level(df, asset)
+
+    # Create TimeBlock
+    tb = TimeBlock(
+            pd.DataFrame(
+                df.values,
+                index=df.index,
+                columns=df.columns,
+                )
+            )
+
+    return tb
 
 
-def from_dataframes(dataframes, headers=None):
-    # TODO add header name option  or dictionary {header: dataframe, ...}
-    # TODO list unfold dataframes**
-    # TODO assert accept only one level column
-    # TODO assert number of channels is the same for every asset
+@dispatch(dict)
+# def from_dataframes(data: dict):
+def from_dataframes(data):
+    """
+    Generate TimeBlock from dictionary
+
+    Args:
+        data (str, DataFrame): Dictionary containing asset name and DataFrame
+
+    Returns:
+        ``TimeBlock``: Constructed TimeBlock
+    """
+
+    previous_channels = None
+    for _, value in data.items():
+        assert isinstance(value, DataFrame), 'Data must be a DataFrame'
+
+        # ? Remove upper level if data is multilevel
+        assert value.T.index.nlevels == 1, 'Data cannot be multilevel'
+
+        channels_flag = value.shape[1] == previous_channels if previous_channels else True
+        assert channels_flag, 'Data with different number of channels'
+        previous_channels = value.shape[1]
+
+    return TimeBlock(pd.concat(data.values(), axis=1, keys=data.keys()))
+
+
+@dispatch(list)
+# def from_dataframes(data: List[DataFrame], assets: List[str] = None):
+def from_dataframes(data):
     """
     Generate a TimeBlock from a list of dataframes. Each dataframe becomes one asset.
 
-    Parameters:
-    -----------
-    data: list of dataframes or dict of dataframes with assets as keys
+    Args:
+        data (list): List of dataframes
 
+    Returns:
+        ``TimeBlock``: Constructed TimeBlock
     """
-    if isinstance(data, list):
-        data = {"asset_" + str(k): v for k, v in enumerate(data)}
-    return TimeBlock(pd.concat(data.values(), axis=1, keys=data.keys()))
+
+    dict = {"asset_" + str(k): v for k, v in enumerate(data)}
+
+    return from_dataframes(dict)
+
+@dispatch(list, list)
+# def from_dataframes(data: List[DataFrame], assets: List[str] = None):
+def from_dataframes(data, assets):
+    """
+    Generate a TimeBlock from a list of dataframes. Each dataframe becomes one asset.
+
+    Args:
+        data (list): List of dataframes
+        assets (list): List of assets
+
+    Returns:
+        ``TimeBlock``: Constructed TimeBlock
+    """
+
+    dict = {assets[k]: v for k, v in enumerate(data)}
+    
+    return from_dataframes(dict)
 
 
 # TODO add function from_array/from_numpy
