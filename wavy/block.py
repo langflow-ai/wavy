@@ -514,7 +514,7 @@ class TimeBlock(pd.DataFrame):
         new_values = dict.values()
 
         assets = self.assets.replace(to_replace=values, value=new_values)
-        return self.update(assets=assets.values)
+        return self._update(assets=assets.values)
 
     def rename_channels(self, dict: dict):
         """
@@ -546,7 +546,7 @@ class TimeBlock(pd.DataFrame):
         new_values = dict.values()
 
         channels = self.channels.replace(to_replace=values, value=new_values)
-        return self.update(channels=channels.values)
+        return self._update(channels=channels.values)
 
     def apply(self, func, axis=0):
         """
@@ -602,9 +602,8 @@ class TimeBlock(pd.DataFrame):
         new = from_matrix(np.swapaxes(np.array([asset.as_dataframe().apply(func, axis=1).values for asset in splits]), 0,1), index=self.index, assets=self.assets, channels=[func.__name__])
         return new
 
-    def update(self, values=None, index=None, assets=None, channels=None):
-        """"""
-        # ? Should be internal?
+    def _update(self, values=None, index=None, assets=None, channels=None):
+        # TODO check which functions need to use _update
         values = values if values is not None else self.values
         assets = assets if assets is not None else self.assets
         index = index if index is not None else self.index
@@ -657,22 +656,48 @@ class TimeBlock(pd.DataFrame):
         Example:
 
         >>> datablock
+                        MSFT                 AAPL          
+                        Open      Close      Open     Close
+        Date                                                
+        2005-12-21  19.577126  19.475122  2.218566  2.246069
+        2005-12-22  19.460543  19.373114  2.258598  2.261960
+
+        >>> datablock.sort_assets()
                         AAPL                 MSFT           
                         Open     Close       Open      Close
         Date                                                
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
-
-        >>> datablock.sort_assets()
-                     AAPL                 MSFT           
-                    Close      Open      Close       Open
-        Date                                                
-        2005-12-21  2.246069  2.218566  19.475122  19.577126
-        2005-12-22  2.261960  2.258598  19.373114  19.460543
         """
-        return self.reindex(sorted(self.columns), axis=1)
+        return self.reindex(sorted(self.columns, key=lambda x: x[0]), axis=1)
 
-    # TODO: add sort_channels (by asset, e.g. Apple --> A,B; Google --> A,B;)
+    def sort_channels(self):
+        """
+        Sort channels in alphabetical order.
+
+        Returns:
+            ``DataBlock``: Result of sorting channels.
+
+        Example:
+
+        >>> datablock
+                        MSFT                 AAPL          
+                        Open      Close      Open     Close
+        Date                                                
+        2005-12-21  19.577126  19.475122  2.218566  2.246069
+        2005-12-22  19.460543  19.373114  2.258598  2.261960
+
+        >>> datablock.sort_channels()
+                         MSFT                 AAPL          
+                        Close       Open     Close      Open
+        Date                                                
+        2005-12-21  19.475122  19.577126  2.246069  2.218566
+        2005-12-22  19.373114  19.460543  2.261960  2.258598
+        """
+        assets = self.assets
+        channels = sorted(self.channels)
+        pair = [(asset, channel) for asset in assets for channel in channels]
+        return self.reindex(pair, axis=1)
 
     def swap_cols(self):
         """
