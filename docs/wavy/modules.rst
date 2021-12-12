@@ -1,7 +1,7 @@
-timelab
-=======
+wavy
+====
 
 .. toctree::
    :maxdepth: 4
 
-   timelab
+   wavy

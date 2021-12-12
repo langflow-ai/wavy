@@ -1,7 +1,7 @@
-timelab.pair\_ module
+wavy.frequency module
 =====================
 
-.. automodule:: timelab.pair_
+.. automodule:: wavy.frequency
    :members:
    :undoc-members:
    :show-inheritance:

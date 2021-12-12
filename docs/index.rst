@@ -12,18 +12,10 @@ Welcome to Wavy's documentation!
 
 .. toctree::
    :glob:
-   :maxdepth: 4
+   :maxdepth: 5
    :caption: Code
 
-   timelab/timelab.block.rst
-   timelab/timelab.frequency.rst
-   timelab/timelab.multicol.rst
-   timelab/timelab.nn.rst
-   timelab/timelab.pair.rst
-   timelab/timelab.panel.rst
-   timelab/timelab.plotting.rst
-   timelab/timelab.side.rst
-   timelab/timelab.utils.rst
+   wavy/wavy.block.rst
 
 .. only:: html
 

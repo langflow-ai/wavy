@@ -62,3 +62,5 @@ target/
 
 # VSCODE
 .vscode/
+
+.env/

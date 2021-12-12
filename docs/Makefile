@@ -6,7 +6,7 @@
 SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = .
-FILESDIR      = timelab
+FILESDIR      = wavy
 BUILDDIR      = _build
 
 # Put it first so that "make" without argument is like "make help".
@@ -22,5 +22,5 @@ help:
 
 doc:
 	$(MAKE) clean
-	sphinx-apidoc -M -e -f -o "$(FILESDIR)/" ../timelab/
+	sphinx-apidoc -M -e -f -o "$(FILESDIR)/" ../$(FILESDIR)/
 	$(MAKE) html

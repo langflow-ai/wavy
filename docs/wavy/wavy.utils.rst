@@ -1,7 +1,7 @@
-timelab.nn module
+wavy.utils module
 =================
 
-.. automodule:: timelab.nn
+.. automodule:: wavy.utils
    :members:
    :undoc-members:
    :show-inheritance:
