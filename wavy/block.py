@@ -465,8 +465,32 @@ class TimeBlock(pd.DataFrame):
         return self.loc[:, (slice(None), channels)][self.assets] if channels else self
 
     def drop(self, assets=None, channels=None):
-        """"""
-        # TODO: check the necessity of drop function once we have filter
+        """
+        Subset the dataframe columns discarding the specified assets and channels.
+
+        Args:
+            assets (list): List of assets
+            channels (list): List of channels
+
+        Returns:
+            ``TimeBlock``: Filtered TimeBlock
+
+        Example:
+
+        >>> datablock
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> datablock.drop(assets=['AAPL'], channels=['Open'])
+                         MSFT
+                        Close
+        Date                 
+        2005-12-21  19.475122
+        2005-12-22  19.373114
+        """
         filtered = self._drop_assets(assets)
         filtered = filtered._drop_channels(channels)
         return filtered
@@ -475,13 +499,13 @@ class TimeBlock(pd.DataFrame):
         if isinstance(assets, str):
             assets = [assets]
         new_assets = [u for u in self.assets if u not in assets]
-        return self.filter_assets(new_assets)
+        return self._filter_assets(new_assets)
 
     def _drop_channels(self, channels):
         if isinstance(channels, str):
             channels = [channels]
         new_channels = [c for c in self.channels if c not in channels]
-        return self.filter_channels(new_channels)
+        return self._filter_channels(new_channels)
 
     def rename_assets(self, dict: dict):
         """
@@ -603,7 +627,7 @@ class TimeBlock(pd.DataFrame):
         return new
 
     def _update(self, values=None, index=None, assets=None, channels=None):
-        # TODO check which functions need to use _update
+        # TODO check which and why functions need to use _update
         values = values if values is not None else self.values
         assets = assets if assets is not None else self.assets
         index = index if index is not None else self.index
