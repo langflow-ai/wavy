@@ -8,7 +8,7 @@ from .utils import add_dim, add_level
 from multipledispatch import dispatch
 
 
-def from_dataframe(df: DataFrame, asset: str ='asset'):
+def from_dataframe(df: DataFrame, asset: str = 'asset'):
     """
     Generate TimeBlock from DataFrame
 
@@ -23,14 +23,14 @@ def from_dataframe(df: DataFrame, asset: str ='asset'):
 
     >>> data
                     Open     Close
-    Date                          
+    Date
     2005-12-21  2.218566  2.246069
     2005-12-22  2.258598  2.261960
 
     >>> datablock = from_dataframe(data, 'AAPL')
-                    AAPL          
+                    AAPL
                     Open     Close
-    Date                          
+    Date
     2005-12-21  2.218566  2.246069
     2005-12-22  2.258598  2.261960
 
@@ -38,12 +38,8 @@ def from_dataframe(df: DataFrame, asset: str ='asset'):
     wavy.block.TimeBlock
 
     """
-    # Recreate columns to avoid pandas issue
-    # avoid problem
-    # TODO: [RN] check if problem still exists on newer versions
 
     # Add level if level equals to 1
-    # TODO: [RN] confirm add_level functions
     if df.T.index.nlevels == 1:
         df = add_level(df, asset)
 
@@ -59,9 +55,7 @@ def from_dataframe(df: DataFrame, asset: str ='asset'):
     return tb
 
 
-# @dispatch(dict)
-# # def from_dataframes(data: dict):
-def from_dictionary(data: dict):
+def from_dict(data: dict):
     """
     Generate TimeBlock from dictionary
 
@@ -75,18 +69,18 @@ def from_dictionary(data: dict):
 
     >>> dict
     {'AAPL':                 Open     Close
-    Date                          
+    Date
     2005-12-21  2.218566  2.246069
     2005-12-22  2.258598  2.261960,
     'MSFT':                  Open      Close
-    Date                            
+    Date
     2005-12-21  19.577126  19.475122
     2005-12-22  19.460543  19.373114}
 
-    >>> from_dictionary(dict)
-                    AAPL                 MSFT           
+    >>> from_dict(dict)
+                    AAPL                 MSFT
                     Open     Close       Open      Close
-    Date                                                
+    Date
     2005-12-21  2.218566  2.246069  19.577126  19.475122
     2005-12-22  2.258598  2.261960  19.460543  19.373114
     """
@@ -120,22 +114,22 @@ def from_dataframes(data: List[DataFrame], assets: List[str] = None):
 
     >>> aapl
                     Open     Close
-    Date                          
+    Date
     2005-12-21  2.218566  2.246069
     2005-12-22  2.258598  2.261960
 
     >>> msft
                      Open      Close
-    Date                            
+    Date
     2005-12-21  19.577126  19.475122
     2005-12-22  19.460543  19.373114
 
     Generating TimeBlock with list of dataframes
 
     >>> from_dataframes([aapl, msft])
-             asset_0              asset_1           
+             asset_0              asset_1
                     Open     Close       Open      Close
-    Date                                                
+    Date
     2005-12-21  2.218566  2.246069  19.577126  19.475122
     2005-12-22  2.258598  2.261960  19.460543  19.373114
 
@@ -143,9 +137,9 @@ def from_dataframes(data: List[DataFrame], assets: List[str] = None):
     Generating TimeBlock with list of dataframes and assets
 
     >>> from_dataframes([aapl, msft], ['AAPL', 'MSFT'])
-                AAPL                 MSFT           
+                AAPL                 MSFT
                     Open     Close       Open      Close
-    Date                                                
+    Date
     2005-12-21  2.218566  2.246069  19.577126  19.475122
     2005-12-22  2.258598  2.261960  19.460543  19.373114
     """
@@ -153,11 +147,11 @@ def from_dataframes(data: List[DataFrame], assets: List[str] = None):
         dict = {assets[k]: v for k, v in enumerate(data)}
     else:
         dict = {"asset_" + str(k): v for k, v in enumerate(data)}
-    
-    return from_dictionary(dict)
+
+    return from_dict(dict)
 
 
-def from_tensor(values, index=None, assets=None, channels=None):
+def from_tensor(values, index: List = None, assets: List[str] = None, channels: List[str] = None):
     """
     Generate a TimeBlock from list of attributes.
 
@@ -185,9 +179,9 @@ def from_tensor(values, index=None, assets=None, channels=None):
     Index(['AAPL', 'MSFT'], dtype='object')
 
     >>> from_tensor(values, index=index, assets=assets, channels=channels)
-                    AAPL                 MSFT           
+                    AAPL                 MSFT
                     Open     Close       Open      Close
-    Date                                                
+    Date
     2005-12-21  2.218566  2.246069  19.577126  19.475122
     2005-12-22  2.258598  2.261960  19.460543  19.373114
     """
@@ -197,7 +191,7 @@ def from_tensor(values, index=None, assets=None, channels=None):
     return from_matrix(values, index=index, assets=assets, channels=channels)
 
 
-def from_matrix(values, index=None, assets=None, channels=None):
+def from_matrix(values, index: List = None, assets: List[str] = None, channels: List[str] = None):
     """
     Generate a TimeBlock from list of attributes.
 
@@ -223,9 +217,9 @@ def from_matrix(values, index=None, assets=None, channels=None):
     Index(['AAPL', 'MSFT'], dtype='object')
 
     >>> from_matrix(values, index=index, assets=assets, channels=channels)
-                    AAPL                 MSFT           
+                    AAPL                 MSFT
                     Open     Close       Open      Close
-    Date                                                
+    Date
     2005-12-21  2.218566  2.246069  19.577126  19.475122
     2005-12-22  2.258598  2.261960  19.460543  19.373114
     """
@@ -244,19 +238,17 @@ def from_matrix(values, index=None, assets=None, channels=None):
     return TimeBlock(df)
 
 
-def rebuild(func):
-    # TODO: [RN] tests to check if can be removed
+def _rebuild(func):
     # Avoid problem with frozen list from pandas
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         df = func(*args, **kwargs)
-        return from_dataframe(df)
+        return from_matrix(df.values, df.index, df.assets, df.channels)
 
     return wrapper
 
 
 class _AssetSeries(pd.Series):
-    # ? I made it internal
     def __init__(self, df, *args, **kwargs):
         super().__init__(df, *args, **kwargs)
 
@@ -290,9 +282,9 @@ class TimeBlock(pd.DataFrame):
         Example:
 
         >>> datablock
-                        AAPL                 MSFT           
+                        AAPL                 MSFT
                         Open     Close       Open      Close
-        Date                                                
+        Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
@@ -309,9 +301,9 @@ class TimeBlock(pd.DataFrame):
         Example:
 
         >>> datablock
-                        AAPL                 MSFT           
+                        AAPL                 MSFT
                         Open     Close       Open      Close
-        Date                                                
+        Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
@@ -328,9 +320,9 @@ class TimeBlock(pd.DataFrame):
         Example:
 
         >>> datablock
-                        AAPL                 MSFT           
+                        AAPL                 MSFT
                         Open     Close       Open      Close
-        Date                                                
+        Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
@@ -341,7 +333,7 @@ class TimeBlock(pd.DataFrame):
         """
         assets = [col[0] for col in self.columns]
         # OrderedDict to keep order
-        # ? Is it correct to  order, what happens in case the user wants to rebuild the block?
+        # ? Is it correct to  order, what happens in case the user wants to _rebuild the block?
         return pd.Series(tuple(OrderedDict.fromkeys(assets)))
 
     @property
@@ -352,9 +344,9 @@ class TimeBlock(pd.DataFrame):
         Example:
 
         >>> datablock
-                        AAPL                 MSFT           
+                        AAPL                 MSFT
                         Open     Close       Open      Close
-        Date                                                
+        Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
@@ -365,7 +357,7 @@ class TimeBlock(pd.DataFrame):
         """
         channels = [col[1] for col in self.columns]
         # OrderedDict to keep order
-        # ? Is it correct to  order, what happens in case the user wants to rebuild the block?
+        # ? Is it correct to  order, what happens in case the user wants to _rebuild the block?
         return pd.Series(list(OrderedDict.fromkeys(channels)))
 
     @property
@@ -376,9 +368,9 @@ class TimeBlock(pd.DataFrame):
         Example:
 
         >>> datablock
-                        AAPL                 MSFT           
+                        AAPL                 MSFT
                         Open     Close       Open      Close
-        Date                                                
+        Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
@@ -400,9 +392,9 @@ class TimeBlock(pd.DataFrame):
         Example:
 
         >>> datablock
-                        AAPL                 MSFT           
+                        AAPL                 MSFT
                         Open     Close       Open      Close
-        Date                                                
+        Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
@@ -412,7 +404,6 @@ class TimeBlock(pd.DataFrame):
         """
         return self.values
 
-    @rebuild
     def filter(self, assets: List[str] = None, channels: List[str] = None):
         """
         Subset the dataframe columns according to the specified assets and channels.
@@ -427,16 +418,16 @@ class TimeBlock(pd.DataFrame):
         Example:
 
         >>> datablock
-                        AAPL                 MSFT           
+                        AAPL                 MSFT
                         Open     Close       Open      Close
-        Date                                                
+        Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
         >>> datablock.filter(assets=['AAPL'], channels=['Open'])
                         AAPL
                         Open
-        Date                
+        Date
         2005-12-21  2.218566
         2005-12-22  2.258598
         """
@@ -444,7 +435,7 @@ class TimeBlock(pd.DataFrame):
         filtered = filtered._filter_channels(channels)
         return filtered
 
-    @rebuild
+    @_rebuild
     def _filter_assets(self, assets):
         if type(assets) == str:
             assets = [assets]
@@ -454,7 +445,7 @@ class TimeBlock(pd.DataFrame):
 
         return self.loc[:, (assets, slice(None))] if assets else self
 
-    @rebuild
+    @_rebuild
     def _filter_channels(self, channels):
         if type(channels) == str:
             channels = [channels]
@@ -464,7 +455,7 @@ class TimeBlock(pd.DataFrame):
 
         return self.loc[:, (slice(None), channels)][self.assets] if channels else self
 
-    def drop(self, assets=None, channels=None):
+    def drop(self, assets: List[str] = None, channels: List[str] = None):
         """
         Subset the dataframe columns discarding the specified assets and channels.
 
@@ -478,16 +469,16 @@ class TimeBlock(pd.DataFrame):
         Example:
 
         >>> datablock
-                        AAPL                 MSFT           
+                        AAPL                 MSFT
                         Open     Close       Open      Close
-        Date                                                
+        Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
         >>> datablock.drop(assets=['AAPL'], channels=['Open'])
                          MSFT
                         Close
-        Date                 
+        Date
         2005-12-21  19.475122
         2005-12-22  19.373114
         """
@@ -495,12 +486,14 @@ class TimeBlock(pd.DataFrame):
         filtered = filtered._drop_channels(channels)
         return filtered
 
+    @_rebuild
     def _drop_assets(self, assets):
         if isinstance(assets, str):
             assets = [assets]
         new_assets = [u for u in self.assets if u not in assets]
         return self._filter_assets(new_assets)
 
+    @_rebuild
     def _drop_channels(self, channels):
         if isinstance(channels, str):
             channels = [channels]
@@ -520,16 +513,16 @@ class TimeBlock(pd.DataFrame):
         Example:
 
         >>> datablock
-                        AAPL                 MSFT           
+                        AAPL                 MSFT
                         Open     Close       Open      Close
-        Date                                                
+        Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
         >>> datablock.rename_assets({'AAPL': 'Apple', 'MSFT': 'Microsoft'})
-                       Apple            Microsoft           
+                       Apple            Microsoft
                         Open     Close       Open      Close
-        Date                                                
+        Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
         """
@@ -538,7 +531,7 @@ class TimeBlock(pd.DataFrame):
         new_values = dict.values()
 
         assets = self.assets.replace(to_replace=values, value=new_values)
-        return self._update(assets=assets.values)
+        return self.update(assets=assets.values)
 
     def rename_channels(self, dict: dict):
         """
@@ -553,16 +546,16 @@ class TimeBlock(pd.DataFrame):
         Example:
 
         >>> datablock
-                        AAPL                 MSFT           
+                        AAPL                 MSFT
                         Open     Close       Open      Close
-        Date                                                
+        Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
         >>> datablock.rename_channels({'Open': 'Op', 'Close': 'Cl'})
-                        AAPL                 MSFT           
+                        AAPL                 MSFT
                         Op        Cl         Op         Cl
-        Date                                                
+        Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
         """
@@ -570,18 +563,18 @@ class TimeBlock(pd.DataFrame):
         new_values = dict.values()
 
         channels = self.channels.replace(to_replace=values, value=new_values)
-        return self._update(channels=channels.values)
+        return self.update(channels=channels.values)
 
-    def apply(self, func, axis=0):
+    def apply(self, func, on: str = 'rows'):
         """
         Apply a function along an axis of the DataBlock.
 
         Args:
             func (function): Function to apply to each column or row.
-            axis ({0 or 'index', 1 or 'columns'}, default 0): Axis along which the function is applied:
-                
-                * 0 or 'index': apply function to each column.
-                * 1 or 'columns': apply function to each row.
+            on (str, default 'row'): Axis along which the function is applied:
+
+                * 'rows': apply function to each row.
+                * 'columns': apply function to each column.
 
         Returns:
             ``TimeBlock``: Result of applying `func` along the given axis of the DataFrame.
@@ -589,28 +582,28 @@ class TimeBlock(pd.DataFrame):
         Example:
 
         >>> datablock
-                        AAPL                 MSFT           
+                        AAPL                 MSFT
                         Open     Close       Open      Close
-        Date                                                
+        Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> datablock.apply(np.max, axis=0)
-            AAPL                MSFT           
+        >>> datablock.apply(np.max, on='rows')
+            AAPL                MSFT
             Open    Close       Open      Close
         0  2.258598  2.26196  19.577126  19.475122
 
-        >>> datablock.apply(np.max, axis=1)
+        >>> datablock.apply(np.max, on='columns')
                         AAPL       MSFT
                         amax       amax
-        Date                           
+        Date
         2005-12-21  2.246069  19.577126
         2005-12-22  2.261960  19.460543
         """
-        # ? think about overwriting pandas apply function
-        if axis == 0 or axis == 'index':
+
+        if on == 'rows':
             return self._timestamp_apply(func)
-        elif axis == 1 or axis == 'columns':
+        elif on == 'columns':
             return self._channel_apply(func)
 
         raise ValueError(f"{axis} not acceptable for 'axis'. Available values are [0, 1]")
@@ -626,19 +619,46 @@ class TimeBlock(pd.DataFrame):
         new = from_matrix(np.swapaxes(np.array([asset.as_dataframe().apply(func, axis=1).values for asset in splits]), 0,1), index=self.index, assets=self.assets, channels=[func.__name__])
         return new
 
-    def _update(self, values=None, index=None, assets=None, channels=None):
-        # TODO check which and why functions need to use _update
-        values = values if values is not None else self.values
+    def update(self, values=None, index: List = None, assets: List = None, channels: List = None):
+        """
+        Update function for any of DataBlock properties.
+
+        Args:
+            values (ndarray): New values Dataframe.
+            index (list): New list of index.
+            assets (list): New list of assets
+            channels (list): New list of channels
+
+        Returns:
+            ``TimeBlock``: Result of updated TimeBlock.
+
+        Example:
+
+        >>> datablock
+                        AAPL                 MSFT
+                        Open     Close       Open      Close
+        Date
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> datablock.update(assets=['Microsoft', 'Apple'], channels=['Op', 'Cl'])
+                 Microsoft                 Apple           
+                        Op         Cl         Op         Cl
+        Date                                                  
+        2005-12-21  19.577126  19.475122  19.460543  19.373114
+        2005-12-22   2.218566   2.246069   2.258598   2.261960
+        """
         assets = assets if assets is not None else self.assets
         index = index if index is not None else self.index
         channels = channels if channels is not None else self.channels
-        return from_matrix(values, index, assets, channels)
+        values = values if values is not None else self.matrix
 
-    # @rebuild
-    # def add_channel(self, name, values):
-    #     for asset in self.assets:
-    #         self.loc[:, (asset, name)] = values
-    #     return self
+        if values is not None:
+            if len(values.shape) == 3:
+                db = from_tensor(values, index, assets, channels)
+            elif len(values.shape) == 2:
+                db = from_matrix(values, index, assets, channels)
+        return db
 
     def split_assets(self):
         """
@@ -650,29 +670,32 @@ class TimeBlock(pd.DataFrame):
         Example:
 
         >>> datablock
-                        AAPL                 MSFT           
+                        AAPL                 MSFT
                         Open     Close       Open      Close
-        Date                                                
+        Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
         >>> datablock.split_assets()
-        [               AAPL          
+        [               AAPL
                         Open     Close
-        Date                          
+        Date
         2005-12-21  2.218566  2.246069
         2005-12-22  2.258598  2.261960,
-                        MSFT           
+                        MSFT
                         Open      Close
-        Date                            
+        Date
         2005-12-21  19.577126  19.475122
         2005-12-22  19.460543  19.373114]
         """
         return [self.filter(asset) for asset in self.assets]
 
-    def sort_assets(self):
+    def sort_assets(self, order: List[str] = None):
         """
         Sort assets in alphabetical order.
+
+        Args:
+            order (List[str]): Asset order to be sorted.
 
         Returns:
             ``DataBlock``: Result of sorting assets.
@@ -680,24 +703,30 @@ class TimeBlock(pd.DataFrame):
         Example:
 
         >>> datablock
-                        MSFT                 AAPL          
+                        MSFT                 AAPL
                         Open      Close      Open     Close
-        Date                                                
+        Date
         2005-12-21  19.577126  19.475122  2.218566  2.246069
         2005-12-22  19.460543  19.373114  2.258598  2.261960
 
         >>> datablock.sort_assets()
-                        AAPL                 MSFT           
+                        AAPL                 MSFT
                         Open     Close       Open      Close
-        Date                                                
+        Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
         """
-        return self.reindex(sorted(self.columns, key=lambda x: x[0]), axis=1)
+        assets = sorted(self.assets) if order is None else order
+        channels = self.channels
+        pair = [(asset, channel) for asset in assets for channel in channels]
+        return self.reindex(pair, axis=1)
 
-    def sort_channels(self):
+    def sort_channels(self, order: List[str] = None):
         """
         Sort channels in alphabetical order.
+
+        Args:
+            order (List[str]): Channel order to be sorted.
 
         Returns:
             ``DataBlock``: Result of sorting channels.
@@ -705,21 +734,21 @@ class TimeBlock(pd.DataFrame):
         Example:
 
         >>> datablock
-                        MSFT                 AAPL          
+                        MSFT                 AAPL
                         Open      Close      Open     Close
-        Date                                                
+        Date
         2005-12-21  19.577126  19.475122  2.218566  2.246069
         2005-12-22  19.460543  19.373114  2.258598  2.261960
 
         >>> datablock.sort_channels()
-                         MSFT                 AAPL          
+                         MSFT                 AAPL
                         Close       Open     Close      Open
-        Date                                                
+        Date
         2005-12-21  19.475122  19.577126  2.246069  2.218566
         2005-12-22  19.373114  19.460543  2.261960  2.258598
         """
         assets = self.assets
-        channels = sorted(self.channels)
+        channels = sorted(self.channels) if order is None else order
         pair = [(asset, channel) for asset in assets for channel in channels]
         return self.reindex(pair, axis=1)
 
@@ -733,20 +762,21 @@ class TimeBlock(pd.DataFrame):
         Example:
 
         >>> datablock
-                        AAPL                 MSFT           
+                        AAPL                 MSFT
                         Open     Close       Open      Close
-        Date                                                
+        Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
         >>> datablock.swap_cols()
-                       Close                 Open           
+                       Close                 Open
                         AAPL       MSFT      AAPL       MSFT
-        Date                                                
+        Date
         2005-12-21  2.246069  19.475122  2.218566  19.577126
         2005-12-22  2.261960  19.373114  2.258598  19.460543
         """
-        return self.T.swaplevel(i=- 2, j=- 1, axis=0).T.sort_assets()
+        channels = self.channels
+        return self.T.swaplevel(i=- 2, j=- 1, axis=0).T.sort_assets(channels)
 
     def countna(self, type: str = 'asset'):
         """
@@ -758,9 +788,9 @@ class TimeBlock(pd.DataFrame):
         Example:
 
         >>> datablock
-                        AAPL                 MSFT           
+                        AAPL                 MSFT
                         Open     Close       Open      Close
-        Date                                                
+        Date
         2005-12-21  2.218566  2.246069        NaN  19.475122
         2005-12-22  2.258598       NaN  19.460543  19.373114
 

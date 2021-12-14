@@ -65,3 +65,4 @@ html_static_path = ['_static']
 todo_include_todos = True
 
 add_module_names = False
+autodoc_member_order = 'bysource'
