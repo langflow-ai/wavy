@@ -3,9 +3,8 @@ from collections import OrderedDict
 import numpy as np
 import pandas as pd
 from pandas.core.frame import DataFrame
-from typing import List, overload
+from typing import List
 from .utils import add_dim, add_level
-from multipledispatch import dispatch
 
 
 def from_dataframe(df: DataFrame, asset: str = 'asset'):
@@ -288,7 +287,7 @@ class TimeBlock(pd.DataFrame):
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> datablock.assets
+        >>> datablock.start
         Timestamp('2005-12-21 00:00:00')
         """
         return self.index[0]
@@ -307,7 +306,7 @@ class TimeBlock(pd.DataFrame):
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> datablock.assets
+        >>> datablock.end
         Timestamp('2005-12-22 00:00:00')
         """
         return self.index[-1]
@@ -360,6 +359,12 @@ class TimeBlock(pd.DataFrame):
         # ? Is it correct to  order, what happens in case the user wants to _rebuild the block?
         return pd.Series(list(OrderedDict.fromkeys(channels)))
 
+    # TODO add timesteps
+    # TODO add index
+
+    # TODO add values???
+    # TODO add shape
+
     @property
     def tensor(self):
         """
@@ -406,7 +411,7 @@ class TimeBlock(pd.DataFrame):
 
     def filter(self, assets: List[str] = None, channels: List[str] = None):
         """
-        Subset the dataframe columns according to the specified assets and channels.
+        Subset of the dataframe columns according to the specified assets and channels.
 
         Args:
             assets (list): List of assets
@@ -457,7 +462,7 @@ class TimeBlock(pd.DataFrame):
 
     def drop(self, assets: List[str] = None, channels: List[str] = None):
         """
-        Subset the dataframe columns discarding the specified assets and channels.
+        Subset of the dataframe columns discarding the specified assets and channels.
 
         Args:
             assets (list): List of assets
@@ -502,10 +507,10 @@ class TimeBlock(pd.DataFrame):
 
     def rename_assets(self, dict: dict):
         """
-        Alter asset labels.
+        Rename asset labels.
 
         Args:
-            dict (list): Dictionary with assets to rename
+            dict (dict): Dictionary with assets to rename
 
         Returns:
             ``TimeBlock``: Renamed TimeBlock
@@ -535,10 +540,10 @@ class TimeBlock(pd.DataFrame):
 
     def rename_channels(self, dict: dict):
         """
-        Alter channel labels.
+        Rename channel labels.
 
         Args:
-            dict (list): Dictionary with channels to rename
+            dict (dict): Dictionary with channels to rename
 
         Returns:
             ``TimeBlock``: Renamed TimeBlock
@@ -565,7 +570,7 @@ class TimeBlock(pd.DataFrame):
         channels = self.channels.replace(to_replace=values, value=new_values)
         return self.update(channels=channels.values)
 
-    def apply(self, func, on: str = 'rows'):
+    def apply(self, func, on: str = 'timestamps'):
         """
         Apply a function along an axis of the DataBlock.
 
@@ -573,11 +578,11 @@ class TimeBlock(pd.DataFrame):
             func (function): Function to apply to each column or row.
             on (str, default 'row'): Axis along which the function is applied:
 
-                * 'rows': apply function to each row.
-                * 'columns': apply function to each column.
+                * 'timestamps': apply function to each timestamps.
+                * 'channels': apply function to each channels.
 
         Returns:
-            ``TimeBlock``: Result of applying `func` along the given axis of the DataFrame.
+            ``TimeBlock``: Result of applying `func` along the given axis of the TimeBlock.
 
         Example:
 
@@ -601,9 +606,9 @@ class TimeBlock(pd.DataFrame):
         2005-12-22  2.261960  19.460543
         """
 
-        if on == 'rows':
+        if on == 'timestamps ':
             return self._timestamp_apply(func)
-        elif on == 'columns':
+        elif on == 'channels':
             return self._channel_apply(func)
 
         raise ValueError(f"{axis} not acceptable for 'axis'. Available values are [0, 1]")
@@ -832,3 +837,8 @@ class TimeBlock(pd.DataFrame):
         """
         return pd.DataFrame(self.values, index=self.index, columns=self.columns)
 
+    # TODO add fillna???
+    # TODO add findna???
+    # TODO add replace???
+    # TODO add_channel???
+    # TODO 

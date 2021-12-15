@@ -39,6 +39,7 @@ class TimePair:
         return pd.DataFrame([self.x.numpy().shape, self.y.numpy().shape], index=["x", "y"], columns=self.DIMS)
 
     def filter(self, assets=None, channels=None):
+        # ? Will assets and channels be the same on x and y
         x = self.x.filter(assets=assets, channels=channels)
         y = self.y.filter(assets=assets, channels=channels)
         return TimePair(x, y)
