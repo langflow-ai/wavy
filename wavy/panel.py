@@ -8,9 +8,34 @@ from .block import TimeBlock
 from .pair import TimePair
 from .side import PanelSide
 
+from typing import List
 
-def from_pairs(pairs):
-    """ Create a panel from a list of pairs. """
+
+def from_pairs(pairs: List):
+    """
+    Creates a panel from a list of pairs.
+
+    Args:
+        pairs (List[TimePair]): List of TimePair
+
+    Returns:
+        ``TimePanel``: Renamed TimePanel
+
+    Example:
+
+    >>> from_pairs(timepairs)
+    size                               1
+    lookback                           2
+    horizon                            2
+    num_xassets                        2
+    num_yassets                        2
+    num_xchannels                      2
+    num_ychannels                      2
+    start            2005-12-27 00:00:00
+    end              2005-12-30 00:00:00
+    Name: TimePanel, dtype: object
+    <TimePanel, size 1>
+    """
     if len(pairs) == 0:
         raise ValueError("Cannot build TimePanel from empty list")
     blocks = [(pair.x, pair.y) for pair in pairs]

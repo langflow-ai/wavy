@@ -839,6 +839,8 @@ class TimeBlock(pd.DataFrame):
 
     # TODO add fillna???
     # TODO add findna???
-    # TODO add replace???
     # TODO add_channel???
-    # TODO 
+    # TODO data???
+    # TODO numpy???
+    # TODO flat???
+    # TODO flatten???

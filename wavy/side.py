@@ -15,6 +15,7 @@ dunder_methods = ['__add__', '__sub__', '__mul__', '__ge__', '__gt__', '__le__',
 class PanelSide:
     def __init__(self, blocks):
         # TODO: blocks must have increasing indexes, add warning and reindex
+        # TODO this check should be done when creating the panel
         self.blocks = blocks
 
     # TODO understand function
@@ -64,8 +65,6 @@ class PanelSide:
 
     def __len__(self):
         return len(self.blocks)
-
-
 
 
 
@@ -155,15 +154,18 @@ class PanelSide:
 
     @property
     def timesteps(self):
-        #? Didn't make sense
+        # TODO
+        #? Does not make sense
         return self.first.index
 
     @property
     def index(self):
+        # TODO
         return self.data().index
 
     @property
     def values(self):
+        # TODO
         # ? In block the equivalent name is tensor
         """
         3D matrix with PanelSide value.
@@ -180,7 +182,46 @@ class PanelSide:
 
     @property
     def shape(self):
+        # TODO
         return self.numpy().shape
+
+    @property
+    def tensor(self):
+        """
+        4D matrix with PanelSide value.
+
+        Example:
+
+        >>> panelside.tensor
+        array([[[[19.57712554, 19.47512245],
+                 [19.46054323, 19.37311363]],
+                [[ 2.21856582,  2.24606872],
+                 [ 2.25859845,  2.26195979]]],
+               [[[19.46054323, 19.37311363],
+                 [19.32212198, 19.40955162]],
+                [[ 2.25859845,  2.26195979],
+                 [ 2.26654326,  2.24148512]]]])
+        """
+        # ! Easier to use tensor property
+        # new_shape = (len(self), len(self.timesteps), len(self.assets), len(self.channels))
+        # values = self.values.reshape(*new_shape)
+        # return values.transpose(0, 2, 1, 3)
+        return np.array([block.tensor for block in tqdm(self.blocks)])
+
+    @property
+    def matrix(self):
+        """
+        3D matrix with PanelSide value.
+
+        Example:
+
+        >>> panelside.matrix
+        array([[[19.57712554, 19.47512245,  2.21856582,  2.24606872],
+                [19.46054323, 19.37311363,  2.25859845,  2.26195979]],
+               [[19.46054323, 19.37311363,  2.25859845,  2.26195979],
+                [19.32212198, 19.40955162,  2.26654326,  2.24148512]]])
+        """
+        return np.array([block.matrix for block in tqdm(self.blocks)])
 
     def filter(self, assets: List[str] = None, channels: List[str] = None):
         """
@@ -248,15 +289,59 @@ class PanelSide:
         """
         return PanelSide([block.apply(func, on) for block in tqdm(self.blocks)])
 
-    # TODO add update???
+    def update(self, values=None, index: List = None, assets: List = None, channels: List = None):
+        """
+        Update function for any of PanelSide properties.
+
+        Args:
+            values (ndarray): New values Dataframe.
+            index (list): New list of index.
+            assets (list): New list of assets
+            channels (list): New list of channels
+
+        Returns:
+            ``PanelSide``: Result of updated PanelSide.
+        """
+        return PanelSide([block.update(values[i], index, assets, channels) for i, block in tqdm(enumerate(self.blocks))])
 
     def split_assets(self):
         # ? Does it make sense??
         return [self.filter(asset) for asset in self.assets]
 
-    # TODO add sort_assets???
-    # TODO add sort_channels???
-    # TODO add swap_cols???
+    def sort_assets(self, order: List[str] = None):
+        """
+        Sort assets in alphabetical order.
+
+        Args:
+            order (List[str]): Asset order to be sorted.
+
+        Returns:
+            ``PanelSide``: Result of sorting assets.
+        """
+        return PanelSide([block.sort_assets(order) for block in tqdm(self.blocks)])
+        
+    def sort_channels(self, order: List[str] = None):
+        """
+        Sort channels in alphabetical order.
+
+        Args:
+            order (List[str]): Channel order to be sorted.
+
+        Returns:
+            ``PanelSide``: Result of sorting channels.
+        """
+        return PanelSide([block.sort_channels(order) for block in tqdm(self.blocks)])
+
+    def swap_cols(self):
+        """
+        Swap columns levels, assets becomes channels and channels becomes assets
+
+        Returns:
+            ``PanelSide``: Result of swapping columns.
+        """
+        return PanelSide([block.swap_cols() for block in tqdm(self.blocks)])
+
+
     # TODO add countna???
 
     def fillna(self, value=None, method=None):
@@ -267,23 +352,22 @@ class PanelSide:
         values = pd.Series(values).isna()
         return values[values == True].index.tolist()
 
-    def replace(self, data):
-        blocks = [block.update(values=data[i]) for i, block in enumerate(self.blocks)]
-        return PanelSide(blocks)
+    # Used the function update, keep the same name as in block
+    # def replace(self, data):
+    #     blocks = [block.update(values=data[i]) for i, block in enumerate(self.blocks)]
+    #     return PanelSide(blocks)
 
-    def add_channel(self, name, values):
-        return [block.add_channel(name, values) for block in self.blocks]
+    # ? Does it make sense, leave for next version
+    # def add_channel(self, name, values):
+    #     return [block.add_channel(name, values) for block in self.blocks]
 
     def data(self):
+        # TODO RN - check why using this function
         df = pd.concat(self.blocks)
         return df[~df.index.duplicated(keep="first")]
 
-    def numpy(self):
-        new_shape = (len(self), len(self.timesteps), len(self.assets), len(self.channels))
-        values = self.values.reshape(*new_shape)
-        return values.transpose(0, 2, 1, 3)
-
     def flat(self):
+        # TODO ? is this the correct way
         values = np.array([i.values.flatten() for i in self.blocks])
         index = [i.index[-1] for i in self.blocks]
         return pd.DataFrame(values, index=index)
