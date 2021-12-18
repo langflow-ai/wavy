@@ -154,39 +154,60 @@ class PanelSide:
 
     @property
     def timesteps(self):
-        # TODO
-        #? Does not make sense
-        return self.first.index
-
-    @property
-    def index(self):
-        # TODO
-        return self.data().index
-
-    @property
-    def values(self):
-        # TODO
-        # ? In block the equivalent name is tensor
         """
-        3D matrix with PanelSide value.
+        PanelSide index.
 
         Example:
 
-        >>> panelside.values
-        array([[[19.57712554, 19.47512245,  2.21856582,  2.24606872],
-                [19.46054323, 19.37311363,  2.25859845,  2.26195979]],
-               [[19.46054323, 19.37311363,  2.25859845,  2.26195979],
-                [19.32212198, 19.40955162,  2.26654326,  2.24148512]]])
+        >>> panelside.index
+        DatetimeIndex(['2005-12-21', '2005-12-22', '2005-12-23'], dtype='datetime64[ns]', name='Date', freq=None)
         """
-        return np.array(self.blocks)
+        # The same as the index
+        return self.index
+
+    @property
+    def index(self):
+        """
+        PanelSide index.
+
+        Example:
+
+        >>> panelside.index
+        DatetimeIndex(['2005-12-21', '2005-12-22', '2005-12-23'], dtype='datetime64[ns]', name='Date', freq=None)
+        """
+        return self.data().index
+
+    # @property
+    # def values(self):
+    #     # TODO
+    #     # ? In block the equivalent name is tensor
+    #     """
+    #     3D matrix with PanelSide value.
+
+    #     Example:
+
+    #     >>> panelside.values
+    #     array([[[19.57712554, 19.47512245,  2.21856582,  2.24606872],
+    #             [19.46054323, 19.37311363,  2.25859845,  2.26195979]],
+    #            [[19.46054323, 19.37311363,  2.25859845,  2.26195979],
+    #             [19.32212198, 19.40955162,  2.26654326,  2.24148512]]])
+    #     """
+    #     return np.array(self.blocks)
 
     @property
     def shape(self):
-        # TODO
-        return self.numpy().shape
+        """
+        PanelSide shape.
+
+        Example:
+
+        >>> panelside.shape
+        (2, 2, 2, 2)
+        """
+        return self.tensor4d.shape
 
     @property
-    def tensor(self):
+    def tensor4d(self):
         """
         4D matrix with PanelSide value.
 
@@ -202,14 +223,15 @@ class PanelSide:
                 [[ 2.25859845,  2.26195979],
                  [ 2.26654326,  2.24148512]]]])
         """
-        # ! Easier to use tensor property
-        # new_shape = (len(self), len(self.timesteps), len(self.assets), len(self.channels))
-        # values = self.values.reshape(*new_shape)
-        # return values.transpose(0, 2, 1, 3)
-        return np.array([block.tensor for block in tqdm(self.blocks)])
+        # Could be calculate using using the block function but it is faster this way
+        timesteps = self.first.index
+        new_shape = (len(self), len(timesteps), len(self.assets), len(self.channels))
+        values = self.values.reshape(*new_shape)
+        return values.transpose(0, 2, 1, 3)
+        # return np.array([block.tensor for block in tqdm(self.blocks)])
 
     @property
-    def matrix(self):
+    def tensor3d(self):
         """
         3D matrix with PanelSide value.
 
@@ -304,9 +326,9 @@ class PanelSide:
         """
         return PanelSide([block.update(values[i], index, assets, channels) for i, block in tqdm(enumerate(self.blocks))])
 
-    def split_assets(self):
-        # ? Does it make sense??
-        return [self.filter(asset) for asset in self.assets]
+    # def split_assets(self):
+    #     # TODO RN ? Does it make sense??
+    #     return [self.filter(asset) for asset in self.assets]
 
     def sort_assets(self, order: List[str] = None):
         """
@@ -341,13 +363,35 @@ class PanelSide:
         """
         return PanelSide([block.swap_cols() for block in tqdm(self.blocks)])
 
+    # Concept: How many blocks contain nan
+    def countna(self):
+        """
+        Count 'not a number' cells for each TimeBlock.
 
-    # TODO add countna???
+        Returns:
+            ``DataFrame``: NaN count for each TimeBlock.
+
+        Example:
+
+        >>> panelside.countna
+        nan
+        0    2
+        1    2
+        """
+        values = [block.isnull().values.sum() for block in tqdm(self.blocks)]
+        return pd.DataFrame(values, index=range(len(self.blocks)), columns=['nan'])
 
     def fillna(self, value=None, method=None):
-        return PanelSide([block.fillna(value=value, method=method) for block in (self.blocks)])
+        """
+        Fill NA/NaN values using the specified method.
+
+        Returns:
+            ``PanelSide``: PanelSide with missing values filled.
+        """
+        return PanelSide([block.fillna(value=value, method=method) for block in tqdm(self.blocks)])
 
     def findna(self):
+        # TODO fix function
         values = np.sum(self.numpy(), axis=(3, 2, 1))
         values = pd.Series(values).isna()
         return values[values == True].index.tolist()
@@ -361,16 +405,83 @@ class PanelSide:
     # def add_channel(self, name, values):
     #     return [block.add_channel(name, values) for block in self.blocks]
 
-    def data(self):
-        # TODO RN - check why using this function
+    def as_dataframe(self):
+        # Renamed from data
+        """
+        Reconstructs the dataframe.
+
+        Returns:
+            ``PanelSide``: Result of sorting channels.
+        """
+        # Dataframe recontruction
         df = pd.concat(self.blocks)
         return df[~df.index.duplicated(keep="first")]
 
     def flat(self):
-        # TODO ? is this the correct way
+        """
+        2D array with the flat value of each TimeBlock.
+
+        Returns:
+            ``DataFrame``: Result of flat function.
+
+        Example:
+
+        PanelSide containing two TimeBlock, will present the following result.
+
+        >>> panelside.first
+                        MSFT                 AAPL          
+                        Open      Close      Open     Close
+        Date                                                
+        2005-12-21  19.577126  19.475122  2.218566  2.246069
+        2005-12-22  19.460543  19.373114  2.258598  2.261960
+
+        >>> panelside.last
+                        MSFT                 AAPL          
+                        Open      Close      Open     Close
+        Date                                                
+        2005-12-22  19.460543  19.373114  2.258598  2.261960
+        2005-12-23  19.322122  19.409552  2.266543  2.241485
+
+        Where only the last timestep of each TimeBlock is used as index.
+
+        >>> panelside.flat()
+                           0         1        2        3         4         5        6        7  
+        2005-12-22 19.577126 19.475122 2.218566 2.246069 19.460543 19.373114 2.258598 2.261960 
+        2005-12-23 19.460543 19.373114 2.258598 2.261960 19.322122 19.409552 2.266543 2.241485
+        """
         values = np.array([i.values.flatten() for i in self.blocks])
         index = [i.index[-1] for i in self.blocks]
         return pd.DataFrame(values, index=index)
 
     def flatten(self):
+        """
+        1D array with the flat value of all TimeBlocks.
+
+        Returns:
+            ``array``: Result of flat function.
+
+        Example:
+
+        PanelSide containing two TimeBlock, will present the following result.
+
+        >>> panelside.first
+                        MSFT                 AAPL          
+                        Open      Close      Open     Close
+        Date                                                
+        2005-12-21  19.577126  19.475122  2.218566  2.246069
+        2005-12-22  19.460543  19.373114  2.258598  2.261960
+
+        >>> panelside.last
+                        MSFT                 AAPL          
+                        Open      Close      Open     Close
+        Date                                                
+        2005-12-22  19.460543  19.373114  2.258598  2.261960
+        2005-12-23  19.322122  19.409552  2.266543  2.241485
+
+        >>> panelside.flatten()
+        array([19.57712554, 19.47512245,  2.21856582,  2.24606872, 19.46054323,
+               19.37311363,  2.25859845,  2.26195979, 19.46054323, 19.37311363,
+                2.25859845,  2.26195979, 19.32212198, 19.40955162,  2.26654326,
+                2.24148512])
+        """
         return self.flat().values.flatten()

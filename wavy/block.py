@@ -26,14 +26,14 @@ def from_dataframe(df: DataFrame, asset: str = 'asset'):
     2005-12-21  2.218566  2.246069
     2005-12-22  2.258598  2.261960
 
-    >>> datablock = from_dataframe(data, 'AAPL')
+    >>> timeblock = from_dataframe(data, 'AAPL')
                     AAPL
                     Open     Close
     Date
     2005-12-21  2.218566  2.246069
     2005-12-22  2.258598  2.261960
 
-    >>> type(datablock)
+    >>> type(timeblock)
     wavy.block.TimeBlock
 
     """
@@ -276,18 +276,18 @@ class TimeBlock(pd.DataFrame):
     @property
     def start(self):
         """
-        Datablock first index.
+        TimeBlock first index.
 
         Example:
 
-        >>> datablock
+        >>> timeblock
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> datablock.start
+        >>> timeblock.start
         Timestamp('2005-12-21 00:00:00')
         """
         return self.index[0]
@@ -295,18 +295,18 @@ class TimeBlock(pd.DataFrame):
     @property
     def end(self):
         """
-        Datablock last index.
+        TimeBlock last index.
 
         Example:
 
-        >>> datablock
+        >>> timeblock
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> datablock.end
+        >>> timeblock.end
         Timestamp('2005-12-22 00:00:00')
         """
         return self.index[-1]
@@ -314,18 +314,18 @@ class TimeBlock(pd.DataFrame):
     @property
     def assets(self):
         """
-        Datablock assets.
+        TimeBlock assets.
 
         Example:
 
-        >>> datablock
+        >>> timeblock
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> datablock.assets
+        >>> timeblock.assets
         0    AAPL
         1    MSFT
         dtype: object
@@ -338,18 +338,18 @@ class TimeBlock(pd.DataFrame):
     @property
     def channels(self):
         """
-        Datablock channels.
+        TimeBlock channels.
 
         Example:
 
-        >>> datablock
+        >>> timeblock
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> datablock.channels
+        >>> timeblock.channels
         0    Open
         1    Close
         dtype: object
@@ -359,11 +359,33 @@ class TimeBlock(pd.DataFrame):
         # ? Is it correct to  order, what happens in case the user wants to _rebuild the block?
         return pd.Series(list(OrderedDict.fromkeys(channels)))
 
-    # TODO add timesteps
-    # TODO add index
+    @property
+    def timesteps(self):
+        """
+        TimeBlock index.
+
+        Example:
+
+        >>> timeblock.index
+        DatetimeIndex(['2005-12-21', '2005-12-22', '2005-12-23'], dtype='datetime64[ns]', name='Date', freq=None)
+        """
+        # The same as the index
+        return self.index
 
     # TODO add values???
-    # TODO add shape
+
+    # Causing error, overwriting shape function
+    # @property
+    # def shape(self):
+    #     """
+    #     TimeBlock shape.
+
+    #     Example:
+
+    #     >>> timeblock.shape
+    #     (2, 2, 2)
+    #     """
+    #     return self.tensor.shape
 
     @property
     def tensor(self):
@@ -372,14 +394,14 @@ class TimeBlock(pd.DataFrame):
 
         Example:
 
-        >>> datablock
+        >>> timeblock
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> datablock.tensor
+        >>> timeblock.tensor
         array([[[ 2.21856582,  2.24606872],
                 [ 2.25859845,  2.26195979]],
                [[19.57712554, 19.47512245],
@@ -396,14 +418,14 @@ class TimeBlock(pd.DataFrame):
 
         Example:
 
-        >>> datablock
+        >>> timeblock
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> datablock.matrix
+        >>> timeblock.matrix
         array([[ 2.21856582,  2.24606872, 19.57712554, 19.47512245],
             [ 2.25859845,  2.26195979, 19.46054323, 19.37311363]])
         """
@@ -422,14 +444,14 @@ class TimeBlock(pd.DataFrame):
 
         Example:
 
-        >>> datablock
+        >>> timeblock
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> datablock.filter(assets=['AAPL'], channels=['Open'])
+        >>> timeblock.filter(assets=['AAPL'], channels=['Open'])
                         AAPL
                         Open
         Date
@@ -473,14 +495,14 @@ class TimeBlock(pd.DataFrame):
 
         Example:
 
-        >>> datablock
+        >>> timeblock
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> datablock.drop(assets=['AAPL'], channels=['Open'])
+        >>> timeblock.drop(assets=['AAPL'], channels=['Open'])
                          MSFT
                         Close
         Date
@@ -517,14 +539,14 @@ class TimeBlock(pd.DataFrame):
 
         Example:
 
-        >>> datablock
+        >>> timeblock
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> datablock.rename_assets({'AAPL': 'Apple', 'MSFT': 'Microsoft'})
+        >>> timeblock.rename_assets({'AAPL': 'Apple', 'MSFT': 'Microsoft'})
                        Apple            Microsoft
                         Open     Close       Open      Close
         Date
@@ -550,14 +572,14 @@ class TimeBlock(pd.DataFrame):
 
         Example:
 
-        >>> datablock
+        >>> timeblock
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> datablock.rename_channels({'Open': 'Op', 'Close': 'Cl'})
+        >>> timeblock.rename_channels({'Open': 'Op', 'Close': 'Cl'})
                         AAPL                 MSFT
                         Op        Cl         Op         Cl
         Date
@@ -586,19 +608,19 @@ class TimeBlock(pd.DataFrame):
 
         Example:
 
-        >>> datablock
+        >>> timeblock
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> datablock.apply(np.max, on='rows')
+        >>> timeblock.apply(np.max, on='rows')
             AAPL                MSFT
             Open    Close       Open      Close
         0  2.258598  2.26196  19.577126  19.475122
 
-        >>> datablock.apply(np.max, on='columns')
+        >>> timeblock.apply(np.max, on='columns')
                         AAPL       MSFT
                         amax       amax
         Date
@@ -639,14 +661,14 @@ class TimeBlock(pd.DataFrame):
 
         Example:
 
-        >>> datablock
+        >>> timeblock
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> datablock.update(assets=['Microsoft', 'Apple'], channels=['Op', 'Cl'])
+        >>> timeblock.update(assets=['Microsoft', 'Apple'], channels=['Op', 'Cl'])
                  Microsoft                 Apple           
                         Op         Cl         Op         Cl
         Date                                                  
@@ -674,14 +696,14 @@ class TimeBlock(pd.DataFrame):
 
         Example:
 
-        >>> datablock
+        >>> timeblock
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> datablock.split_assets()
+        >>> timeblock.split_assets()
         [               AAPL
                         Open     Close
         Date
@@ -707,14 +729,14 @@ class TimeBlock(pd.DataFrame):
 
         Example:
 
-        >>> datablock
+        >>> timeblock
                         MSFT                 AAPL
                         Open      Close      Open     Close
         Date
         2005-12-21  19.577126  19.475122  2.218566  2.246069
         2005-12-22  19.460543  19.373114  2.258598  2.261960
 
-        >>> datablock.sort_assets()
+        >>> timeblock.sort_assets()
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
@@ -738,14 +760,14 @@ class TimeBlock(pd.DataFrame):
 
         Example:
 
-        >>> datablock
+        >>> timeblock
                         MSFT                 AAPL
                         Open      Close      Open     Close
         Date
         2005-12-21  19.577126  19.475122  2.218566  2.246069
         2005-12-22  19.460543  19.373114  2.258598  2.261960
 
-        >>> datablock.sort_channels()
+        >>> timeblock.sort_channels()
                          MSFT                 AAPL
                         Close       Open     Close      Open
         Date
@@ -766,14 +788,14 @@ class TimeBlock(pd.DataFrame):
 
         Example:
 
-        >>> datablock
+        >>> timeblock
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> datablock.swap_cols()
+        >>> timeblock.swap_cols()
                        Close                 Open
                         AAPL       MSFT      AAPL       MSFT
         Date
@@ -792,19 +814,19 @@ class TimeBlock(pd.DataFrame):
 
         Example:
 
-        >>> datablock
+        >>> timeblock
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069        NaN  19.475122
         2005-12-22  2.258598       NaN  19.460543  19.373114
 
-        >>> datablock.countna('asset')
+        >>> timeblock.countna('asset')
         AAPL    1
         MSFT    1
         dtype: int64
 
-        >>> datablock.countna('channel')
+        >>> timeblock.countna('channel')
         AAPL  Open     0
               Close    1
         MSFT  Open     1
@@ -829,18 +851,20 @@ class TimeBlock(pd.DataFrame):
 
         Example:
 
-        >>> type(datablock)
+        >>> type(timeblock)
         wavy.block.TimeBlock
 
-        >>> type(datablock.as_dataframe())
+        >>> type(timeblock.as_dataframe())
         pandas.core.frame.DataFrame
         """
         return pd.DataFrame(self.values, index=self.index, columns=self.columns)
 
+    # def fillna(self, value=None, method=None):
+    #     return PanelSide([block.fillna(value=value, method=method) for block in (self.blocks)])
+
     # TODO add fillna???
     # TODO add findna???
     # TODO add_channel???
-    # TODO data???
     # TODO numpy???
     # TODO flat???
     # TODO flatten???
