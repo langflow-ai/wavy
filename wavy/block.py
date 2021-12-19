@@ -362,17 +362,15 @@ class TimeBlock(pd.DataFrame):
     @property
     def timesteps(self):
         """
-        TimeBlock index.
+        TimeBlock timesteps.
 
         Example:
 
-        >>> timeblock.index
+        >>> timeblock.timesteps
         DatetimeIndex(['2005-12-21', '2005-12-22', '2005-12-23'], dtype='datetime64[ns]', name='Date', freq=None)
         """
         # The same as the index
         return self.index
-
-    # TODO add values???
 
     # Causing error, overwriting shape function
     # @property
@@ -433,7 +431,7 @@ class TimeBlock(pd.DataFrame):
 
     def filter(self, assets: List[str] = None, channels: List[str] = None):
         """
-        Subset of the dataframe columns according to the specified assets and channels.
+        TimeBlock subset according to the specified assets and channels.
 
         Args:
             assets (list): List of assets
@@ -841,7 +839,6 @@ class TimeBlock(pd.DataFrame):
             s = self.isnull().sum(axis = 0)
         return s
 
-
     def as_dataframe(self):
         """
         Generate DataFrame from TimeBlock
@@ -859,12 +856,34 @@ class TimeBlock(pd.DataFrame):
         """
         return pd.DataFrame(self.values, index=self.index, columns=self.columns)
 
-    # def fillna(self, value=None, method=None):
-    #     return PanelSide([block.fillna(value=value, method=method) for block in (self.blocks)])
+    def fillna(self, value=None, method=None):
+        """
+        Fill NA/NaN values using the specified method.
 
-    # TODO add fillna???
+        Returns:
+            ``DataBlock``: DataBlock with missing values filled.
+
+        Example:
+
+        >>> timeblock
+                        AAPL                 MSFT
+                        Open     Close       Open      Close
+        Date
+        2005-12-21  2.218566  2.246069        NaN  19.475122
+        2005-12-22  2.258598       NaN  19.460543  19.373114
+
+        >>> timeblock.fillna(0)
+                        MSFT                 AAPL          
+                        Open      Close      Open     Close
+        Date                                                
+        2005-12-21  19.577126  19.475122  0.000000  2.246069
+        2005-12-22  19.460543   0.000000  2.258598  2.261960
+        """
+        return super().fillna(value, method)
+
+    # TODO dropna
+
     # TODO add findna???
     # TODO add_channel???
-    # TODO numpy???
     # TODO flat???
     # TODO flatten???

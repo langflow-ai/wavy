@@ -19,7 +19,7 @@ class PanelSide:
         self.blocks = blocks
 
     # TODO understand function
-    def wrap_block(self, func):
+    def _wrap_block(self, func):
         @functools.wraps(func)
         def newfunc(*fargs, **fkeywords):
             return PanelSide([getattr(block, func.__name__)(*fargs, **fkeywords) for block in self.blocks])
@@ -32,8 +32,8 @@ class PanelSide:
             return PanelSide([getattr(block, __f)(other_block) for block, other_block in zip(self.blocks, other)])
         return PanelSide([getattr(block, __f)(other) for block in self.blocks])
 
-    for dunder in dunder_methods:
-        locals()[dunder] = lambda self, other, __f=dunder: self._one_arg(other, __f)
+    for _dunder in dunder_methods:
+        locals()[_dunder] = lambda self, other, __f=_dunder: self._one_arg(other, __f)
 
 
     # # TODO: Implement
@@ -44,6 +44,7 @@ class PanelSide:
     # def _repr_html_(self):
     #     return "<p>PanelSide</p>"
 
+    # TODO understand
     def __getattr__(self, name):
         # Temporary fix
         if "repr" in name:
@@ -51,7 +52,7 @@ class PanelSide:
         try:
             block_func = getattr(TimeBlock, name)
             if callable(block_func):
-                return self.wrap_block(block_func)
+                return self._wrap_block(block_func)
             return PanelSide([getattr(block, name) for block in self.blocks])
         except AttributeError:
             raise AttributeError(f"'PanelSide' object has no attribute '{name}'")
@@ -155,11 +156,11 @@ class PanelSide:
     @property
     def timesteps(self):
         """
-        PanelSide index.
+        PanelSide timesteps.
 
         Example:
 
-        >>> panelside.index
+        >>> panelside.timesteps
         DatetimeIndex(['2005-12-21', '2005-12-22', '2005-12-23'], dtype='datetime64[ns]', name='Date', freq=None)
         """
         # The same as the index
@@ -175,7 +176,7 @@ class PanelSide:
         >>> panelside.index
         DatetimeIndex(['2005-12-21', '2005-12-22', '2005-12-23'], dtype='datetime64[ns]', name='Date', freq=None)
         """
-        return self.data().index
+        return self.as_dataframe().index
 
     # @property
     # def values(self):
@@ -226,7 +227,7 @@ class PanelSide:
         # Could be calculate using using the block function but it is faster this way
         timesteps = self.first.index
         new_shape = (len(self), len(timesteps), len(self.assets), len(self.channels))
-        values = self.values.reshape(*new_shape)
+        values = self.tensor3d.reshape(*new_shape)
         return values.transpose(0, 2, 1, 3)
         # return np.array([block.tensor for block in tqdm(self.blocks)])
 
@@ -247,7 +248,7 @@ class PanelSide:
 
     def filter(self, assets: List[str] = None, channels: List[str] = None):
         """
-        Subset of the PanelSide columns according to the specified assets and channels.
+        PanelSide subset according to the specified assets and channels.
 
         Args:
             assets (list): List of assets
@@ -374,14 +375,14 @@ class PanelSide:
         Example:
 
         >>> panelside.countna
-        nan
+           nan
         0    2
         1    2
         """
         values = [block.isnull().values.sum() for block in tqdm(self.blocks)]
         return pd.DataFrame(values, index=range(len(self.blocks)), columns=['nan'])
 
-    def fillna(self, value=None, method=None):
+    def fillna(self, value=None, method: str = None):
         """
         Fill NA/NaN values using the specified method.
 
@@ -390,9 +391,32 @@ class PanelSide:
         """
         return PanelSide([block.fillna(value=value, method=method) for block in tqdm(self.blocks)])
 
+    def dropna(self, x=True, y=True):
+        """
+        Drop pairs with missing values from the panel.
+
+        Returns:
+            ``PanelSide``: PanelSide with missing values dropped.
+        """
+        nan_values = self.findna()
+        idx = {i for i in range(len(self)) if i not in nan_values}
+        if not idx:
+            raise ValueError("'dropna' would create empty TimePanel")
+        return self[idx]
+
+    # def numpy(self):
+    #         new_shape = (len(self), len(self.timesteps), len(self.assets), len(self.channels))
+    #         values = self.values.reshape(*new_shape)
+    #         return values.transpose(0, 2, 1, 3)
+
     def findna(self):
-        # TODO fix function
-        values = np.sum(self.numpy(), axis=(3, 2, 1))
+        """
+        Find NA/NaN values index.
+
+        Returns:
+            ``List``: List with index of missing values.
+        """
+        values = np.sum(self.tensor4d, axis=(3, 2, 1))
         values = pd.Series(values).isna()
         return values[values == True].index.tolist()
 
