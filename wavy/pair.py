@@ -84,6 +84,7 @@ class TimePair:
         """
         return self.x.channels
 
+    # TODO include timesteps ???
     # timepair.x.timesteps
     # timepair.y.timesteps
     # @property
@@ -122,7 +123,7 @@ class TimePair:
         2005-12-27  19.438692  19.278402  2.261349  2.268378
         2005-12-28  19.314840  19.227409  2.275712  2.248209
 
-        >> timepair.y
+        >>> timepair.y
                         MSFT                 AAPL          
                         Open      Close      Open     Close
         Date                                                

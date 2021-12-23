@@ -4,6 +4,7 @@ import tensorflow as tf
 from tensorflow.keras import Model, Sequential
 from tensorflow.keras.layers import Dense, Flatten, Input, Reshape, concatenate
 from tensorflow.keras.layers import Conv1D, SeparableConv1D, MaxPooling1D
+import pandas as pd
 
 class Baseline:
     """Baseline model to predict values by using last (horizon shifted) y values."""
@@ -17,45 +18,64 @@ class Baseline:
     def fit(self, **kwargs):
         raise NotImplementedError
 
-    def predict_val(self):
-        return self.panel.val.y.data().shift(self.panel.horizon).values
+    def predict_val(self, include_gt=False):
+        # TODO keep only from horizon forward
+        # return self.panel.val.y.as_dataframe().shift(self.panel.horizon).values
+        predicted = self.panel.val.y.as_dataframe().shift(self.panel.horizon).values
+        timesteps = self.panel.val.y.timesteps
+        dataframe = pd.DataFrame(predicted, columns=['predicted_val'], index=timesteps)
+        if include_gt:
+            gt = self.panel.val.y.as_dataframe().values
+            dataframe = dataframe.assign(ground_truth=gt)
+        return dataframe
 
-    def predict(self):
-        return self.panel.test.y.data().shift(self.panel.horizon).values
+    def predict(self, include_gt=False):
+        # TODO convert to pd.Series
+        # TODO remove gt
+        # return self.panel.test.y.as_dataframe().shift(self.panel.horizon).values
+        predicted = self.panel.test.y.as_dataframe().shift(self.panel.horizon).values
+        timesteps = self.panel.test.y.timesteps
+        dataframe = pd.DataFrame(predicted, columns=['predicted'], index=timesteps)
+        if include_gt:
+            gt = self.panel.test.y.as_dataframe().values
+            dataframe = dataframe.assign(ground_truth=gt)
+        return dataframe
 
 
-class BaseModel:
+class _BaseModel:
     """Base class for panel models."""
 
-    REGRESSION_PARAMS = dict(
-        loss="MSE",
-        optimizer="adam",
-        metrics=["MAE"],
-        last_activation="linear"
-    )
+    def __init__(self, panel, model_type=None, use_assets=False, loss=None, optimizer=None, metrics=None, last_activation=None):
 
-    CLASSIFIER_PARAMS = dict(
-        loss="binary_crossentropy",
-        optimizer="adam",
-        metrics=["AUC", "accuracy"],
-        last_activation="sigmoid"
-    )
-
-    MULTI_CLASSIFIER_PARAMS = dict(
-        loss="categorical_crossentropy",
-        optimizer="adam",
-        metrics=["AUC", "accuracy"],
-        last_activation="softmax"
-    )
-
-    def __init__(self, panel, model_type=None, use_assets=False, loss=None, optimizer=None, metrics=None):
+        PARAMS = {
+            'regression': {
+                'loss': "MSE",
+                'optimizer': "adam",
+                'metrics': ['MAE'],
+                'last_activation': 'linear'
+                },
+            'classifier': {
+                'loss': 'binary_crossentropy',
+                'optimizer': 'adam',
+                'metrics': ['AUC', 'accuracy'],
+                'last_activation': 'sigmoid'
+                },
+            'multi_classifier': {
+                'loss': 'categorical_crossentropy',
+                'optimizer': 'adam',
+                'metrics': ['AUC', 'accuracy'],
+                'last_activation': 'softmax'
+            }
+        }
 
         self.panel = panel
-        self.model_type = model_type
         self.use_assets = use_assets
-        self.loss = loss
-        self.optimizer = optimizer
-        self.metrics = metrics
+
+        # if model_type:
+        self.loss = loss if loss else PARAMS[model_type]['loss']
+        self.optimizer = optimizer if optimizer else PARAMS[model_type]['optimizer']
+        self.metrics = metrics if metrics else PARAMS[model_type]['metrics']
+        self.last_activation = last_activation if last_activation else PARAMS[model_type]['last_activation']
 
         self.set_arrays()
         self.build_model()
@@ -64,7 +84,7 @@ class BaseModel:
     def fit(self, **kwargs):
         """Fit the model."""
         self.model.fit(self.x_train, self.y_train, validation_data=(self.x_val, self.y_val), **kwargs)
-        return self
+        # return self
 
     def predict(self):
         """Predict the test set."""
@@ -76,38 +96,33 @@ class BaseModel:
 
     def set_arrays(self):
         if self.use_assets:
-            self.x_train = self.panel.train.x.numpy()
-            self.x_val = self.panel.val.x.numpy()
-            self.x_test = self.panel.test.x.numpy()
+            self.x_train = self.panel.train.x.tensor4d
+            self.x_val = self.panel.val.x.tensor4d
+            self.x_test = self.panel.test.x.tensor4d
 
-            self.y_train = self.panel.train.y.numpy()
-            self.y_val = self.panel.val.y.numpy()
-            self.y_test = self.panel.test.y.numpy()
+            self.y_train = self.panel.train.y.tensor4d
+            self.y_val = self.panel.val.y.tensor4d
+            self.y_test = self.panel.test.y.tensor4d
 
         else:
-            self.x_train = self.panel.train.x.values
-            self.x_val = self.panel.val.x.values
-            self.x_test = self.panel.test.x.values
+            self.x_train = self.panel.train.x.tensor3d
+            self.x_val = self.panel.val.x.tensor3d
+            self.x_test = self.panel.test.x.tensor3d
 
-            self.y_train = self.panel.train.y.values
-            self.y_val = self.panel.val.y.values
-            self.y_test = self.panel.test.y.values
+            self.y_train = self.panel.train.y.tensor3d
+            self.y_val = self.panel.val.y.tensor3d
+            self.y_test = self.panel.test.y.tensor3d
+            # TODO check squeeze
 
     def compile_model(self):
-        if self.model_type == "regression":
-            self.model.compile(**REGRESSION_PARAMS)
-        elif self.model_type == "classifier":
-            self.model.compile(**CLASSIFIER_PARAMS)
-        elif self.model_type == "multi_classifier":
-            self.model.compile(**MULTI_CLASSIFIER_PARAMS)
-        else:
-            self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=self.metrics)
+        self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=self.metrics)
 
     def build_model(self):
-        raise NotImplementedError
+        # raise NotImplementedError
+        pass
 
 
-class DenseModel(BaseModel):
+class DenseModel(_BaseModel):
     def __init__(
         self,
         panel,
@@ -121,11 +136,11 @@ class DenseModel(BaseModel):
         last_activation=None
     ):
 
-        super().__init__(panel=panel, model_type=model_type, loss=loss, optimizer=optimizer, metrics=metrics, last_activation=last_activation, use_assets=False)
-
         self.dense_layers = dense_layers
         self.dense_units = dense_units
         self.activation = activation
+
+        super().__init__(panel=panel, model_type=model_type, loss=loss, optimizer=optimizer, metrics=metrics, last_activation=last_activation, use_assets=False)
 
     def build_model(self):
         dense = Dense(units=self.dense_units, activation=self.activation)
@@ -136,7 +151,7 @@ class DenseModel(BaseModel):
         self.model = Sequential(layers)
 
 
-class ConvModel(BaseModel):
+class ConvModel(_BaseModel):
     def __init__(
         self,
         panel,
@@ -183,7 +198,7 @@ class LinearRegression(DenseModel):
         super().__init__(panel, model_type="regression", dense_layers=0)
 
 
-class SeparateAssetModel(BaseModel):
+class SeparateAssetModel(_BaseModel):
     def __init__(
         self,
         panel,

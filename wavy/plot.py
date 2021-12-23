@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import plotly as px
 import plotly.graph_objects as go
+import plotly.express as px
 
 pd.set_option("multi_sparse", True)  # To see multilevel indexes
 pd.options.plotting.backend = "plotly"
@@ -13,6 +14,9 @@ pd.options.plotting.backend = "plotly"
 cmap1 = px.colors.qualitative.Plotly
 cmap2 = cmap1[::-1]
 
+def predict_plot(df):
+    fig = px.line(df, x=df.index, y=df.columns)
+    fig.show()
 
 def line_plot(df, return_traces=False, prefix="", dash="solid", cmap=cmap1, mode="lines"):
     fig = go.Figure()

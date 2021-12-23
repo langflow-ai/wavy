@@ -16,58 +16,43 @@ class PanelSide:
     def __init__(self, blocks):
         # TODO: blocks must have increasing indexes, add warning and reindex
         # TODO this check should be done when creating the panel
+
+        class _IXIndexer:
+            def __getitem__(self, item):
+                return PanelSide([i.ix[item] for i in blocks])
+        class _iLocIndexer:
+            def __getitem__(self, item):
+                return PanelSide([i.iloc[item] for i in blocks])
+        class _LocIndexer:
+            def __getitem__(self, item):
+                return PanelSide([i.loc[item] for i in blocks])
+        class _AtIndexer:
+            def __getitem__(self, item):
+                return PanelSide([i.at[item] for i in blocks])
+        class _iAtIndexer:
+            def __getitem__(self, item):
+                return PanelSide([i.iat[item] for i in blocks])
+
         self.blocks = blocks
+        self.ix = _IXIndexer()
+        self.iloc = _iLocIndexer()
+        self.loc = _LocIndexer()
+        self.at = _AtIndexer()
+        self.iat = _iAtIndexer()
 
-    # TODO understand function
-    def _wrap_block(self, func):
-        @functools.wraps(func)
-        def newfunc(*fargs, **fkeywords):
-            return PanelSide([getattr(block, func.__name__)(*fargs, **fkeywords) for block in self.blocks])
-
-        return newfunc
-
-    # Function to map all dunder functions
-    def _one_arg(self, other, __f):
-        if isinstance(other, PanelSide):
-            return PanelSide([getattr(block, __f)(other_block) for block, other_block in zip(self.blocks, other)])
-        return PanelSide([getattr(block, __f)(other) for block in self.blocks])
-
-    for _dunder in dunder_methods:
-        locals()[_dunder] = lambda self, other, __f=_dunder: self._one_arg(other, __f)
-
-
-    # # TODO: Implement
-    # def __repr__(self):
-    #     return "<PanelSide>"
-
-    # # TODO: Implement
-    # def _repr_html_(self):
-    #     return "<p>PanelSide</p>"
-
-    # TODO understand
     def __getattr__(self, name):
-        # Temporary fix
-        if "repr" in name:
-            return getattr(self.values, name)
         try:
-            block_func = getattr(TimeBlock, name)
-            if callable(block_func):
-                return self._wrap_block(block_func)
-            return PanelSide([getattr(block, name) for block in self.blocks])
+            def wrapper(*args, **kwargs):
+                return PanelSide([getattr(block, name)(*args, **kwargs) for block in self.blocks])
+            return wrapper
         except AttributeError:
             raise AttributeError(f"'PanelSide' object has no attribute '{name}'")
-
-    # TODO add dunder for these other functions
-    def __abs__(self):
-        return PanelSide([block.__abs__() for block in self.blocks])
 
     def __getitem__(self, key):
         return self.blocks.__getitem__(key)
 
     def __len__(self):
         return len(self.blocks)
-
-
 
     @property
     def first(self):
@@ -478,6 +463,7 @@ class PanelSide:
         return pd.DataFrame(values, index=index)
 
     def flatten(self):
+        # TODO return series for single column or dataframe
         """
         1D array with the flat value of all TimeBlocks.
 

@@ -465,6 +465,9 @@ class TimeBlock(pd.DataFrame):
         if type(assets) == str:
             assets = [assets]
 
+        # TODO improve speed
+        # TODO Handle error not assets in block
+
         # if assets is not None and any(asset not in self.columns.levels[0] for asset in assets):
         #     raise ValueError(f"{assets} not found in columns. Columns: {list(self.columns.levels[0])}")
 
@@ -475,8 +478,8 @@ class TimeBlock(pd.DataFrame):
         if type(channels) == str:
             channels = [channels]
 
-        # if channels is not None and any(channel not in self.columns.levels[1] for channel in channels):
-        #     raise ValueError(f"{channels} not found in columns. Columns:{list(self.columns.levels[1])}")
+        # TODO improve speed
+        # TODO Handle error not channels in block
 
         return self.loc[:, (slice(None), channels)][self.assets] if channels else self
 
@@ -856,7 +859,8 @@ class TimeBlock(pd.DataFrame):
         """
         return pd.DataFrame(self.values, index=self.index, columns=self.columns)
 
-    def fillna(self, value=None, method=None):
+    def fillna(self, value=None, method=None, axis=None, inplace=False, limit=None, downcast=None):
+        # TODO link pandas documentation (Similar/Inherited to pandas.dataframe.fillna)
         """
         Fill NA/NaN values using the specified method.
 
@@ -879,7 +883,9 @@ class TimeBlock(pd.DataFrame):
         2005-12-21  19.577126  19.475122  0.000000  2.246069
         2005-12-22  19.460543   0.000000  2.258598  2.261960
         """
-        return super().fillna(value, method)
+        return super().fillna(value, method, axis, inplace, limit, downcast)
+
+    # TODO Not implemented error for all pandas functions not used in wavy
 
     # TODO dropna
 

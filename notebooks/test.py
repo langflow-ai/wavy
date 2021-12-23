@@ -18,3 +18,63 @@ print(test.list)
 
 print(test.__add__(1))
 print(test.__mul__(2))
+
+
+
+    def __getitem__(self, key):
+        start, stop, selection = None, None, None
+
+        if isinstance(key, int):
+            selection = self.pairs[key]
+            if selection:
+                return selection
+
+        elif isinstance(key, str):
+            selection = [
+                pair
+                for pair in self.pairs
+                if pd.Timestamp(pair.xstart) == pd.Timestamp(key)
+            ]
+            if selection:
+                return selection[0]  # No xstart repeat
+
+        elif isinstance(key, slice):
+            selection = self.pairs
+            if isinstance(key.start, pd.Timestamp) or isinstance(
+                key.stop, pd.Timestamp
+            ):
+                if key.start:
+                    selection = [
+                        pair
+                        for pair in selection
+                        if pd.Timestamp(pair.xstart) >= key.start
+                    ]
+                if key.stop:
+                    selection = [
+                        pair
+                        for pair in selection
+                        if pd.Timestamp(pair.xstart) < key.stop
+                    ]
+
+            elif isinstance(key.start, int) or isinstance(key.stop, int):
+                if key.start:
+                    selection = selection[key.start :]
+                if key.stop:
+                    selection = selection[: key.stop]
+
+            elif isinstance(key.start, str) or isinstance(key.stop, str):
+                if key.start:
+                    selection = [
+                        pair
+                        for pair in selection
+                        if pd.Timestamp(pair.xstart) >= pd.Timestamp(key.start)
+                    ]
+                if key.stop:
+                    selection = [
+                        pair
+                        for pair in selection
+                        if pd.Timestamp(pair.xstart) < pd.Timestamp(key.stop)
+                    ]
+
+        if selection:
+            return TimePanel(selection)
