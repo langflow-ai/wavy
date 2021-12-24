@@ -92,13 +92,31 @@ class _BaseModel:
         self.model.fit(self.x_train, self.y_train, validation_data=(self.x_val, self.y_val), **kwargs)
         # return self
 
+    def _predict(self, type):
+        if type == 'test':
+            predicted = self.model.predict(self.x_test)
+            y = self.panel.test.y
+        else:
+            predicted = self.model.predict(self.x_val)
+            y = self.panel.val.y
+
+        assets = self.panel.assets
+        channels = self.panel.channels
+        
+        blocks = []
+
+        for i, block_data in enumerate(predicted):
+            blocks.append(from_matrix(block_data, index = y[i].index, assets=assets, channels=channels))
+        
+        return PanelSide(blocks)
+
     def predict(self):
         """Predict the test set."""
-        return self.model.predict(self.x_test)
+        return self._predict('test')
 
     def predict_val(self):
         """Predict the val set."""
-        return self.model.predict(self.x_val)
+        return self._predict('val')
 
     def set_arrays(self):
         if self.use_assets:
