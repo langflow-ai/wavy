@@ -5,6 +5,7 @@ from tensorflow.keras import Model, Sequential
 from tensorflow.keras.layers import Dense, Flatten, Input, Reshape, concatenate
 from tensorflow.keras.layers import Conv1D, SeparableConv1D, MaxPooling1D
 import pandas as pd
+import numpy as np
 
 class Baseline:
     """Baseline model to predict values by using last (horizon shifted) y values."""
@@ -18,28 +19,24 @@ class Baseline:
     def fit(self, **kwargs):
         raise NotImplementedError
 
-    def predict_val(self, include_gt=False):
-        # TODO keep only from horizon forward
-        # return self.panel.val.y.as_dataframe().shift(self.panel.horizon).values
-        predicted = self.panel.val.y.as_dataframe().shift(self.panel.horizon).values
-        timesteps = self.panel.val.y.timesteps
-        dataframe = pd.DataFrame(predicted, columns=['predicted_val'], index=timesteps)
-        if include_gt:
-            gt = self.panel.val.y.as_dataframe().values
-            dataframe = dataframe.assign(ground_truth=gt)
-        return dataframe
-
-    def predict(self, include_gt=False):
-        # TODO convert to pd.Series
-        # TODO remove gt
-        # return self.panel.test.y.as_dataframe().shift(self.panel.horizon).values
-        predicted = self.panel.test.y.as_dataframe().shift(self.panel.horizon).values
+    def _predict(self, type):
+        columns = pd.MultiIndex.from_product([self.panel.assets, self.panel.channels])
+        if type == 'test':
+            predicted = np.squeeze(self.panel.test.y.as_dataframe().shift(self.panel.horizon).values)
+        else:
+            predicted = np.squeeze(self.panel.val.y.as_dataframe().shift(self.panel.horizon).values)
         timesteps = self.panel.test.y.timesteps
-        dataframe = pd.DataFrame(predicted, columns=['predicted'], index=timesteps)
-        if include_gt:
-            gt = self.panel.test.y.as_dataframe().values
-            dataframe = dataframe.assign(ground_truth=gt)
-        return dataframe
+        if len(predicted.shape) > 1:
+            dataframe = pd.DataFrame(predicted, columns=columns, index=timesteps)
+        else:
+            dataframe = pd.Series(predicted, index=timesteps)
+        return dataframe[self.panel.horizon:]
+
+    def predict_val(self):
+        return self._predict('val')
+
+    def predict(self):
+        return self._predict('test')
 
 
 class _BaseModel:
@@ -146,10 +143,11 @@ class DenseModel(_BaseModel):
         dense = Dense(units=self.dense_units, activation=self.activation)
         layers = [Flatten()]  # (time, features) => (time*features)
         layers += [dense for _ in range(self.dense_layers)]
-        layers += [Dense(units=self.panel.horizon, activation=self.last_activation), Reshape(self.y_train.shape[1:])]
+        layers += [Dense(units=self.panel.horizon * len(self.panel.assets) * len(self.panel.channels), activation=self.last_activation), Reshape(self.y_train.shape[1:])]
 
         self.model = Sequential(layers)
 
+# END SHAPE - (horizon x assets x channels)
 
 class ConvModel(_BaseModel):
     def __init__(
@@ -189,7 +187,7 @@ class ConvModel(_BaseModel):
         layers += [Flatten()]
         layers += [conv for _ in range(self.conv_layers)]
         layers += [dense for _ in range(self.dense_layers)]
-        layers += [Dense(units=self.panel.horizon, activation=self.last_activation), Reshape(self.y_train.shape[1:])]
+        layers += [Dense(units=self.panel.horizon * len(self.panel.assets) * len(self.panel.channels), activation=self.last_activation), Reshape(self.y_train.shape[1:])]
 
         self.model = tf.keras.Sequential(layers)
 
