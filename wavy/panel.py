@@ -11,37 +11,37 @@ from .side import PanelSide
 from typing import List
 
 
-# def from_pairs(pairs: List):
-#     """
-#     Creates a panel from a list of pairs.
+def from_pairs(pairs: List):
+    """
+    Creates a panel from a list of pairs.
 
-#     Args:
-#         pairs (List[TimePair]): List of TimePair
+    Args:
+        pairs (List[TimePair]): List of TimePair
 
-#     Returns:
-#         ``TimePanel``: Renamed TimePanel
+    Returns:
+        ``TimePanel``: Renamed TimePanel
 
-#     Example:
+    Example:
 
-#     >>> from_pairs(timepairs)
-#     size                               1
-#     lookback                           2
-#     horizon                            2
-#     num_xassets                        2
-#     num_yassets                        2
-#     num_xchannels                      2
-#     num_ychannels                      2
-#     start            2005-12-27 00:00:00
-#     end              2005-12-30 00:00:00
-#     Name: TimePanel, dtype: object
-#     <TimePanel, size 1>
-#     """
-#     if len(pairs) == 0:
-#         raise ValueError("Cannot build TimePanel from empty list")
-#     blocks = [(pair.x, pair.y) for pair in pairs]
-#     x = PanelSide([block[0] for block in blocks])
-#     y = PanelSide([block[1] for block in blocks])
-#     return TimePanel(x, y, None, None)
+    >>> from_pairs(timepairs)
+    size                               1
+    lookback                           2
+    horizon                            2
+    num_xassets                        2
+    num_yassets                        2
+    num_xchannels                      2
+    num_ychannels                      2
+    start            2005-12-27 00:00:00
+    end              2005-12-30 00:00:00
+    Name: TimePanel, dtype: object
+    <TimePanel, size 1>
+    """
+    if len(pairs) == 0:
+        raise ValueError("Cannot build TimePanel from empty list")
+    blocks = [(pair.x, pair.y) for pair in pairs]
+    x = PanelSide([block[0] for block in blocks])
+    y = PanelSide([block[1] for block in blocks])
+    return TimePanel(x, y)
 
 
 def from_xy_data(x, y, lookback:int, horizon:int, gap:int = 0):
@@ -91,7 +91,7 @@ def from_xy_data(x, y, lookback:int, horizon:int, gap:int = 0):
     for i in indexes:
         xblocks.append(x.iloc[i - lookback : i])
         yblocks.append(y.iloc[i + gap : i + gap + horizon])
-    return TimePanel(PanelSide(xblocks), PanelSide(yblocks), x, y)
+    return TimePanel(PanelSide(xblocks), PanelSide(yblocks))
 
 
 def from_data(df, lookback:int, horizon:int, gap:int = 0, x_assets: List[str] = None, y_assets: List[str] = None, x_channels: List[str] = None, y_channels: List[str] = None, assets: List[str] = None, channels: List[str] = None):
@@ -148,27 +148,26 @@ class TimePanel:
 
     _DIMS = ("size", "assets", "timesteps", "channels")
 
-    def __init__(self, x, y, full_x, full_y):
+    def __init__(self, x, y):
         self._x, self._y = x, y
-        self._full_x, self._full_y = full_x, full_y
         self.set_training_split()
 
     def __len__(self):
         return len(self.pairs)
 
     # TODO implement returning a TimePanel with only the key element
-    # def __getitem__(self, key):
-    #     if isinstance(key, Iterable):
-    #         key_set = set(key)
-    #         if key_set == {False, True}:
-    #             pairs = list(compress(self.pairs, key))
-    #         else:
-    #             pairs = [pair for i, pair in enumerate(self.pairs) if i in key_set]
-    #     else:
-    #         pairs = self.pairs[key]
+    def __getitem__(self, key):
+        if isinstance(key, Iterable):
+            key_set = set(key)
+            if key_set == {False, True}:
+                pairs = list(compress(self.pairs, key))
+            else:
+                pairs = [pair for i, pair in enumerate(self.pairs) if i in key_set]
+        else:
+            pairs = self.pairs[key]
 
-    #     # return from_pairs(pairs)
-    #     return TimePanel(PanelSide(xblocks), PanelSide(yblocks), x, y)
+        return from_pairs(pairs)
+        # return TimePanel(PanelSide(xblocks), PanelSide(yblocks), x, y)
 
     # TODO getter and setter for full_x and full_y
 

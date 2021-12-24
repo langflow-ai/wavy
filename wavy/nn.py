@@ -6,6 +6,8 @@ from tensorflow.keras.layers import Dense, Flatten, Input, Reshape, concatenate
 from tensorflow.keras.layers import Conv1D, SeparableConv1D, MaxPooling1D
 import pandas as pd
 import numpy as np
+from .block import from_matrix
+from .side import PanelSide
 
 class Baseline:
     """Baseline model to predict values by using last (horizon shifted) y values."""
@@ -20,22 +22,29 @@ class Baseline:
         raise NotImplementedError
 
     def _predict(self, type):
-        columns = pd.MultiIndex.from_product([self.panel.assets, self.panel.channels])
         if type == 'test':
-            predicted = np.squeeze(self.panel.test.y.as_dataframe().shift(self.panel.horizon).values)
+            panel_ = self.panel.test.y
         else:
-            predicted = np.squeeze(self.panel.val.y.as_dataframe().shift(self.panel.horizon).values)
-        timesteps = self.panel.test.y.timesteps
-        if len(predicted.shape) > 1:
-            dataframe = pd.DataFrame(predicted, columns=columns, index=timesteps)
-        else:
-            dataframe = pd.Series(predicted, index=timesteps)
-        return dataframe[self.panel.horizon:]
+            panel_ = self.panel.val.y
+
+        df = pd.concat([self.panel.x.as_dataframe(), self.panel.y.as_dataframe()])
+        concatenated = df[~df.index.duplicated(keep="first")]
+        assets = self.panel.assets
+        channels = self.panel.channels
+        
+        blocks = []
+
+        for block_data in panel_:
+            index = concatenated.index.get_loc(block_data.index[0])
+            new_values = concatenated.iloc[index-self.panel.horizon:index].values
+            blocks.append(from_matrix(new_values, index = block_data.index, assets=assets, channels=channels))
+        
+        return PanelSide(blocks)
 
     def predict_val(self):
         return self._predict('val')
 
-    def predict(self):
+    def predict(self):        
         return self._predict('test')
 
 
