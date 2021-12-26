@@ -8,14 +8,14 @@ from timelab import block
 TEST_DATA = os.path.join(os.path.dirname(__file__), "test_data/multi_asset.pkl")
 
 
-class TestTimeBlock:
+class TestBlock:
     df = pd.read_pickle(TEST_DATA)
     assets = ["LNC", "MAS", "CSX"]
     df = df[assets]
 
     def test_from_dataframe(self):
         time_block = block.from_dataframe(self.df)
-        assert isinstance(time_block, block.TimeBlock)
+        assert isinstance(time_block, block.Block)
 
     def test_assets(self):
         time_block = block.from_dataframe(self.df)

@@ -112,7 +112,7 @@ class TimePair:
             channels (list): List of channels
 
         Returns:
-            ``TimeBlock``: Filtered TimeBlock
+            ``Block``: Filtered Block
 
         Example:
 

@@ -7,7 +7,7 @@ from tensorflow.keras.layers import Conv1D, SeparableConv1D, MaxPooling1D
 import pandas as pd
 import numpy as np
 from .block import from_matrix
-from .side import PanelSide
+from .side import Side
 from sklearn.metrics import mean_squared_error
 
 from typing import List
@@ -43,7 +43,7 @@ class Baseline:
             new_values = concatenated.iloc[index-self.panel.horizon:index].values
             blocks.append(from_matrix(new_values, index = block_data.index, assets=assets, channels=channels))
         
-        return PanelSide(blocks)
+        return Side(blocks)
 
     def predict_val(self):
         return self._predict('val')
@@ -133,7 +133,7 @@ class _BaseModel:
         for i, block_data in enumerate(predicted):
             blocks.append(from_matrix(block_data, index = y[i].index, assets=assets, channels=channels))
         
-        return PanelSide(blocks)
+        return Side(blocks)
 
     def predict(self):
         """Predict the test set."""
@@ -196,7 +196,7 @@ class DenseModel(_BaseModel):
         Dense Model.
 
         Args:
-            panel (PanelSide): PanelSide with data
+            panel (Side): Side with data
             model_type (str): Model type (regression, classifier, multi_classifier)
             dense_layers (int): Number of dense layers
             dense_units (int): Number of neurons in each dense layer
@@ -245,7 +245,7 @@ class ConvModel(_BaseModel):
         Convolution Model.
 
         Args:
-            panel (PanelSide): PanelSide with data
+            panel (Side): Side with data
             model_type (str): Model type (regression, classifier, multi_classifier)
             conv_layers (int): Number of convolution layers
             conv_filters (int): Number of convolution filters
@@ -314,7 +314,7 @@ class SeparateAssetModel(ConvModel):
         Separate Asset Model.
 
         Args:
-            panel (PanelSide): PanelSide with data
+            panel (Side): Side with data
             model_type (str): Model type (regression, classifier, multi_classifier)
             conv_layers (int): Number of convolution layers
             conv_filters (int): Number of convolution filters

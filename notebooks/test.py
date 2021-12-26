@@ -77,7 +77,7 @@
 #                     ]
 
 #         if selection:
-#             return TimePanel(selection)
+#             return Panel(selection)
 
 def StringChallenge(strParam):
 
