@@ -312,9 +312,10 @@ class PanelSide:
         """
         return PanelSide([block.update(values[i], index, assets, channels) for i, block in tqdm(enumerate(self.blocks))])
 
-    # def split_assets(self):
-    #     # TODO RN ? Does it make sense??
-    #     return [self.filter(asset) for asset in self.assets]
+    def _split_assets(self):
+        # TODO RN ? Does it make sense??
+        return [self.filter(asset) for asset in self.assets]
+        # return [block.split_assets() for block in tqdm(self.blocks)]
 
     def sort_assets(self, order: List[str] = None):
         """

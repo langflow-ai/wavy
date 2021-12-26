@@ -466,10 +466,9 @@ class TimeBlock(pd.DataFrame):
             assets = [assets]
 
         # TODO improve speed
-        # TODO Handle error not assets in block
 
-        # if assets is not None and any(asset not in self.columns.levels[0] for asset in assets):
-        #     raise ValueError(f"{assets} not found in columns. Columns: {list(self.columns.levels[0])}")
+        if assets is not None and any(asset not in self.assets for asset in assets):
+            raise ValueError(f"{assets} not found in columns. Columns: {list(self.assets)}")
 
         return self.loc[:, (assets, slice(None))] if assets else self
 
@@ -479,7 +478,9 @@ class TimeBlock(pd.DataFrame):
             channels = [channels]
 
         # TODO improve speed
-        # TODO Handle error not channels in block
+
+        if channels is not None and any(channel not in self.channels for channel in channels):
+            raise ValueError(f"{channels} not found in columns. Columns: {list(self.channels)}")
 
         return self.loc[:, (slice(None), channels)][self.assets] if channels else self
 
@@ -808,7 +809,7 @@ class TimeBlock(pd.DataFrame):
 
     def countna(self, type: str = 'asset'):
         """
-        Count 'not a number' cells for each asset or channel.
+        Count NA/NaN cells for each asset or channel.
 
         Returns:
             ``List``: List of NaN count.
