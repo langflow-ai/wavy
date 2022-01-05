@@ -11,6 +11,16 @@ from .side import Side
 from typing import List
 
 
+# Plot
+import numpy as np
+import pandas as pd
+import plotly as px
+import plotly.graph_objects as go
+import plotly.express as px
+pd.set_option("multi_sparse", True)  # To see multilevel indexes
+pd.options.plotting.backend = "plotly"
+from plotly.subplots import make_subplots
+
 def from_pairs(pairs: List):
     """
     Creates a panel from a list of pairs.
@@ -179,24 +189,11 @@ class Panel:
     def __len__(self):
         return len(self.pairs)
 
-    # TODO implement returning a Panel with only the key element
     def __getitem__(self, key):
         if isinstance(key, slice):
-            # x = self.x[key]
-            # y = self.y[key]
-
             return Panel(Side(self.x[key]), Side(self.y[key]))
-            #     key_set = set(key)
-            #     if key_set == {False, True}:
-            #         pairs = list(compress(self.pairs, key))
-            #     else:
-            #         pairs = [pair for i, pair in enumerate(self.pairs) if i in key_set]
-            # else:
         elif isinstance(key, int):
             return Panel(Side([self.x[key]]), Side([self.y[key]]))
-
-        # return from_pairs(pairs)
-        # return Panel(Side(xblocks), Side(yblocks), x, y)
 
     # TODO getter and setter for full_x and full_y
 
@@ -646,4 +643,46 @@ class Panel:
         """
         if self.val_size and self.train_size:
             return self[self.train_size + self.val_size :]
+
+
+    def plot(self, idx, assets: List[str] = None, channels: List[str] = None):
+        """
+        Panel plot according to the specified assets and channels.
+
+        Args:
+            idx (int): Panel index
+            assets (list): List of assets
+            channels (list): List of channels
+
+        Returns:
+            ``Plot``: Plotted data
+        """
+        cmap = px.colors.qualitative.Plotly
+
+        fig = make_subplots(rows=len(self.channels), cols=len(self.assets), subplot_titles=self.assets, shared_xaxes=True)
+
+        for j, channel in enumerate(self.channels):
+            c = cmap[j]
+            for i, asset in enumerate(self.assets):
+
+                showlegend = i <= 0
+                x_df = self.x[idx].filter(assets=asset, channels=channel)
+                y_df = self.y[idx].filter(assets=asset, channels=channel)
+
+                # dt_breaks = [d for d in x_df.index.tolist()]
+
+                x_trace = go.Scatter(x=x_df.index, y=x_df.values.flatten(),
+                                line=dict(width=2, color=c), showlegend=showlegend, name=channel)
+
+                y_trace = go.Scatter(x=y_df.index, y=y_df.values.flatten(),
+                                    line=dict(width=2, dash='dot', color=c), showlegend=False)
+
+                # hide dates with no values
+                # fig.update_xaxes(rangebreaks=[dict(values=dt_breaks)])
+
+                fig.add_trace(x_trace, row=j+1, col=i+1)
+                fig.add_trace(y_trace, row=j+1, col=i+1)
+
+        fig.update_layout(showlegend=True)
+        fig.show()
 

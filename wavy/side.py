@@ -12,6 +12,18 @@ from typing import List
 # dunder_methods = ['__abs__', '__add__', '__aenter__', '__aexit__', '__aiter__', '__and__', '__anext__', '__await__', '__bool__', '__bytes__', '__call__', '__ceil__', '__class__', '__class_getitem__', '__cmp__', '__coerce__', '__complex__', '__contains__', '__del__', '__delattr__', '__delete__', '__delitem__', '__delslice__', '__dict__', '__dir__', '__div__', '__divmod__', '__enter__', '__eq__', '__exit__', '__float__', '__floor__', '__floordiv__', '__format__', '__fspath__', '__ge__', '__get__', '__getattr__', '__getattribute__', '__getitem__', '__getnewargs__', '__getslice__', '__gt__', '__hash__', '__hex__', '__iadd__', '__iand__', '__idiv__', '__ifloordiv__', '__ilshift__', '__imatmul__', '__imod__', '__import__', '__imul__', '__index__', '__init__', '__init_subclass__', '__instancecheck__', '__int__', '__invert__', '__ior__', '__ipow__', '__irshift__', '__isub__', '__iter__', '__itruediv__', '__ixor__', '__le__', '__len__', '__length_hint__', '__long__', '__lshift__', '__lt__', '__matmul__', '__metaclass__', '__missing__', '__mod__', '__mro__', '__mul__', '__ne__', '__neg__', '__new__', '__next__', '__nonzero__', '__oct__', '__or__', '__pos__', '__pow__', '__prepare__', '__radd__', '__rand__', '__rcmp__', '__rdiv__', '__rdivmod__', '__reduce__', '__reduce_ex__', '__repr__', '__reversed__', '__rfloordiv__', '__rlshift__', '__rmatmul__', '__rmod__', '__rmul__', '__ror__', '__round__', '__rpow__', '__rrshift__', '__rshift__', '__rsub__', '__rtruediv__', '__rxor__', '__set__', '__set_name__', '__setattr__', '__setitem__', '__setslice__', '__sizeof__', '__slots__', '__str__', '__sub__', '__subclasscheck__', '__subclasses__', '__truediv__', '__trunc__', '__unicode__', '__weakref__', '__xor__']
 dunder_methods = ['__add__', '__sub__', '__mul__', '__ge__', '__gt__', '__le__', '__lt__', '__pow__']
 
+
+# Plot
+import numpy as np
+import pandas as pd
+import plotly as px
+import plotly.graph_objects as go
+import plotly.express as px
+pd.set_option("multi_sparse", True)  # To see multilevel indexes
+pd.options.plotting.backend = "plotly"
+from plotly.subplots import make_subplots
+
+
 class Side:
     def __init__(self, blocks):
         # TODO: blocks must have increasing indexes, add warning and reindex
@@ -496,3 +508,46 @@ class Side:
                 2.24148512])
         """
         return self.flat().values.flatten()
+
+
+    def plot(self, assets: List[str] = None, channels: List[str] = None):
+        """
+        Side plot according to the specified assets and channels.
+
+        Args:
+            assets (list): List of assets
+            channels (list): List of channels
+
+        Returns:
+            ``Plot``: Plotted data
+        """
+        cmap = px.colors.qualitative.Plotly
+
+        fig = make_subplots(rows=len(self.channels), cols=len(self.assets), subplot_titles=self.assets, shared_xaxes=True)
+
+        data = self.as_dataframe()
+
+        for j, channel in enumerate(self.channels):
+            c = cmap[j]
+            for i, asset in enumerate(self.assets):
+
+                showlegend = i <= 0
+                x_df = data.loc[:, (asset, channel)]
+
+                # dt_breaks = [d for d in x_df.index.tolist()]
+
+
+                x_trace = go.Scatter(x=x_df.index, y=x_df.values,
+                                line=dict(width=2, color=c), showlegend=showlegend, name=channel)
+
+                # y_trace = go.Scatter(x=y_df.index, y=y_df.values.flatten(),
+                #                     line=dict(width=2, dash='dot', color=c), showlegend=False)
+
+                # hide dates with no values
+                # fig.update_xaxes(rangebreaks=[dict(values=dt_breaks)])
+
+                fig.add_trace(x_trace, row=j+1, col=i+1)
+                # fig.add_trace(y_trace, row=j+1, col=i+1)
+
+        fig.update_layout(showlegend=True)
+        fig.show()
