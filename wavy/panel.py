@@ -669,19 +669,21 @@ class Panel:
                 x_df = self.x[idx].filter(assets=asset, channels=channel)
                 y_df = self.y[idx].filter(assets=asset, channels=channel)
 
-                # dt_breaks = [d for d in x_df.index.tolist()]
-
                 x_trace = go.Scatter(x=x_df.index, y=x_df.values.flatten(),
                                 line=dict(width=2, color=c), showlegend=showlegend, name=channel)
 
                 y_trace = go.Scatter(x=y_df.index, y=y_df.values.flatten(),
                                     line=dict(width=2, dash='dot', color=c), showlegend=False)
 
-                # hide dates with no values
-                # fig.update_xaxes(rangebreaks=[dict(values=dt_breaks)])
-
                 fig.add_trace(x_trace, row=j+1, col=i+1)
+
                 fig.add_trace(y_trace, row=j+1, col=i+1)
+                dt_all = pd.date_range(start=x_df.index[0],end=y_df.index[-1])
+                dt_obs_x = [d.strftime("%Y-%m-%d") for d in x_df.index]
+                dt_obs_y = [d.strftime("%Y-%m-%d") for d in y_df.index]
+                dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if (not d in dt_obs_x) and (not d in dt_obs_y)]
+                # fig['layout']['xaxis2'].update_xaxes(rangebreaks=[dict(values=dt_breaks)])
+                fig['layout'][f'xaxis{i+j+1}'].update({'rangebreaks':[dict(values=dt_breaks)]})
 
         fig.update_layout(showlegend=True)
         fig.show()

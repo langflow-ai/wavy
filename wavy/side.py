@@ -510,11 +510,12 @@ class Side:
         return self.flat().values.flatten()
 
 
-    def plot(self, assets: List[str] = None, channels: List[str] = None):
+    def plot(self, idx, assets: List[str] = None, channels: List[str] = None):
         """
         Side plot according to the specified assets and channels.
 
         Args:
+            idx (int): Panel index
             assets (list): List of assets
             channels (list): List of channels
 
@@ -525,29 +526,28 @@ class Side:
 
         fig = make_subplots(rows=len(self.channels), cols=len(self.assets), subplot_titles=self.assets, shared_xaxes=True)
 
-        data = self.as_dataframe()
+        # data = self.as_dataframe()
 
         for j, channel in enumerate(self.channels):
             c = cmap[j]
             for i, asset in enumerate(self.assets):
 
                 showlegend = i <= 0
-                x_df = data.loc[:, (asset, channel)]
+                # x_df = data.loc[:, (asset, channel)]
 
-                # dt_breaks = [d for d in x_df.index.tolist()]
+                x_df = self.blocks[idx].filter(assets=asset, channels=channel)
+                index = x_df.index
+                values = x_df.values.flatten()
 
-
-                x_trace = go.Scatter(x=x_df.index, y=x_df.values,
+                x_trace = go.Scatter(x=index, y=values,
                                 line=dict(width=2, color=c), showlegend=showlegend, name=channel)
 
-                # y_trace = go.Scatter(x=y_df.index, y=y_df.values.flatten(),
-                #                     line=dict(width=2, dash='dot', color=c), showlegend=False)
-
-                # hide dates with no values
-                # fig.update_xaxes(rangebreaks=[dict(values=dt_breaks)])
-
                 fig.add_trace(x_trace, row=j+1, col=i+1)
-                # fig.add_trace(y_trace, row=j+1, col=i+1)
+                # Remove empty dates
+                dt_all = pd.date_range(start=index[0],end=index[-1])
+                dt_obs = [d.strftime("%Y-%m-%d") for d in index]
+                dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if not d in dt_obs]
+                fig.update_xaxes(rangebreaks=[dict(values=dt_breaks)])
 
         fig.update_layout(showlegend=True)
         fig.show()
