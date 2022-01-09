@@ -6,6 +6,16 @@ from pandas.core.frame import DataFrame
 from typing import List
 from .utils import add_dim, add_level
 
+# Plot
+import numpy as np
+import pandas as pd
+import plotly as px
+import plotly.graph_objects as go
+import plotly.express as px
+pd.set_option("multi_sparse", True)  # To see multilevel indexes
+pd.options.plotting.backend = "plotly"
+from plotly.subplots import make_subplots
+
 
 def from_dataframe(df: DataFrame, asset: str = 'asset'):
     """
@@ -885,6 +895,49 @@ class Block(pd.DataFrame):
         2005-12-22  19.460543   0.000000  2.258598  2.261960
         """
         return super().fillna(value, method, axis, inplace, limit, downcast)
+
+    def plot(self, assets: List[str] = None, channels: List[str] = None):
+        """
+        Block plot according to the specified assets and channels.
+
+        Args:
+            assets (list): List of assets
+            channels (list): List of channels
+
+        Returns:
+            ``Plot``: Plotted data
+        """
+        cmap = px.colors.qualitative.Plotly
+
+        fig = make_subplots(rows=len(self.channels), cols=len(self.assets), subplot_titles=self.assets, shared_xaxes=True)
+
+        # data = self.as_dataframe()
+
+        for j, channel in enumerate(self.channels):
+            c = cmap[j]
+            for i, asset in enumerate(self.assets):
+
+                showlegend = i <= 0
+                # x_df = data.loc[:, (asset, channel)]
+
+                x_df = self.filter(assets=asset, channels=channel)
+                index = x_df.index
+                values = x_df.values.flatten()
+
+                x_trace = go.Scatter(x=index, y=values,
+                                line=dict(width=2, color=c), showlegend=showlegend, name=channel)
+
+                fig.add_trace(x_trace, row=j+1, col=i+1)
+                # Remove empty dates
+                dt_all = pd.date_range(start=index[0],end=index[-1])
+                dt_obs = [d.strftime("%Y-%m-%d") for d in index]
+                dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if not d in dt_obs]
+                fig.update_xaxes(rangebreaks=[dict(values=dt_breaks)])
+
+        fig.update_layout(showlegend=True)
+        fig.show()
+
+
 
     # TODO Not implemented error for all pandas functions not used in wavy
 

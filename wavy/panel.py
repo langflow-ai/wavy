@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 
 from .block import Block
-from .pair import TimePair
 from .side import Side
 
 from typing import List
@@ -21,37 +20,37 @@ pd.set_option("multi_sparse", True)  # To see multilevel indexes
 pd.options.plotting.backend = "plotly"
 from plotly.subplots import make_subplots
 
-def from_pairs(pairs: List):
-    """
-    Creates a panel from a list of pairs.
+# def from_pairs(pairs: List):
+#     """
+#     Creates a panel from a list of pairs.
 
-    Args:
-        pairs (List[TimePair]): List of TimePair
+#     Args:
+#         pairs (List[TimePair]): List of TimePair
 
-    Returns:
-        ``Panel``: Renamed Panel
+#     Returns:
+#         ``Panel``: Renamed Panel
 
-    Example:
+#     Example:
 
-    >>> from_pairs(timepairs)
-    size                               1
-    lookback                           2
-    horizon                            2
-    num_xassets                        2
-    num_yassets                        2
-    num_xchannels                      2
-    num_ychannels                      2
-    start            2005-12-27 00:00:00
-    end              2005-12-30 00:00:00
-    Name: Panel, dtype: object
-    <Panel, size 1>
-    """
-    if len(pairs) == 0:
-        raise ValueError("Cannot build Panel from empty list")
-    blocks = [(pair.x, pair.y) for pair in pairs]
-    x = Side([block[0] for block in blocks])
-    y = Side([block[1] for block in blocks])
-    return Panel(x, y)
+#     >>> from_pairs(timepairs)
+#     size                               1
+#     lookback                           2
+#     horizon                            2
+#     num_xassets                        2
+#     num_yassets                        2
+#     num_xchannels                      2
+#     num_ychannels                      2
+#     start            2005-12-27 00:00:00
+#     end              2005-12-30 00:00:00
+#     Name: Panel, dtype: object
+#     <Panel, size 1>
+#     """
+#     if len(pairs) == 0:
+#         raise ValueError("Cannot build Panel from empty list")
+#     blocks = [(pair.x, pair.y) for pair in pairs]
+#     x = Side([block[0] for block in blocks])
+#     y = Side([block[1] for block in blocks])
+#     return Panel(x, y)
 
 
 def from_xy_data(x, y, lookback:int, horizon:int, gap:int = 0):
@@ -187,7 +186,7 @@ class Panel:
         self.set_training_split()
 
     def __len__(self):
-        return len(self.pairs)
+        return len(self._x)
 
     def __getitem__(self, key):
         if isinstance(key, slice):
@@ -244,15 +243,15 @@ class Panel:
             raise ValueError("'y' blocks must have the same length")
         self._y = value
 
-    @property
-    def pairs(self):
-        """
-        List of TimePairs.
+    # @property
+    # def pairs(self):
+    #     """
+    #     List of TimePairs.
 
-        Returns:
-            ``List[TimePair]``: List of TimePair
-        """
-        return [TimePair(x, y) for x, y in zip(self.x.blocks, self.y.blocks)]
+    #     Returns:
+    #         ``List[TimePair]``: List of TimePair
+    #     """
+    #     return [TimePair(x, y) for x, y in zip(self.x.blocks, self.y.blocks)]
 
     @property
     def lookback(self):
