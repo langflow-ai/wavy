@@ -22,29 +22,25 @@ class Baseline:
         raise NotImplementedError
 
     def _predict(self, type):
-        if type == 'test':
-            panel_ = self.panel.test.y
-        else:
-            panel_ = self.panel.val.y
-
+        panel_ = self.panel.test.y if type == 'test' else self.panel.val.y
         df = pd.concat([self.panel.x.as_dataframe(), self.panel.y.as_dataframe()])
         concatenated = df[~df.index.duplicated(keep="first")]
         assets = self.panel.assets
         channels = self.panel.channels
-        
+
         blocks = []
 
         for block_data in panel_:
             index = concatenated.index.get_loc(block_data.index[0])
             new_values = concatenated.iloc[index-self.panel.horizon:index].values
             blocks.append(from_matrix(new_values, index = block_data.index, assets=assets, channels=channels))
-        
+
         return PanelSide(blocks)
 
     def predict_val(self):
         return self._predict('val')
 
-    def predict(self):        
+    def predict(self):
         return self._predict('test')
 
 
@@ -78,10 +74,10 @@ class _BaseModel:
         self.use_assets = use_assets
 
         # if model_type:
-        self.loss = loss if loss else PARAMS[model_type]['loss']
-        self.optimizer = optimizer if optimizer else PARAMS[model_type]['optimizer']
-        self.metrics = metrics if metrics else PARAMS[model_type]['metrics']
-        self.last_activation = last_activation if last_activation else PARAMS[model_type]['last_activation']
+        self.loss = loss or PARAMS[model_type]['loss']
+        self.optimizer = optimizer or PARAMS[model_type]['optimizer']
+        self.metrics = metrics or PARAMS[model_type]['metrics']
+        self.last_activation = last_activation or PARAMS[model_type]['last_activation']
 
         self.set_arrays()
         self.build_model()
@@ -102,12 +98,15 @@ class _BaseModel:
 
         assets = self.panel.assets
         channels = self.panel.channels
-        
-        blocks = []
 
-        for i, block_data in enumerate(predicted):
-            blocks.append(from_matrix(block_data, index = y[i].index, assets=assets, channels=channels))
-        
+        blocks = [
+            from_matrix(
+                block_data, index=y[i].index, assets=assets, channels=channels
+            )
+            for i, block_data in enumerate(predicted)
+        ]
+
+
         return PanelSide(blocks)
 
     def predict(self):

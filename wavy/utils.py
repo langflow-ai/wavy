@@ -3,13 +3,7 @@ from itertools import groupby
 
 import numpy as np
 import pandas as pd
-import plotly as px
 
-pd.set_option("multi_sparse", True)  # To see multilevel indexes
-pd.options.plotting.backend = "plotly"
-
-cmap1 = px.colors.qualitative.Plotly
-cmap2 = cmap1[::-1]
 
 def add_level(df, level_name):
     """
