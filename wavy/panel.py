@@ -4,12 +4,22 @@ from typing import Iterable
 import numpy as np
 import pandas as pd
 
-from .block import TimeBlock
+from .block import Block
 from .pair import TimePair
-from .side import PanelSide
+from .side import Side
 
 from typing import List
 
+
+# Plot
+import numpy as np
+import pandas as pd
+import plotly as px
+import plotly.graph_objects as go
+import plotly.express as px
+pd.set_option("multi_sparse", True)  # To see multilevel indexes
+pd.options.plotting.backend = "plotly"
+from plotly.subplots import make_subplots
 
 def from_pairs(pairs: List):
     """
@@ -19,7 +29,7 @@ def from_pairs(pairs: List):
         pairs (List[TimePair]): List of TimePair
 
     Returns:
-        ``TimePanel``: Renamed TimePanel
+        ``Panel``: Renamed Panel
 
     Example:
 
@@ -33,15 +43,15 @@ def from_pairs(pairs: List):
     num_ychannels                      2
     start            2005-12-27 00:00:00
     end              2005-12-30 00:00:00
-    Name: TimePanel, dtype: object
-    <TimePanel, size 1>
+    Name: Panel, dtype: object
+    <Panel, size 1>
     """
     if len(pairs) == 0:
-        raise ValueError("Cannot build TimePanel from empty list")
+        raise ValueError("Cannot build Panel from empty list")
     blocks = [(pair.x, pair.y) for pair in pairs]
-    x = PanelSide([block[0] for block in blocks])
-    y = PanelSide([block[1] for block in blocks])
-    return TimePanel(x, y)
+    x = Side([block[0] for block in blocks])
+    y = Side([block[1] for block in blocks])
+    return Panel(x, y)
 
 
 def from_xy_data(x, y, lookback:int, horizon:int, gap:int = 0):
@@ -56,7 +66,7 @@ def from_xy_data(x, y, lookback:int, horizon:int, gap:int = 0):
         gap (int): gap between x and y
 
     Returns:
-        ``TimePanel``: Renamed TimePanel
+        ``Panel``: Renamed Panel
 
     Example:
 
@@ -70,8 +80,8 @@ def from_xy_data(x, y, lookback:int, horizon:int, gap:int = 0):
     num_ychannels                      2
     start            2005-12-27 00:00:00
     end              2005-12-30 00:00:00
-    Name: TimePanel, dtype: object
-    <TimePanel, size 1>
+    Name: Panel, dtype: object
+    <Panel, size 1>
     """
 
     x_timesteps = len(x.index)
@@ -82,8 +92,8 @@ def from_xy_data(x, y, lookback:int, horizon:int, gap:int = 0):
     end = x_timesteps - horizon - gap + 1
 
     # Convert to blocks
-    x = TimeBlock(x)
-    y = TimeBlock(y)
+    x = Block(x)
+    y = Block(y)
 
     indexes = np.arange(lookback, end)
     xblocks, yblocks = [], []
@@ -91,7 +101,7 @@ def from_xy_data(x, y, lookback:int, horizon:int, gap:int = 0):
     for i in indexes:
         xblocks.append(x.iloc[i - lookback : i])
         yblocks.append(y.iloc[i + gap : i + gap + horizon])
-    return TimePanel(PanelSide(xblocks), PanelSide(yblocks))
+    return Panel(Side(xblocks), Side(yblocks), gap=gap)
 
 
 def from_data(df, lookback:int, horizon:int, gap:int = 0, x_assets: List[str] = None, y_assets: List[str] = None, x_channels: List[str] = None, y_channels: List[str] = None, assets: List[str] = None, channels: List[str] = None):
@@ -111,7 +121,7 @@ def from_data(df, lookback:int, horizon:int, gap:int = 0, x_assets: List[str] = 
         channels (list): List of channels
 
     Returns:
-        ``TimePanel``: Renamed TimePanel
+        ``Panel``: Renamed Panel
 
     Example:
 
@@ -125,8 +135,8 @@ def from_data(df, lookback:int, horizon:int, gap:int = 0, x_assets: List[str] = 
     num_ychannels                      2
     start            2005-12-27 00:00:00
     end              2005-12-30 00:00:00
-    Name: TimePanel, dtype: object
-    <TimePanel, size 1>
+    Name: Panel, dtype: object
+    <Panel, size 1>
     """
 
     if assets:
@@ -134,7 +144,7 @@ def from_data(df, lookback:int, horizon:int, gap:int = 0, x_assets: List[str] = 
     if channels:
         x_channels, y_channels = channels, channels
 
-    df = TimeBlock(df)
+    df = Block(df)
 
     if df.T.index.nlevels == 1:
         df = df.add_level('asset')
@@ -144,61 +154,77 @@ def from_data(df, lookback:int, horizon:int, gap:int = 0, x_assets: List[str] = 
     return from_xy_data(xdata, ydata, lookback, horizon, gap)
 
 
-class TimePanel:
+class Panel:
 
     _DIMS = ("size", "assets", "timesteps", "channels")
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, gap=0):
+
+        class _IXIndexer:
+            def __getitem__(self, item):
+                return Panel(x.ix[item], y.ix[item])
+        class _iLocIndexer:
+            def __getitem__(self, item):
+                
+                return Panel(x.iloc[item], y.iloc[item])
+        class _LocIndexer:
+            def __getitem__(self, item):
+                return Panel(x.loc[item], y.loc[item])
+        class _AtIndexer:
+            def __getitem__(self, item):
+                return Panel(x.at[item], y.at[item])
+        class _iAtIndexer:
+            def __getitem__(self, item):
+                return Panel(x.iat[item], y.iat[item])
+
         self._x, self._y = x, y
+        self.gap = gap
+        self.ix = _IXIndexer()
+        self.iloc = _iLocIndexer()
+        self.loc = _LocIndexer()
+        self.at = _AtIndexer()
+        self.iat = _iAtIndexer()
         self.set_training_split()
 
     def __len__(self):
         return len(self.pairs)
 
-    # TODO implement returning a TimePanel with only the key element
     def __getitem__(self, key):
-        if isinstance(key, Iterable):
-            key_set = set(key)
-            if key_set == {False, True}:
-                pairs = list(compress(self.pairs, key))
-            else:
-                pairs = [pair for i, pair in enumerate(self.pairs) if i in key_set]
-        else:
-            pairs = self.pairs[key]
-
-        return from_pairs(pairs)
-        # return TimePanel(PanelSide(xblocks), PanelSide(yblocks), x, y)
+        if isinstance(key, slice):
+            return Panel(Side(self.x[key]), Side(self.y[key]))
+        elif isinstance(key, int):
+            return Panel(Side([self.x[key]]), Side([self.y[key]]))
 
     # TODO getter and setter for full_x and full_y
 
     @property
     def x(self):
         """
-        PanelSide with x TimeBlocks.
+        Side with x Blocks.
 
         Returns:
-            ``PanelSide``: PanelSide with x TimeBlocks
+            ``Side``: Side with x Blocks
         """
         return self._x
 
     @property
     def y(self):
         """
-        PanelSide with y TimeBlocks.
+        Side with y Blocks.
 
         Returns:
-            ``PanelSide``: PanelSide with y TimeBlocks
+            ``Side``: Side with y Blocks
         """
         return self._y
 
     @x.setter
     def x(self, value):
         """
-        Set x with PanelSide.
+        Set x with Side.
         """
-        if not isinstance(value, PanelSide):
+        if not isinstance(value, Side):
             print(type(value))
-            raise ValueError(f"'x' must be of type PanelSide, it is {type(value)}")
+            raise ValueError(f"'x' must be of type Side, it is {type(value)}")
         if len(value) != len(self.x):
             raise ValueError("'x' must keep the same length")
         if len({len(block) for block in value.blocks}) != 1:
@@ -208,10 +234,10 @@ class TimePanel:
     @y.setter
     def y(self, value):
         """
-        Set y with PanelSide.
+        Set y with Side.
         """
-        if not isinstance(value, PanelSide):
-            raise ValueError("'y' must be of type PanelSide")
+        if not isinstance(value, Side):
+            raise ValueError("'y' must be of type Side")
         if len(value) != len(self.y):
             raise ValueError("'y' must keep the same length")
         if len({len(block) for block in value.blocks}) != 1:
@@ -255,11 +281,11 @@ class TimePanel:
     @property
     def start(self):
         """
-        TimePanel first index.
+        Panel first index.
 
         Example:
 
-        >>> timepanel.start
+        >>> panel.start
         Timestamp('2005-12-21 00:00:00')
         """
         return self.x.start
@@ -267,11 +293,11 @@ class TimePanel:
     @property
     def end(self):
         """
-        TimePanel last index.
+        Panel last index.
 
         Example:
 
-        >>> timepanel.end
+        >>> panel.end
         Timestamp('2005-12-21 00:00:00')
         """
         return self.y.end
@@ -279,11 +305,11 @@ class TimePanel:
     @property
     def assets(self):
         """
-        TimePanel assets.
+        Panel assets.
 
         Example:
 
-        >>> timepanel.assets
+        >>> panel.assets
         0    AAPL
         1    MSFT
         dtype: object
@@ -293,11 +319,11 @@ class TimePanel:
     @property
     def channels(self):
         """
-        TimePanel channels.
+        Panel channels.
 
         Example:
 
-        >>> timepanel.channels
+        >>> panel.channels
         0    Open
         1    Close
         dtype: object
@@ -307,11 +333,11 @@ class TimePanel:
     @property
     def timesteps(self):
         """
-        TimePanel timesteps.
+        Panel timesteps.
 
         Example:
 
-        >>> timepanel.timesteps
+        >>> panel.timesteps
         [Timestamp('2005-12-27 00:00:00'),
          Timestamp('2005-12-28 00:00:00'),
          Timestamp('2005-12-29 00:00:00'),
@@ -323,11 +349,11 @@ class TimePanel:
     @property
     def index(self):
         """
-        TimePanel index.
+        Panel index.
 
         Example:
 
-        >>> timepanel.index
+        >>> panel.index
         [Timestamp('2005-12-27 00:00:00'),
          Timestamp('2005-12-28 00:00:00'),
          Timestamp('2005-12-29 00:00:00'),
@@ -338,11 +364,11 @@ class TimePanel:
     @property
     def shape(self):
         """
-        TimePanel shape.
+        Panel shape.
 
         Example:
 
-        >>> timepanel.shape
+        >>> panel.shape
            size  assets  timesteps  channels
         x     1       2          2         2
         y     1       2          2         2
@@ -354,33 +380,33 @@ class TimePanel:
 
     def filter(self, assets: List[str] = None, channels: List[str] = None):
         """
-        TimePanel subset according to the specified assets and channels.
+        Panel subset according to the specified assets and channels.
 
         Args:
             assets (list): List of assets
             channels (list): List of channels
 
         Returns:
-            ``TimePanel``: Filtered TimePanel
+            ``Panel``: Filtered Panel
         """
         x = self.x.filter(assets=assets, channels=channels)
         y = self.y.filter(assets=assets, channels=channels)
-        return TimePanel(x, y)
+        return Panel(x, y)
 
     def drop(self, assets=None, channels=None):
         """
-        Subset of the TimePanel columns discarding the specified assets and channels.
+        Subset of the Panel columns discarding the specified assets and channels.
 
         Args:
             assets (list): List of assets
             channels (list): List of channels
 
         Returns:
-            ``TimePanel``: Filtered TimePanel
+            ``Panel``: Filtered Panel
         """
         x = self.x.drop(assets=assets, channels=channels)
         y = self.y.drop(assets=assets, channels=channels)
-        return TimePanel(x, y)
+        return Panel(x, y)
 
     def rename_assets(self, dict: dict):
         """
@@ -390,11 +416,11 @@ class TimePanel:
             dict (dict): Dictionary with assets to rename
 
         Returns:
-            ``TimePanel``: Renamed TimePanel
+            ``Panel``: Renamed Panel
         """
         x = self.x.rename_assets(dict=dict)
         y = self.y.rename_assets(dict=dict)
-        return TimePanel(x, y)
+        return Panel(x, y)
 
     def rename_channels(self, dict: dict):
         """
@@ -404,11 +430,11 @@ class TimePanel:
             dict (dict): Dictionary with channels to rename
 
         Returns:
-            ``TimePanel``: Renamed TimePanel
+            ``Panel``: Renamed Panel
         """
         x = self.x.rename_channels(dict=dict)
         y = self.y.rename_channels(dict=dict)
-        return TimePanel(x, y)
+        return Panel(x, y)
 
     def apply(self, func, axis):
         """
@@ -422,15 +448,15 @@ class TimePanel:
                 * 'channels': apply function to each channels.
 
         Returns:
-            ``TimePanel``: Result of applying `func` along the given axis of the TimePanel.
+            ``Panel``: Result of applying `func` along the given axis of the Panel.
         """
         x = self.x.apply(func=func, axis=axis)
         y = self.y.apply(func=func, axis=axis)
-        return TimePanel(x, y)
+        return Panel(x, y)
 
     def update(self, values=None, index: List = None, assets: List = None, channels: List = None):
         """
-        Update function for any of TimePanel properties.
+        Update function for any of Panel properties.
 
         Args:
             values (ndarray): New values Dataframe.
@@ -439,11 +465,11 @@ class TimePanel:
             channels (list): New list of channels
 
         Returns:
-            ``TimePanel``: Result of updated TimePanel.
+            ``Panel``: Result of updated Panel.
         """
-        x = PanelSide([block.update(values[i][0], index, assets, channels) for i, block in enumerate(self.x)])
-        y = PanelSide([block.update(values[i][1], index, assets, channels) for i, block in enumerate(self.y)])
-        return TimePanel(x, y)
+        x = Side([block.update(values[i][0], index, assets, channels) for i, block in enumerate(self.x)])
+        y = Side([block.update(values[i][1], index, assets, channels) for i, block in enumerate(self.y)])
+        return Panel(x, y)
 
     def sort_assets(self, order: List[str] = None):
         """
@@ -453,11 +479,11 @@ class TimePanel:
             order (List[str]): Asset order to be sorted.
 
         Returns:
-            ``TimePanel``: Result of sorting assets.
+            ``Panel``: Result of sorting assets.
         """
         x = self.x.sort_assets(order=order)
         y = self.y.sort_assets(order=order)
-        return TimePanel(x, y)
+        return Panel(x, y)
 
     def sort_channels(self, order: List[str] = None):
         """
@@ -467,29 +493,29 @@ class TimePanel:
             order (List[str]): Channel order to be sorted.
 
         Returns:
-            ``TimePanel``: Result of sorting channels.
+            ``Panel``: Result of sorting channels.
         """
         x = self.x.sort_channels(order=order)
         y = self.y.sort_channels(order=order)
-        return TimePanel(x, y)
+        return Panel(x, y)
 
     def swap_cols(self):
         """
         Swap columns levels, assets becomes channels and channels becomes assets
 
         Returns:
-            ``TimePanel``: Result of swapping columns.
+            ``Panel``: Result of swapping columns.
         """
         x = self.x.swap_cols()
         y = self.y.swap_cols()
-        return TimePanel(x, y)
+        return Panel(x, y)
 
     def countna(self):
         """
-        Count 'not a number' cells for each TimePanel.
+        Count NA/NaN cells for each Panel.
 
         Returns:
-            ``TimePanel``: NaN count for each TimePanel.
+            ``Panel``: NaN count for each Panel.
         """
         values = self.x.countna().values + self.y.countna().values
         return pd.DataFrame(values, index=range(len(self.x.blocks)), columns=['nan'])
@@ -499,23 +525,23 @@ class TimePanel:
         Fill NA/NaN values using the specified method.
 
         Returns:
-            ``TimePanel``: TimePanel with missing values filled.
+            ``Panel``: Panel with missing values filled.
         """
         x = self.x.fillna(value=value, method=method)
         y = self.y.fillna(value=value, method=method)
-        return TimePanel(x, y)
+        return Panel(x, y)
 
     def dropna(self, x=True, y=True):
         """
         Drop pairs with missing values from the panel.
 
         Returns:
-            ``TimePanel``: TimePanel with missing values dropped.
+            ``Panel``: Panel with missing values dropped.
         """
         nan_values = self.findna()
         idx = {i for i in range(len(self)) if i not in nan_values}
         if not idx:
-            raise ValueError("'dropna' would create empty TimePanel")
+            raise ValueError("'dropna' would create empty Panel")
         return self[idx]
 
     def findna(self, x=True, y=True):
@@ -535,7 +561,7 @@ class TimePanel:
                 "size": self.__len__(),
                 "lookback": self.lookback,
                 "horizon": self.horizon,
-                # "gap": self.gap,
+                "gap": self.gap,
                 "num_xassets": len(self.x.assets),
                 "num_yassets": len(self.y.assets),
                 "num_xchannels": len(self.x.channels),
@@ -543,11 +569,11 @@ class TimePanel:
                 "start": self.x.start,
                 "end": self.y.end,
             },
-            name="TimePanel",
+            name="Panel",
         )
 
         print(summary)
-        return f"<TimePanel, size {self.__len__()}>"
+        return f"<Panel, size {self.__len__()}>"
 
     def set_training_split(self, val_size=0.2, test_size=0.1):
         """
@@ -583,11 +609,11 @@ class TimePanel:
     @property
     def train(self):
         """
-        Returns the TimePanel with the pairs of the training set, according to
+        Returns the Panel with the pairs of the training set, according to
         the parameters given in the 'set_train_val_test_sets' function.
 
         Returns:
-            ``TimePanel``: TimePanel with the pairs of the training set.
+            ``Panel``: Panel with the pairs of the training set.
         """
         if self.train_size:
             return self[: self.train_size]
@@ -595,11 +621,11 @@ class TimePanel:
     @property
     def val(self):
         """
-        Returns the TimePanel with the pairs of the validation set, according to
+        Returns the Panel with the pairs of the validation set, according to
         the parameters given in the 'set_train_val_test_sets' function.
 
         Returns:
-            ``TimePanel``: TimePanel with the pairs of the validation set.
+            ``Panel``: Panel with the pairs of the validation set.
 
         """
         if self.val_size and self.train_size:
@@ -608,13 +634,57 @@ class TimePanel:
     @property
     def test(self):
         """
-        Returns the TimePanel with the pairs of the testing set, according to
+        Returns the Panel with the pairs of the testing set, according to
         the parameters given in the 'set_train_val_test_sets' function.
 
         Returns:
-            ``TimePanel``: TimePanel with the pairs of the testing set.
+            ``Panel``: Panel with the pairs of the testing set.
 
         """
         if self.val_size and self.train_size:
             return self[self.train_size + self.val_size :]
+
+
+    def plot(self, idx, assets: List[str] = None, channels: List[str] = None):
+        """
+        Panel plot according to the specified assets and channels.
+
+        Args:
+            idx (int): Panel index
+            assets (list): List of assets
+            channels (list): List of channels
+
+        Returns:
+            ``Plot``: Plotted data
+        """
+        cmap = px.colors.qualitative.Plotly
+
+        fig = make_subplots(rows=len(self.channels), cols=len(self.assets), subplot_titles=self.assets, shared_xaxes=True)
+
+        for j, channel in enumerate(self.channels):
+            c = cmap[j]
+            for i, asset in enumerate(self.assets):
+
+                showlegend = i <= 0
+                x_df = self.x[idx].filter(assets=asset, channels=channel)
+                y_df = self.y[idx].filter(assets=asset, channels=channel)
+
+                x_trace = go.Scatter(x=x_df.index, y=x_df.values.flatten(),
+                                line=dict(width=2, color=c), showlegend=showlegend, name=channel)
+
+                y_trace = go.Scatter(x=y_df.index, y=y_df.values.flatten(),
+                                    line=dict(width=2, dash='dot', color=c), showlegend=False)
+
+                fig.add_trace(x_trace, row=j+1, col=i+1)
+
+                fig.add_trace(y_trace, row=j+1, col=i+1)
+                dt_all = pd.date_range(start=x_df.index[0],end=y_df.index[-1])
+                dt_obs_x = [d.strftime("%Y-%m-%d") for d in x_df.index]
+                dt_obs_y = [d.strftime("%Y-%m-%d") for d in y_df.index]
+                dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if (not d in dt_obs_x) and (not d in dt_obs_y)]
+                # fig['layout']['xaxis2'].update_xaxes(rangebreaks=[dict(values=dt_breaks)])
+                fig['layout'][f'xaxis{i+j+1}'].update({'rangebreaks':[dict(values=dt_breaks)]})
+
+        fig.update_layout(showlegend=True)
+        fig.show()
 

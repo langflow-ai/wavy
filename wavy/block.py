@@ -9,14 +9,14 @@ from .utils import add_dim, add_level
 
 def from_dataframe(df: DataFrame, asset: str = 'asset'):
     """
-    Generate TimeBlock from DataFrame
+    Generate Block from DataFrame
 
     Args:
         df (DataFrame): Pandas DataFrame
         asset (string): Asset name
 
     Returns:
-        ``TimeBlock``: Constructed TimeBlock
+        ``Block``: Constructed Block
 
     Example:
 
@@ -26,15 +26,15 @@ def from_dataframe(df: DataFrame, asset: str = 'asset'):
     2005-12-21  2.218566  2.246069
     2005-12-22  2.258598  2.261960
 
-    >>> timeblock = from_dataframe(data, 'AAPL')
+    >>> block = from_dataframe(data, 'AAPL')
                     AAPL
                     Open     Close
     Date
     2005-12-21  2.218566  2.246069
     2005-12-22  2.258598  2.261960
 
-    >>> type(timeblock)
-    wavy.block.TimeBlock
+    >>> type(block)
+    wavy.block.Block
 
     """
 
@@ -42,8 +42,8 @@ def from_dataframe(df: DataFrame, asset: str = 'asset'):
     if df.T.index.nlevels == 1:
         df = add_level(df, asset)
 
-    # Create TimeBlock
-    tb = TimeBlock(
+    # Create Block
+    tb = Block(
             pd.DataFrame(
                 df.values,
                 index=df.index,
@@ -56,13 +56,13 @@ def from_dataframe(df: DataFrame, asset: str = 'asset'):
 
 def from_dict(data: dict):
     """
-    Generate TimeBlock from dictionary
+    Generate Block from dictionary
 
     Args:
         data ({str: DataFrame}): Dictionary containing asset name and DataFrame
 
     Returns:
-        ``TimeBlock``: Constructed TimeBlock
+        ``Block``: Constructed Block
 
     Example:
 
@@ -95,19 +95,19 @@ def from_dict(data: dict):
         assert channels_flag, 'Data with different number of channels'
         previous_channels = value.shape[1]
 
-    return TimeBlock(pd.concat(data.values(), axis=1, keys=data.keys()))
+    return Block(pd.concat(data.values(), axis=1, keys=data.keys()))
 
 
 def from_dataframes(data: List[DataFrame], assets: List[str] = None):
     """
-    Generate a TimeBlock from a list of dataframes. Each dataframe becomes one asset.
+    Generate a Block from a list of dataframes. Each dataframe becomes one asset.
 
     Args:
         data (list): List of dataframes
         assets (list): List of assets
 
     Returns:
-        ``TimeBlock``: Constructed TimeBlock
+        ``Block``: Constructed Block
 
     Example:
 
@@ -123,7 +123,7 @@ def from_dataframes(data: List[DataFrame], assets: List[str] = None):
     2005-12-21  19.577126  19.475122
     2005-12-22  19.460543  19.373114
 
-    Generating TimeBlock with list of dataframes
+    Generating Block with list of dataframes
 
     >>> from_dataframes([aapl, msft])
              asset_0              asset_1
@@ -133,7 +133,7 @@ def from_dataframes(data: List[DataFrame], assets: List[str] = None):
     2005-12-22  2.258598  2.261960  19.460543  19.373114
 
 
-    Generating TimeBlock with list of dataframes and assets
+    Generating Block with list of dataframes and assets
 
     >>> from_dataframes([aapl, msft], ['AAPL', 'MSFT'])
                 AAPL                 MSFT
@@ -152,7 +152,7 @@ def from_dataframes(data: List[DataFrame], assets: List[str] = None):
 
 def from_tensor(values, index: List = None, assets: List[str] = None, channels: List[str] = None):
     """
-    Generate a TimeBlock from list of attributes.
+    Generate a Block from list of attributes.
 
     Args:
         values (ndarray): Dataframes of size (assets x index x channels)
@@ -161,7 +161,7 @@ def from_tensor(values, index: List = None, assets: List[str] = None, channels: 
         channels (list): List of channels
 
     Returns:
-        ``TimeBlock``: Constructed TimeBlock
+        ``Block``: Constructed Block
 
     Example:
 
@@ -192,7 +192,7 @@ def from_tensor(values, index: List = None, assets: List[str] = None, channels: 
 
 def from_matrix(values, index: List = None, assets: List[str] = None, channels: List[str] = None):
     """
-    Generate a TimeBlock from list of attributes.
+    Generate a Block from list of attributes.
 
     Args:
         values (ndarray): Dataframes of size (index x [assets * channels])
@@ -201,7 +201,7 @@ def from_matrix(values, index: List = None, assets: List[str] = None, channels: 
         channels (list): List of channels
 
     Returns:
-        ``TimeBlock``: Constructed TimeBlock
+        ``Block``: Constructed Block
 
     Example:
 
@@ -234,7 +234,7 @@ def from_matrix(values, index: List = None, assets: List[str] = None, channels: 
     columns = pd.MultiIndex.from_product([assets, channels])
     df = pd.DataFrame(index=index, columns=columns)
     df.loc[:, (slice(None), slice(None))] = values.reshape(df.shape)
-    return TimeBlock(df)
+    return Block(df)
 
 
 def _rebuild(func):
@@ -253,21 +253,21 @@ class _AssetSeries(pd.Series):
 
     @property
     def _constructor_expanddim(self):
-        return TimeBlock
+        return Block
 
     @property
     def _constructor(self):
         return _AssetSeries
 
 
-class TimeBlock(pd.DataFrame):
+class Block(pd.DataFrame):
 
     def __init__(self, df, *args, **kwargs):
         super().__init__(df, *args, **kwargs)
 
     @property
     def _constructor(self):
-        return TimeBlock
+        return Block
 
     @property
     def _constructor_sliced(self):
@@ -276,18 +276,18 @@ class TimeBlock(pd.DataFrame):
     @property
     def start(self):
         """
-        TimeBlock first index.
+        Block first index.
 
         Example:
 
-        >>> timeblock
+        >>> block
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> timeblock.start
+        >>> block.start
         Timestamp('2005-12-21 00:00:00')
         """
         return self.index[0]
@@ -295,18 +295,18 @@ class TimeBlock(pd.DataFrame):
     @property
     def end(self):
         """
-        TimeBlock last index.
+        Block last index.
 
         Example:
 
-        >>> timeblock
+        >>> block
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> timeblock.end
+        >>> block.end
         Timestamp('2005-12-22 00:00:00')
         """
         return self.index[-1]
@@ -314,18 +314,18 @@ class TimeBlock(pd.DataFrame):
     @property
     def assets(self):
         """
-        TimeBlock assets.
+        Block assets.
 
         Example:
 
-        >>> timeblock
+        >>> block
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> timeblock.assets
+        >>> block.assets
         0    AAPL
         1    MSFT
         dtype: object
@@ -338,18 +338,18 @@ class TimeBlock(pd.DataFrame):
     @property
     def channels(self):
         """
-        TimeBlock channels.
+        Block channels.
 
         Example:
 
-        >>> timeblock
+        >>> block
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> timeblock.channels
+        >>> block.channels
         0    Open
         1    Close
         dtype: object
@@ -362,11 +362,11 @@ class TimeBlock(pd.DataFrame):
     @property
     def timesteps(self):
         """
-        TimeBlock timesteps.
+        Block timesteps.
 
         Example:
 
-        >>> timeblock.timesteps
+        >>> block.timesteps
         DatetimeIndex(['2005-12-21', '2005-12-22', '2005-12-23'], dtype='datetime64[ns]', name='Date', freq=None)
         """
         # The same as the index
@@ -376,11 +376,11 @@ class TimeBlock(pd.DataFrame):
     # @property
     # def shape(self):
     #     """
-    #     TimeBlock shape.
+    #     Block shape.
 
     #     Example:
 
-    #     >>> timeblock.shape
+    #     >>> block.shape
     #     (2, 2, 2)
     #     """
     #     return self.tensor.shape
@@ -392,14 +392,14 @@ class TimeBlock(pd.DataFrame):
 
         Example:
 
-        >>> timeblock
+        >>> block
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> timeblock.tensor
+        >>> block.tensor
         array([[[ 2.21856582,  2.24606872],
                 [ 2.25859845,  2.26195979]],
                [[19.57712554, 19.47512245],
@@ -416,14 +416,14 @@ class TimeBlock(pd.DataFrame):
 
         Example:
 
-        >>> timeblock
+        >>> block
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> timeblock.matrix
+        >>> block.matrix
         array([[ 2.21856582,  2.24606872, 19.57712554, 19.47512245],
             [ 2.25859845,  2.26195979, 19.46054323, 19.37311363]])
         """
@@ -431,25 +431,25 @@ class TimeBlock(pd.DataFrame):
 
     def filter(self, assets: List[str] = None, channels: List[str] = None):
         """
-        TimeBlock subset according to the specified assets and channels.
+        Block subset according to the specified assets and channels.
 
         Args:
             assets (list): List of assets
             channels (list): List of channels
 
         Returns:
-            ``TimeBlock``: Filtered TimeBlock
+            ``Block``: Filtered Block
 
         Example:
 
-        >>> timeblock
+        >>> block
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> timeblock.filter(assets=['AAPL'], channels=['Open'])
+        >>> block.filter(assets=['AAPL'], channels=['Open'])
                         AAPL
                         Open
         Date
@@ -466,10 +466,9 @@ class TimeBlock(pd.DataFrame):
             assets = [assets]
 
         # TODO improve speed
-        # TODO Handle error not assets in block
 
-        # if assets is not None and any(asset not in self.columns.levels[0] for asset in assets):
-        #     raise ValueError(f"{assets} not found in columns. Columns: {list(self.columns.levels[0])}")
+        if assets is not None and any(asset not in list(self.assets) for asset in assets):
+            raise ValueError(f"{assets} not found in columns. Columns: {list(self.assets)}")
 
         return self.loc[:, (assets, slice(None))] if assets else self
 
@@ -479,7 +478,9 @@ class TimeBlock(pd.DataFrame):
             channels = [channels]
 
         # TODO improve speed
-        # TODO Handle error not channels in block
+
+        if channels is not None and any(channel not in list(self.channels) for channel in channels):
+            raise ValueError(f"{channels} not found in columns. Columns: {list(self.channels)}")
 
         return self.loc[:, (slice(None), channels)][self.assets] if channels else self
 
@@ -493,18 +494,18 @@ class TimeBlock(pd.DataFrame):
             channels (list): List of channels
 
         Returns:
-            ``TimeBlock``: Filtered TimeBlock
+            ``Block``: Filtered Block
 
         Example:
 
-        >>> timeblock
+        >>> block
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> timeblock.drop(assets=['AAPL'], channels=['Open'])
+        >>> block.drop(assets=['AAPL'], channels=['Open'])
                          MSFT
                         Close
         Date
@@ -537,18 +538,18 @@ class TimeBlock(pd.DataFrame):
             dict (dict): Dictionary with assets to rename
 
         Returns:
-            ``TimeBlock``: Renamed TimeBlock
+            ``Block``: Renamed Block
 
         Example:
 
-        >>> timeblock
+        >>> block
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> timeblock.rename_assets({'AAPL': 'Apple', 'MSFT': 'Microsoft'})
+        >>> block.rename_assets({'AAPL': 'Apple', 'MSFT': 'Microsoft'})
                        Apple            Microsoft
                         Open     Close       Open      Close
         Date
@@ -570,18 +571,18 @@ class TimeBlock(pd.DataFrame):
             dict (dict): Dictionary with channels to rename
 
         Returns:
-            ``TimeBlock``: Renamed TimeBlock
+            ``Block``: Renamed Block
 
         Example:
 
-        >>> timeblock
+        >>> block
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> timeblock.rename_channels({'Open': 'Op', 'Close': 'Cl'})
+        >>> block.rename_channels({'Open': 'Op', 'Close': 'Cl'})
                         AAPL                 MSFT
                         Op        Cl         Op         Cl
         Date
@@ -606,23 +607,23 @@ class TimeBlock(pd.DataFrame):
                 * 'channels': apply function to each channels.
 
         Returns:
-            ``TimeBlock``: Result of applying `func` along the given axis of the TimeBlock.
+            ``Block``: Result of applying `func` along the given axis of the Block.
 
         Example:
 
-        >>> timeblock
+        >>> block
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> timeblock.apply(np.max, on='rows')
+        >>> block.apply(np.max, on='rows')
             AAPL                MSFT
             Open    Close       Open      Close
         0  2.258598  2.26196  19.577126  19.475122
 
-        >>> timeblock.apply(np.max, on='columns')
+        >>> block.apply(np.max, on='columns')
                         AAPL       MSFT
                         amax       amax
         Date
@@ -672,18 +673,18 @@ class TimeBlock(pd.DataFrame):
             channels (list): New list of channels
 
         Returns:
-            ``TimeBlock``: Result of updated TimeBlock.
+            ``Block``: Result of updated Block.
 
         Example:
 
-        >>> timeblock
+        >>> block
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> timeblock.update(assets=['Microsoft', 'Apple'], channels=['Op', 'Cl'])
+        >>> block.update(assets=['Microsoft', 'Apple'], channels=['Op', 'Cl'])
                  Microsoft                 Apple
                         Op         Cl         Op         Cl
         Date
@@ -711,14 +712,14 @@ class TimeBlock(pd.DataFrame):
 
         Example:
 
-        >>> timeblock
+        >>> block
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> timeblock.split_assets()
+        >>> block.split_assets()
         [               AAPL
                         Open     Close
         Date
@@ -744,14 +745,14 @@ class TimeBlock(pd.DataFrame):
 
         Example:
 
-        >>> timeblock
+        >>> block
                         MSFT                 AAPL
                         Open      Close      Open     Close
         Date
         2005-12-21  19.577126  19.475122  2.218566  2.246069
         2005-12-22  19.460543  19.373114  2.258598  2.261960
 
-        >>> timeblock.sort_assets()
+        >>> block.sort_assets()
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
@@ -775,14 +776,14 @@ class TimeBlock(pd.DataFrame):
 
         Example:
 
-        >>> timeblock
+        >>> block
                         MSFT                 AAPL
                         Open      Close      Open     Close
         Date
         2005-12-21  19.577126  19.475122  2.218566  2.246069
         2005-12-22  19.460543  19.373114  2.258598  2.261960
 
-        >>> timeblock.sort_channels()
+        >>> block.sort_channels()
                          MSFT                 AAPL
                         Close       Open     Close      Open
         Date
@@ -803,14 +804,14 @@ class TimeBlock(pd.DataFrame):
 
         Example:
 
-        >>> timeblock
+        >>> block
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> timeblock.swap_cols()
+        >>> block.swap_cols()
                        Close                 Open
                         AAPL       MSFT      AAPL       MSFT
         Date
@@ -834,26 +835,26 @@ class TimeBlock(pd.DataFrame):
 
     def countna(self, type: str = 'asset'):
         """
-        Count 'not a number' cells for each asset or channel.
+        Count NA/NaN cells for each asset or channel.
 
         Returns:
             ``List``: List of NaN count.
 
         Example:
 
-        >>> timeblock
+        >>> block
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069        NaN  19.475122
         2005-12-22  2.258598       NaN  19.460543  19.373114
 
-        >>> timeblock.countna('asset')
+        >>> block.countna('asset')
         AAPL    1
         MSFT    1
         dtype: int64
 
-        >>> timeblock.countna('channel')
+        >>> block.countna('channel')
         AAPL  Open     0
               Close    1
         MSFT  Open     1
@@ -870,17 +871,17 @@ class TimeBlock(pd.DataFrame):
 
     def as_dataframe(self):
         """
-        Generate DataFrame from TimeBlock
+        Generate DataFrame from Block
 
         Returns:
             ``DataFrame``: Constructed DataFrame
 
         Example:
 
-        >>> type(timeblock)
-        wavy.block.TimeBlock
+        >>> type(block)
+        wavy.block.Block
 
-        >>> type(timeblock.as_dataframe())
+        >>> type(block.as_dataframe())
         pandas.core.frame.DataFrame
         """
         return pd.DataFrame(self.values, index=self.index, columns=self.columns)
@@ -895,14 +896,14 @@ class TimeBlock(pd.DataFrame):
 
         Example:
 
-        >>> timeblock
+        >>> block
                         AAPL                 MSFT
                         Open     Close       Open      Close
         Date
         2005-12-21  2.218566  2.246069        NaN  19.475122
         2005-12-22  2.258598       NaN  19.460543  19.373114
 
-        >>> timeblock.fillna(0)
+        >>> block.fillna(0)
                         MSFT                 AAPL
                         Open      Close      Open     Close
         Date

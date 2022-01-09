@@ -17,8 +17,8 @@ Welcome to Wavy's documentation!
 
    wavy/wavy.block.rst
    wavy/wavy.side.rst
-   wavy/wavy.pair.rst
    wavy/wavy.panel.rst
+   wavy/wavy.nn.rst
 
 .. only:: html
 
