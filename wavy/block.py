@@ -494,6 +494,7 @@ class Block(pd.DataFrame):
 
         return self.loc[:, (slice(None), channels)][self.assets] if channels else self
 
+
     def drop(self, assets: List[str] = None, channels: List[str] = None):
         """
         Subset of the dataframe columns discarding the specified assets and channels.
@@ -655,8 +656,21 @@ class Block(pd.DataFrame):
 
     def _channel_apply(self, func):
         splits = self.split_assets()
-        new = from_matrix(np.swapaxes(np.array([asset.as_dataframe().apply(func, axis=1).values for asset in splits]), 0,1), index=self.index, assets=self.assets, channels=[func.__name__])
-        return new
+        return from_matrix(
+            np.swapaxes(
+                np.array(
+                    [
+                        asset.as_dataframe().apply(func, axis=1).values
+                        for asset in splits
+                    ]
+                ),
+                0,
+                1,
+            ),
+            index=self.index,
+            assets=self.assets,
+            channels=[func.__name__],
+        )
 
     def update(self, values=None, index: List = None, assets: List = None, channels: List = None):
         """
@@ -681,9 +695,9 @@ class Block(pd.DataFrame):
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
         >>> block.update(assets=['Microsoft', 'Apple'], channels=['Op', 'Cl'])
-                 Microsoft                 Apple           
+                 Microsoft                 Apple
                         Op         Cl         Op         Cl
-        Date                                                  
+        Date
         2005-12-21  19.577126  19.475122  19.460543  19.373114
         2005-12-22   2.218566   2.246069   2.258598   2.261960
         """
@@ -817,6 +831,18 @@ class Block(pd.DataFrame):
         channels = self.channels
         return self.T.swaplevel(i=- 2, j=- 1, axis=0).T.sort_assets(channels)
 
+
+    def smash(self, sep: str = '_'):
+        # TODO: Document
+        """
+        Removes hierarchical columns using a separatora and returns a single level DataFrame.
+        """
+        columns = [sep.join(tup).rstrip(sep) for tup in self.columns.values]
+        index = self.index
+        values = self.values
+        return pd.DataFrame(values, index=index, columns=columns)
+
+
     def countna(self, type: str = 'asset'):
         """
         Count NA/NaN cells for each asset or channel.
@@ -888,9 +914,9 @@ class Block(pd.DataFrame):
         2005-12-22  2.258598       NaN  19.460543  19.373114
 
         >>> block.fillna(0)
-                        MSFT                 AAPL          
+                        MSFT                 AAPL
                         Open      Close      Open     Close
-        Date                                                
+        Date
         2005-12-21  19.577126  19.475122  0.000000  2.246069
         2005-12-22  19.460543   0.000000  2.258598  2.261960
         """

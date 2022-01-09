@@ -26,29 +26,25 @@ class Baseline:
         raise NotImplementedError
 
     def _predict(self, type):
-        if type == 'test':
-            panel_ = self.panel.test.y
-        else:
-            panel_ = self.panel.val.y
-
+        panel_ = self.panel.test.y if type == 'test' else self.panel.val.y
         df = pd.concat([self.panel.x.as_dataframe(), self.panel.y.as_dataframe()])
         concatenated = df[~df.index.duplicated(keep="first")]
         assets = self.panel.assets
         channels = self.panel.channels
-        
+
         blocks = []
 
         for block_data in panel_:
             index = concatenated.index.get_loc(block_data.index[0])
             new_values = concatenated.iloc[index-self.panel.horizon:index].values
             blocks.append(from_matrix(new_values, index = block_data.index, assets=assets, channels=channels))
-        
+
         return Side(blocks)
 
     def predict_val(self):
         return self._predict('val')
 
-    def predict(self):        
+    def predict(self):
         return self._predict('test')
 
     def evaluate(self, type: str = 'test'):
@@ -70,7 +66,7 @@ class Baseline:
 
         # TODO Implement rMSE, R2, AE, RAE
         # https://stats.stackexchange.com/questions/142873/how-to-determine-the-accuracy-of-regression-which-measure-should-be-used
-            
+
         return metrics_result
 
 
@@ -127,12 +123,10 @@ class _BaseModel:
 
         assets = self.panel.assets
         channels = self.panel.channels
-        
-        blocks = []
 
         for i, block_data in enumerate(predicted):
             blocks.append(from_matrix(block_data, index = y[i].index, assets=assets, channels=channels))
-        
+
         return Side(blocks)
 
     def predict(self):

@@ -74,9 +74,9 @@ class Side:
         Example:
 
         >>> side.first
-                        MSFT                 AAPL          
+                        MSFT                 AAPL
                         Open      Close      Open     Close
-        Date                                                
+        Date
         2005-12-21  19.577126  19.475122  2.218566  2.246069
         2005-12-22  19.460543  19.373114  2.258598  2.261960
         """
@@ -90,9 +90,9 @@ class Side:
         Example:
 
         >>> side.last
-                        MSFT                 AAPL          
+                        MSFT                 AAPL
                         Open      Close      Open     Close
-        Date                                                
+        Date
         2005-12-22  19.460543  19.373114  2.258598  2.261960
         2005-12-23  19.322122  19.409552  2.266543  2.241485
         """
@@ -243,6 +243,7 @@ class Side:
         """
         return np.array([block.matrix for block in tqdm(self.blocks)])
 
+
     def filter(self, assets: List[str] = None, channels: List[str] = None):
         """
         Side subset according to the specified assets and channels.
@@ -340,7 +341,7 @@ class Side:
             ``Side``: Result of sorting assets.
         """
         return Side([block.sort_assets(order) for block in tqdm(self.blocks)])
-        
+
     def sort_channels(self, order: List[str] = None):
         """
         Sort channels in alphabetical order.
@@ -451,24 +452,24 @@ class Side:
         Side containing two Block, will present the following result.
 
         >>> side.first
-                        MSFT                 AAPL          
+                        MSFT                 AAPL
                         Open      Close      Open     Close
-        Date                                                
+        Date
         2005-12-21  19.577126  19.475122  2.218566  2.246069
         2005-12-22  19.460543  19.373114  2.258598  2.261960
 
         >>> side.last
-                        MSFT                 AAPL          
+                        MSFT                 AAPL
                         Open      Close      Open     Close
-        Date                                                
+        Date
         2005-12-22  19.460543  19.373114  2.258598  2.261960
         2005-12-23  19.322122  19.409552  2.266543  2.241485
 
         Where only the last timestep of each Block is used as index.
 
         >>> side.flat()
-                           0         1        2        3         4         5        6        7  
-        2005-12-22 19.577126 19.475122 2.218566 2.246069 19.460543 19.373114 2.258598 2.261960 
+                           0         1        2        3         4         5        6        7
+        2005-12-22 19.577126 19.475122 2.218566 2.246069 19.460543 19.373114 2.258598 2.261960
         2005-12-23 19.460543 19.373114 2.258598 2.261960 19.322122 19.409552 2.266543 2.241485
         """
         values = np.array([i.values.flatten() for i in self.blocks])
@@ -488,16 +489,16 @@ class Side:
         Side containing two Block, will present the following result.
 
         >>> side.first
-                        MSFT                 AAPL          
+                        MSFT                 AAPL
                         Open      Close      Open     Close
-        Date                                                
+        Date
         2005-12-21  19.577126  19.475122  2.218566  2.246069
         2005-12-22  19.460543  19.373114  2.258598  2.261960
 
         >>> side.last
-                        MSFT                 AAPL          
+                        MSFT                 AAPL
                         Open      Close      Open     Close
-        Date                                                
+        Date
         2005-12-22  19.460543  19.373114  2.258598  2.261960
         2005-12-23  19.322122  19.409552  2.266543  2.241485
 
