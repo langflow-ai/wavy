@@ -5,12 +5,11 @@ import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm
 
-from .block import Block
+from .block import DUNDER_METHODS, Block, from_matrix
 
 from typing import List
 
 # dunder_methods = ['__abs__', '__add__', '__aenter__', '__aexit__', '__aiter__', '__and__', '__anext__', '__await__', '__bool__', '__bytes__', '__call__', '__ceil__', '__class__', '__class_getitem__', '__cmp__', '__coerce__', '__complex__', '__contains__', '__del__', '__delattr__', '__delete__', '__delitem__', '__delslice__', '__dict__', '__dir__', '__div__', '__divmod__', '__enter__', '__eq__', '__exit__', '__float__', '__floor__', '__floordiv__', '__format__', '__fspath__', '__ge__', '__get__', '__getattr__', '__getattribute__', '__getitem__', '__getnewargs__', '__getslice__', '__gt__', '__hash__', '__hex__', '__iadd__', '__iand__', '__idiv__', '__ifloordiv__', '__ilshift__', '__imatmul__', '__imod__', '__import__', '__imul__', '__index__', '__init__', '__init_subclass__', '__instancecheck__', '__int__', '__invert__', '__ior__', '__ipow__', '__irshift__', '__isub__', '__iter__', '__itruediv__', '__ixor__', '__le__', '__len__', '__length_hint__', '__long__', '__lshift__', '__lt__', '__matmul__', '__metaclass__', '__missing__', '__mod__', '__mro__', '__mul__', '__ne__', '__neg__', '__new__', '__next__', '__nonzero__', '__oct__', '__or__', '__pos__', '__pow__', '__prepare__', '__radd__', '__rand__', '__rcmp__', '__rdiv__', '__rdivmod__', '__reduce__', '__reduce_ex__', '__repr__', '__reversed__', '__rfloordiv__', '__rlshift__', '__rmatmul__', '__rmod__', '__rmul__', '__ror__', '__round__', '__rpow__', '__rrshift__', '__rshift__', '__rsub__', '__rtruediv__', '__rxor__', '__set__', '__set_name__', '__setattr__', '__setitem__', '__setslice__', '__sizeof__', '__slots__', '__str__', '__sub__', '__subclasscheck__', '__subclasses__', '__truediv__', '__trunc__', '__unicode__', '__weakref__', '__xor__']
-dunder_methods = ['__add__', '__sub__', '__mul__', '__ge__', '__gt__', '__le__', '__lt__', '__pow__']
 
 
 # Plot
@@ -60,7 +59,19 @@ class Side:
         except AttributeError:
             raise AttributeError(f"'Side' object has no attribute '{name}'")
 
+    # TODO fix this method
+    # Function to map all dunder functions
+    def _one_arg(self, other, __f):
+        if isinstance(other, Side):
+            return Side([getattr(block, __f)(other_block) for block, other_block in zip(self.blocks, other)])
+        return Side([getattr(block, __f)(other) for block in self.blocks])
+
+    for dunder in DUNDER_METHODS:
+        locals()[dunder] = lambda self, other, __f=dunder: self._one_arg(other, __f)
+
     def __getitem__(self, key):
+        if isinstance(key, list):
+            return [self.blocks[i] for i in key]
         return self.blocks.__getitem__(key)
 
     def __len__(self):
@@ -511,7 +522,7 @@ class Side:
         return self.flat().values.flatten()
 
 
-    def plot(self, idx, assets: List[str] = None, channels: List[str] = None):
+    def plot_block(self, idx, assets: List[str] = None, channels: List[str] = None):
         """
         Side plot according to the specified assets and channels.
 
@@ -551,4 +562,96 @@ class Side:
                 fig.update_xaxes(rangebreaks=[dict(values=dt_breaks)])
 
         fig.update_layout(showlegend=True)
+        fig.show()
+
+    def side_shift(self, window: int = 1):
+        # TODO window cannot be negative
+        new_side = []
+
+        for i, block in enumerate(self.blocks):
+            new_index = i - window
+            new_index = new_index if new_index >= 0 and new_index < len(self.blocks) else None
+            new_values = self.blocks[new_index] if new_index is not None else np.ones(self.blocks[0].shape) * np.nan
+            new_block = from_matrix(values=new_values, index=block.index, assets=block.assets, channels=block.channels)
+            new_side.append(new_block)
+
+        return Side(new_side)
+
+    def side_diff(self, periods: int = 1):
+        return self - self.side_shift(periods)
+
+    def side_pct_change(self, periods: int = 1):
+        a = self.side_shift(periods)
+        return (self - a) / a
+
+
+    def plot_slider(self, steps: int = 100):
+
+        cmap = px.colors.qualitative.Plotly
+
+        # Create figure
+        # fig = go.Figure()
+        fig = make_subplots(rows=len(self.channels), cols=len(self.assets), subplot_titles=self.assets, shared_xaxes=True)
+
+        graph_number = len(self.channels) * len(self.assets)
+
+        # Add traces, one for each slider step
+        len_ = np.linspace(0,len(self.blocks), steps, dtype=int, endpoint=False)
+        for step in len_: #np.arange(len(panel_.x.blocks)):
+
+            for j, channel in enumerate(self.channels):
+                c = cmap[j]
+                for i, asset in enumerate(self.assets):
+
+                    showlegend = i <= 0
+
+                    x_df = self.blocks[step].filter(assets=asset, channels=channel)
+                    index = x_df.index
+                    values = x_df.values.flatten()
+
+                    x_trace = go.Scatter(visible=False,
+                                        x=index,
+                                        y=values,
+                                        line=dict(width=2, color=c), showlegend=showlegend, name=channel)
+
+                    # x_trace = go.Scatter(x=index, y=values,
+                    #                     line=dict(width=2, color=c), showlegend=showlegend, name=channel)
+
+                    fig.add_trace(x_trace, row=j+1, col=i+1)
+
+                    dt_all = pd.date_range(start=index[0],end=index[-1])
+                    dt_obs = [d.strftime("%Y-%m-%d") for d in index]
+                    dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if not d in dt_obs]
+                    fig.update_xaxes(rangebreaks=[dict(values=dt_breaks)])
+
+        # Make 10th trace visible
+        for i in range(graph_number):
+            fig.data[i].visible = True
+
+        # Create and add slider
+        steps_ = []
+        for i in range(steps):
+            step = dict(
+                method="update",
+                args=[{"visible": [False] * len(fig.data)},
+                    {"title": "Block " + str(len_[i])}],  # layout attribute
+            )
+
+            for g in range(graph_number):
+                step["args"][0]["visible"][i*graph_number+g] = True  # Toggle i'th trace to "visible"
+
+            steps_.append(step)
+
+
+        sliders = [dict(
+            active=0,
+            # currentvalue={"prefix": "Block: "},
+            pad={"t": 50},
+            steps=steps_
+        )]
+
+        fig.update_layout(
+            sliders=sliders
+        )
+
         fig.show()

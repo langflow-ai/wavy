@@ -193,6 +193,11 @@ class Panel:
             return Panel(Side(self.x[key]), Side(self.y[key]))
         elif isinstance(key, int):
             return Panel(Side([self.x[key]]), Side([self.y[key]]))
+        elif isinstance(key, list):
+            return Panel(Side(self.x[key]), Side(self.y[key]))
+        elif isinstance(key, set):
+            return Panel(Side(self.x[list(key)]), Side(self.y[list(key)]))
+
 
     # TODO getter and setter for full_x and full_y
 
@@ -644,7 +649,7 @@ class Panel:
             return self[self.train_size + self.val_size :]
 
 
-    def plot(self, idx, assets: List[str] = None, channels: List[str] = None):
+    def plot_block(self, idx, assets: List[str] = None, channels: List[str] = None):
         """
         Panel plot according to the specified assets and channels.
 
@@ -687,3 +692,73 @@ class Panel:
         fig.update_layout(showlegend=True)
         fig.show()
 
+
+    def plot_slider(self, steps: int = 100):
+
+        cmap = px.colors.qualitative.Plotly
+
+        # Create figure
+        # fig = go.Figure()
+        fig = make_subplots(rows=len(self.channels), cols=len(self.assets), subplot_titles=self.assets, shared_xaxes=True)
+
+        graph_number = len(self.channels) * len(self.assets) * 2
+
+        # Add traces, one for each slider step
+        len_ = np.linspace(0,len(self.x.blocks), steps, dtype=int, endpoint=False)
+        for step in len_: #np.arange(len(panel_.x.blocks)):
+
+            for j, channel in enumerate(self.channels):
+                c = cmap[j]
+                for i, asset in enumerate(self.assets):
+
+                    showlegend = i <= 0
+
+                    x_df = self.x[step].filter(assets=asset, channels=channel)
+                    y_df = self.y[step].filter(assets=asset, channels=channel)
+
+                    x_trace = go.Scatter(visible=False, x=x_df.index, y=x_df.values.flatten(),
+                                line=dict(width=2, color=c), showlegend=showlegend, name=channel)
+
+                    y_trace = go.Scatter(visible=False, x=y_df.index, y=y_df.values.flatten(),
+                                        line=dict(width=2, dash='dot', color=c), showlegend=False)
+
+                    fig.add_trace(x_trace, row=j+1, col=i+1)
+                    fig.add_trace(y_trace, row=j+1, col=i+1)
+                    # dt_all = pd.date_range(start=x_df.index[0],end=y_df.index[-1])
+                    # dt_obs_x = [d.strftime("%Y-%m-%d") for d in x_df.index]
+                    # dt_obs_y = [d.strftime("%Y-%m-%d") for d in y_df.index]
+                    # dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if (not d in dt_obs_x) and (not d in dt_obs_y)]
+                    # # fig['layout']['xaxis2'].update_xaxes(rangebreaks=[dict(values=dt_breaks)])
+                    # fig['layout'][f'xaxis{i+j+1}'].update({'rangebreaks':[dict(values=dt_breaks)]})
+
+        # Make 10th trace visible
+        for i in range(graph_number):
+            fig.data[i].visible = True
+
+        # Create and add slider
+        steps_ = []
+        for i in range(steps):
+            step = dict(
+                method="update",
+                args=[{"visible": [False] * len(fig.data)},
+                    {"title": "Block " + str(len_[i])}],  # layout attribute
+            )
+
+            for g in range(graph_number):
+                step["args"][0]["visible"][i*graph_number+g] = True  # Toggle i'th trace to "visible"
+
+            steps_.append(step)
+
+
+        sliders = [dict(
+            active=0,
+            # currentvalue={"prefix": "Block: "},
+            pad={"t": 50},
+            steps=steps_
+        )]
+
+        fig.update_layout(
+            sliders=sliders
+        )
+
+        fig.show()

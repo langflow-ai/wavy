@@ -124,6 +124,8 @@ class _BaseModel:
         assets = self.panel.assets
         channels = self.panel.channels
 
+        blocks = []
+
         for i, block_data in enumerate(predicted):
             blocks.append(from_matrix(block_data, index = y[i].index, assets=assets, channels=channels))
 
