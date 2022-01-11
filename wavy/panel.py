@@ -537,10 +537,10 @@ class Panel:
 
     def dropna(self, x=True, y=True):
         """
-        Drop pairs with missing values from the panel.
+        Drop pairs with NaN values from the panel.
 
         Returns:
-            ``Panel``: Panel with missing values dropped.
+            ``Panel``: Panel with NaN values dropped.
         """
         nan_values = self.findna()
         idx = {i for i in range(len(self)) if i not in nan_values}
@@ -548,16 +548,66 @@ class Panel:
             raise ValueError("'dropna' would create empty Panel")
         return self[idx]
 
+    def dropinf(self, x=True, y=True):
+        """
+        Drop pairs with Inf values from the panel.
+
+        Returns:
+            ``Panel``: Panel with Inf values dropped.
+        """
+        nan_values = self.findinf()
+        idx = {i for i in range(len(self)) if i not in nan_values}
+        if not idx:
+            raise ValueError("'dropinf' would create empty Panel")
+        return self[idx]
+
+    def dropinvalid(self, x=True, y=True):
+        """
+        Drop pairs with invalid values from the panel.
+
+        Returns:
+            ``Panel``: Panel with invalid values dropped.
+        """
+        nan_values = self.findinvalid()
+        idx = {i for i in range(len(self)) if i not in nan_values}
+        if not idx:
+            raise ValueError("'dropinvalid' would create empty Panel")
+        return self[idx]
+
     def findna(self, x=True, y=True):
         """
         Find NA/NaN values index.
 
         Returns:
-            ``List``: List with index of missing values.
+            ``List``: List with index of NaN values.
         """
         x_nan = self.x.findna() if x else []
         y_nan = self.y.findna() if y else []
         return list(set(x_nan + y_nan))
+    
+    def findinf(self, x=True, y=True):
+        """
+        Find Inf values index.
+
+        Returns:
+            ``List``: List with index of Inf values.
+        """
+        x_inf = self.x.findinf() if x else []
+        y_inf = self.y.findinf() if y else []
+        return list(set(x_inf + y_inf))
+
+    def findinvalid(self, x=True, y=True):
+        """
+        Find NA/NaN/Inf values index.
+
+        Returns:
+            ``List``: List with index of invalid values.
+        """
+        x_nan = self.x.findna() if x else []
+        y_nan = self.y.findna() if y else []
+        x_inf = self.x.findinf() if x else []
+        y_inf = self.y.findinf() if x else []
+        return list(set(x_nan + y_nan + x_inf + y_inf))
 
     def __repr__(self):
         summary = pd.Series(

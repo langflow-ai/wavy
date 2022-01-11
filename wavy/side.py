@@ -424,10 +424,21 @@ class Side:
         Find NA/NaN values index.
 
         Returns:
-            ``List``: List with index of missing values.
+            ``List``: List with index of NaN values.
         """
         values = np.sum(self.tensor4d, axis=(3, 2, 1))
         values = pd.Series(values).isna()
+        return values[values == True].index.tolist()
+
+    def findinf(self):
+        """
+        Find Inf values index.
+
+        Returns:
+            ``List``: List with index of Inf values.
+        """
+        values = np.sum(self.tensor4d, axis=(3, 2, 1))
+        values = pd.Series(np.isinf(values))
         return values[values == True].index.tolist()
 
     # Used the function update, keep the same name as in block

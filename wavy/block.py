@@ -160,7 +160,6 @@ def from_dataframes(data: List[DataFrame], assets: List[str] = None):
 
     return from_dict(dict)
 
-
 def from_tensor(values, index: List = None, assets: List[str] = None, channels: List[str] = None):
     """
     Generate a Block from list of attributes.
@@ -246,6 +245,7 @@ def from_matrix(values, index: List = None, assets: List[str] = None, channels: 
     df = pd.DataFrame(index=index, columns=columns)
     df.loc[:, (slice(None), slice(None))] = values.reshape(df.shape)
     return Block(df)
+
 
 
 def _rebuild(func):
@@ -1001,6 +1001,7 @@ class Block(pd.DataFrame):
     # TODO dropna
 
     # TODO add findna???
+    # TODO add findinf???
     # TODO add_channel???
     # TODO flat???
     # TODO flatten???
