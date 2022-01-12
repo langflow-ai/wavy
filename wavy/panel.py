@@ -65,7 +65,7 @@ def from_xy_data(x, y, lookback:int, horizon:int, gap:int = 0):
         gap (int): gap between x and y
 
     Returns:
-        ``Panel``: Renamed Panel
+        ``Panel``: Data Panel
 
     Example:
 
@@ -120,7 +120,7 @@ def from_data(df, lookback:int, horizon:int, gap:int = 0, x_assets: List[str] = 
         channels (list): List of channels
 
     Returns:
-        ``Panel``: Renamed Panel
+        ``Panel``: Data Panel
 
     Example:
 
@@ -151,6 +151,47 @@ def from_data(df, lookback:int, horizon:int, gap:int = 0, x_assets: List[str] = 
     xdata = df.filter(x_assets, x_channels)
     ydata = df.filter(y_assets, y_channels)
     return from_xy_data(xdata, ydata, lookback, horizon, gap)
+
+
+def from_single_level(df, lookback:int, horizon:int, gap:int, asset_column:str, index_name:str, x_assets: List[str] = None, y_assets: List[str] = None, x_channels: List[str] = None, y_channels: List[str] = None, assets: List[str] = None, channels: List[str] = None):
+    """
+    Create a panel from a single level dataframe.
+
+    Args:
+        df (DataFrame): Values DataFrame
+        lookback (int): lookback size
+        horizont (int): horizont size
+        gap (int): gap between x and y
+        asset_column (str): column name that will be converter to asset
+        index_name (str): index column name
+        x_assets (list): List of x assets
+        y_assets (list): List of y assets
+        x_channels (list): List of x channels
+        y_channels (list): List of y channels
+        assets (list): List of assets
+        channels (list): List of channels
+
+    Returns:
+        ``Panel``: Data Panel
+    """
+
+    if asset_column not in df:
+        raise ValueError("'asset_column' not in dataframe.")
+    if index_name not in df:
+        raise ValueError("'index_name' not in dataframe.")
+
+    df = df.set_index(index_name)
+
+    df_list = []
+    countries = df[asset_column].unique()
+    for country in countries:
+        temp_df = df[df[asset_column]==country]
+        temp_df.pop(asset_column)
+        df_list.append(temp_df)
+
+    new_df = pd.concat(df_list, axis = 1, keys=(countries))
+
+    return from_data(new_df, lookback = lookback, horizon = horizon, gap = gap, x_assets = x_assets, y_assets = y_assets, x_channels = x_channels, y_channels = y_channels, assets = assets, channels = channels)
 
 
 class Panel:
@@ -537,10 +578,10 @@ class Panel:
 
     def dropna(self, x=True, y=True):
         """
-        Drop pairs with missing values from the panel.
+        Drop pairs with NaN values from the panel.
 
         Returns:
-            ``Panel``: Panel with missing values dropped.
+            ``Panel``: Panel with NaN values dropped.
         """
         nan_values = self.findna()
         idx = {i for i in range(len(self)) if i not in nan_values}
@@ -548,16 +589,67 @@ class Panel:
             raise ValueError("'dropna' would create empty Panel")
         return self[idx]
 
+    def dropinf(self, x=True, y=True):
+        """
+        Drop pairs with Inf values from the panel.
+
+        Returns:
+            ``Panel``: Panel with Inf values dropped.
+        """
+        nan_values = self.findinf()
+        idx = {i for i in range(len(self)) if i not in nan_values}
+        if not idx:
+            raise ValueError("'dropinf' would create empty Panel")
+        return self[idx]
+
+    def dropinvalid(self, x=True, y=True):
+        """
+        Drop pairs with invalid values from the panel.
+
+        Returns:
+            ``Panel``: Panel with invalid values dropped.
+        """
+        nan_values = self.findinvalid()
+        idx = {i for i in range(len(self)) if i not in nan_values}
+        if not idx:
+            raise ValueError("'dropinvalid' would create empty Panel")
+        return self[idx]
+
+
     def findna(self, x=True, y=True):
         """
         Find NA/NaN values index.
 
         Returns:
-            ``List``: List with index of missing values.
+            ``List``: List with index of NaN values.
         """
         x_nan = self.x.findna() if x else []
         y_nan = self.y.findna() if y else []
         return list(set(x_nan + y_nan))
+    
+    def findinf(self, x=True, y=True):
+        """
+        Find Inf values index.
+
+        Returns:
+            ``List``: List with index of Inf values.
+        """
+        x_inf = self.x.findinf() if x else []
+        y_inf = self.y.findinf() if y else []
+        return list(set(x_inf + y_inf))
+
+    def findinvalid(self, x=True, y=True):
+        """
+        Find NA/NaN/Inf values index.
+
+        Returns:
+            ``List``: List with index of invalid values.
+        """
+        x_nan = self.x.findna() if x else []
+        y_nan = self.y.findna() if y else []
+        x_inf = self.x.findinf() if x else []
+        y_inf = self.y.findinf() if x else []
+        return list(set(x_nan + y_nan + x_inf + y_inf))
 
     def __repr__(self):
         summary = pd.Series(
