@@ -16,8 +16,6 @@ pd.set_option("multi_sparse", True)  # To see multilevel indexes
 pd.options.plotting.backend = "plotly"
 from plotly.subplots import make_subplots
 
-DUNDER_METHODS = ['__add__', '__sub__', '__mul__', '__truediv__', '__ge__', '__gt__', '__le__', '__lt__', '__pow__']
-
 def from_dataframe(df: DataFrame, asset: str = 'asset'):
     """
     Generate Block from DataFrame
