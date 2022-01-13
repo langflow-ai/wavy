@@ -259,6 +259,8 @@ class Side:
         """
         Side subset according to the specified assets and channels.
 
+        Similar to `Pandas Rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.filter.html>`__
+
         Args:
             assets (list): List of assets
             channels (list): List of channels
@@ -271,6 +273,8 @@ class Side:
     def drop(self, assets=None, channels=None):
         """
         Subset of the Side columns discarding the specified assets and channels.
+
+        Similar to `Pandas Rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop.html>`__
 
         Args:
             assets (list): List of assets
@@ -285,6 +289,8 @@ class Side:
         """
         Rename asset labels.
 
+        Similar to `Pandas Rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html#>`__
+
         Args:
             dict (dict): Dictionary with assets to rename
 
@@ -297,6 +303,8 @@ class Side:
         """
         Rename channel labels.
 
+        Similar to `Pandas Rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html#>`__
+
         Args:
             dict (dict): Dictionary with channels to rename
 
@@ -308,6 +316,8 @@ class Side:
     def apply(self, func, on: str = 'timestamps'):
         """
         Apply a function along an axis of the DataBlock.
+
+        Similar to `Pandas Apply <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.apply.html>`__
 
         Args:
             func (function): Function to apply to each column or row.
@@ -324,6 +334,8 @@ class Side:
     def update(self, values=None, index: List = None, assets: List = None, channels: List = None):
         """
         Update function for any of Side properties.
+
+        Similar to `Pandas Update <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.update.html>`__
 
         Args:
             values (ndarray): New values Dataframe.
@@ -377,7 +389,7 @@ class Side:
     # Concept: How many blocks contain nan
     def countna(self):
         """
-        Count NA/NaN cells for each Block.
+        Count NaN cells for each Block.
 
         Returns:
             ``DataFrame``: NaN count for each Block.
@@ -394,7 +406,9 @@ class Side:
 
     def fillna(self, value=None, method: str = None):
         """
-        Fill NA/NaN values using the specified method.
+        Fill NaN values using the specified method.
+
+        Similar to `Pandas Shift <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.fillna.html>`__
 
         Returns:
             ``Side``: Side with missing values filled.
@@ -404,6 +418,8 @@ class Side:
     def dropna(self, x=True, y=True):
         """
         Drop pairs with missing values from the panel.
+
+        Similar to `Pandas Shift <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop.html>`__
 
         Returns:
             ``Side``: Side with missing values dropped.
@@ -421,7 +437,7 @@ class Side:
 
     def findna(self):
         """
-        Find NA/NaN values index.
+        Find NaN values index.
 
         Returns:
             ``List``: List with index of NaN values.
@@ -532,6 +548,135 @@ class Side:
         """
         return self.flat().values.flatten()
 
+    def side_shift(self, window: int = 1):
+        # TODO window cannot be negative
+        """
+        Shift side by desired number of blocks.
+
+        Similar to `Pandas Shift <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.shift.html>`__
+
+        Args:
+            window (int): Number of blocks to shift
+
+        Returns:
+            ``Side``: Result of side_shift function.
+
+        Example:
+
+        >>> side[0]
+                        MSFT                 AAPL
+                        Open      Close      Open     Close
+        Date
+        2005-12-21  19.577126  19.475122  2.218566  2.246069
+        2005-12-22  19.460543  19.373114  2.258598  2.261960
+
+        >>> side = side.side_shift(window = 1)
+
+        >>> side[0]
+                MSFT       AAPL      
+                Open Close Open Close
+        Date                            
+        2005-12-21  NaN   NaN  NaN   NaN
+        2005-12-22  NaN   NaN  NaN   NaN
+
+        >>> side[1]
+                        MSFT                 AAPL
+                        Open      Close      Open     Close
+        Date
+        2005-12-21  19.577126  19.475122  2.218566  2.246069
+        2005-12-22  19.460543  19.373114  2.258598  2.261960
+        """
+
+        new_side = []
+
+        for i, block in enumerate(self.blocks):
+            new_index = i - window
+            new_index = new_index if new_index >= 0 and new_index < len(self.blocks) else None
+            new_values = self.blocks[new_index] if new_index is not None else np.ones(self.blocks[0].shape) * np.nan
+            new_block = from_matrix(values=new_values, index=block.index, assets=block.assets, channels=block.channels)
+            new_side.append(new_block)
+
+        return Side(new_side)
+
+    def side_diff(self, window: int = 1):
+        """
+        Difference between blocks.
+
+        Similar to `Pandas Shift <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.diff.html>`__
+
+        Args:
+            window (int): Number of blocks to diff
+
+        Returns:
+            ``Side``: Result of side_diff function.
+
+        Example:
+
+        >>> side[0]
+                        MSFT                 AAPL
+                        Open      Close      Open     Close
+        Date
+        2005-12-21  19.577126  19.475122  2.218566  2.246069
+        2005-12-22  19.460543  19.373114  2.258598  2.261960
+
+        >>> side = side.side_diff(window = 1)
+
+        >>> side[0]
+                MSFT       AAPL      
+                Open Close Open Close
+        Date                            
+        2005-12-21  NaN   NaN  NaN   NaN
+        2005-12-22  NaN   NaN  NaN   NaN
+
+        >>> side[1]
+                        MSFT                AAPL          
+                        Open     Close      Open     Close
+        Date                                              
+        2005-12-22 -0.116582 -0.102009  0.040033  0.015891
+        2005-12-23 -0.138421  0.036438  0.007945 -0.020475
+        """
+        return self - self.side_shift(window)
+
+    def side_pct_change(self, window: int = 1):
+        """
+        Percentage change between the current and a prior block.
+
+        Similar to `Pandas Shift <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.pct_change.html>`__
+
+        Args:
+            window (int): Number of blocks to calculate percent change
+
+        Returns:
+            ``Side``: Result of side_pct_change function.
+
+        Example:
+
+        >>> side[0]
+                        MSFT                 AAPL
+                        Open      Close      Open     Close
+        Date
+        2005-12-21  19.577126  19.475122  2.218566  2.246069
+        2005-12-22  19.460543  19.373114  2.258598  2.261960
+
+        >>> side = side.side_pct_change(window = 1)
+
+        >>> side[0]
+                MSFT       AAPL      
+                Open Close Open Close
+        Date                            
+        2005-12-21  NaN   NaN  NaN   NaN
+        2005-12-22  NaN   NaN  NaN   NaN
+
+        >>> side[1]
+                        MSFT                AAPL          
+                        Open     Close      Open     Close
+        Date                                              
+        2005-12-22 -0.005955 -0.005238  0.018044  0.007075
+        2005-12-23 -0.007113  0.001881  0.003518 -0.009052
+        """
+        a = self.side_shift(window)
+        return (self - a) / a
+
 
     def plot_block(self, idx, assets: List[str] = None, channels: List[str] = None):
         """
@@ -575,28 +720,17 @@ class Side:
         fig.update_layout(showlegend=True)
         fig.show()
 
-    def side_shift(self, window: int = 1):
-        # TODO window cannot be negative
-        new_side = []
-
-        for i, block in enumerate(self.blocks):
-            new_index = i - window
-            new_index = new_index if new_index >= 0 and new_index < len(self.blocks) else None
-            new_values = self.blocks[new_index] if new_index is not None else np.ones(self.blocks[0].shape) * np.nan
-            new_block = from_matrix(values=new_values, index=block.index, assets=block.assets, channels=block.channels)
-            new_side.append(new_block)
-
-        return Side(new_side)
-
-    def side_diff(self, periods: int = 1):
-        return self - self.side_shift(periods)
-
-    def side_pct_change(self, periods: int = 1):
-        a = self.side_shift(periods)
-        return (self - a) / a
-
 
     def plot_slider(self, steps: int = 100):
+        """
+        Make side plots with slider.
+
+        Args:
+            steps (int): Number of equally spaced blocks to plot
+
+        Returns:
+            ``Plot``: Plotted data.
+        """
 
         cmap = px.colors.qualitative.Plotly
 

@@ -14,8 +14,7 @@ Submodules
 
    wavy.block
    wavy.frequency
-   wavy.nn
-   wavy.pair
+   wavy.model
    wavy.panel
    wavy.plot
    wavy.side

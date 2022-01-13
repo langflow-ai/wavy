@@ -472,6 +472,8 @@ class Block(pd.DataFrame):
         """
         Block subset according to the specified assets and channels.
 
+        Similar to `Pandas Rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.filter.html>`__
+
         Args:
             assets (list): List of assets
             channels (list): List of channels
@@ -528,6 +530,8 @@ class Block(pd.DataFrame):
         """
         Subset of the dataframe columns discarding the specified assets and channels.
 
+        Similar to `Pandas Rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop.html>`__
+
         Args:
             assets (list): List of assets
             channels (list): List of channels
@@ -573,6 +577,8 @@ class Block(pd.DataFrame):
         """
         Rename asset labels.
 
+        Similar to `Pandas Rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html#>`__
+
         Args:
             dict (dict): Dictionary with assets to rename
 
@@ -606,6 +612,8 @@ class Block(pd.DataFrame):
         """
         Rename channel labels.
 
+        Similar to `Pandas Rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html#>`__
+
         Args:
             dict (dict): Dictionary with channels to rename
 
@@ -637,6 +645,8 @@ class Block(pd.DataFrame):
     def apply(self, func, on: str = 'timestamps'):
         """
         Apply a function along an axis of the DataBlock.
+
+        Similar to `Pandas Apply <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.apply.html>`__
 
         Args:
             func (function): Function to apply to each column or row.
@@ -704,6 +714,8 @@ class Block(pd.DataFrame):
     def update(self, values=None, index: List = None, assets: List = None, channels: List = None):
         """
         Update function for any of DataBlock properties.
+
+        Similar to `Pandas Update <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.update.html>`__
 
         Args:
             values (ndarray): New values Dataframe.
@@ -874,7 +886,7 @@ class Block(pd.DataFrame):
 
     def countna(self, type: str = 'asset'):
         """
-        Count NA/NaN cells for each asset or channel.
+        Count NaN cells for each asset or channel.
 
         Returns:
             ``List``: List of NaN count.
@@ -928,7 +940,7 @@ class Block(pd.DataFrame):
     def fillna(self, value=None, method=None, axis=None, inplace=False, limit=None, downcast=None):
         # TODO link pandas documentation (Similar/Inherited to pandas.dataframe.fillna)
         """
-        Fill NA/NaN values using the specified method.
+        Fill NaN values using the specified method.
 
         Returns:
             ``DataBlock``: DataBlock with missing values filled.

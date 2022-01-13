@@ -53,7 +53,7 @@ from plotly.subplots import make_subplots
 #     return Panel(x, y)
 
 
-def from_xy_data(x, y, lookback:int, horizon:int, gap:int = 0):
+def from_xy_data(x, y, lookback:int, horizon:int, gap:int = 0, remove_invalid: bool = False):
     """
     Create a panel from two dataframes.
 
@@ -63,6 +63,7 @@ def from_xy_data(x, y, lookback:int, horizon:int, gap:int = 0):
         lookback (int): lookback size
         horizont (int): horizont size
         gap (int): gap between x and y
+        remove_invalid (bool): Remove blocks that contains NaN/Inf values
 
     Returns:
         ``Panel``: Data Panel
@@ -100,10 +101,25 @@ def from_xy_data(x, y, lookback:int, horizon:int, gap:int = 0):
     for i in indexes:
         xblocks.append(x.iloc[i - lookback : i])
         yblocks.append(y.iloc[i + gap : i + gap + horizon])
-    return Panel(Side(xblocks), Side(yblocks), gap=gap)
+
+    panel = Panel(Side(xblocks), Side(yblocks), gap=gap)
+
+    if remove_invalid:
+        panel = panel.dropinvalid()
+    return panel
 
 
-def from_data(df, lookback:int, horizon:int, gap:int = 0, x_assets: List[str] = None, y_assets: List[str] = None, x_channels: List[str] = None, y_channels: List[str] = None, assets: List[str] = None, channels: List[str] = None):
+def from_data(df,
+              lookback:int,
+              horizon:int,
+              gap:int = 0,
+              x_assets: List[str] = None,
+              y_assets: List[str] = None,
+              x_channels: List[str] = None,
+              y_channels: List[str] = None,
+              assets: List[str] = None,
+              channels: List[str] = None,
+              remove_invalid: bool = False):
     """
     Create a panel from a dataframe.
 
@@ -118,6 +134,7 @@ def from_data(df, lookback:int, horizon:int, gap:int = 0, x_assets: List[str] = 
         y_channels (list): List of y channels
         assets (list): List of assets
         channels (list): List of channels
+        remove_invalid (bool): Remove blocks that contains NaN/Inf values
 
     Returns:
         ``Panel``: Data Panel
@@ -153,7 +170,19 @@ def from_data(df, lookback:int, horizon:int, gap:int = 0, x_assets: List[str] = 
     return from_xy_data(xdata, ydata, lookback, horizon, gap)
 
 
-def from_single_level(df, lookback:int, horizon:int, gap:int, asset_column:str, index_name:str, x_assets: List[str] = None, y_assets: List[str] = None, x_channels: List[str] = None, y_channels: List[str] = None, assets: List[str] = None, channels: List[str] = None):
+def from_single_level(df,
+                      lookback:int,
+                      horizon:int,
+                      gap:int,
+                      asset_column:str,
+                      index_name:str,
+                      x_assets: List[str] = None,
+                      y_assets: List[str] = None,
+                      x_channels: List[str] = None,
+                      y_channels: List[str] = None,
+                      assets: List[str] = None,
+                      channels: List[str] = None,
+                      remove_invalid: bool = False):
     """
     Create a panel from a single level dataframe.
 
@@ -170,6 +199,7 @@ def from_single_level(df, lookback:int, horizon:int, gap:int, asset_column:str, 
         y_channels (list): List of y channels
         assets (list): List of assets
         channels (list): List of channels
+        remove_invalid (bool): Remove blocks that contains NaN/Inf values
 
     Returns:
         ``Panel``: Data Panel
@@ -191,7 +221,17 @@ def from_single_level(df, lookback:int, horizon:int, gap:int, asset_column:str, 
 
     new_df = pd.concat(df_list, axis = 1, keys=(countries))
 
-    return from_data(new_df, lookback = lookback, horizon = horizon, gap = gap, x_assets = x_assets, y_assets = y_assets, x_channels = x_channels, y_channels = y_channels, assets = assets, channels = channels)
+    return from_data(new_df,
+                     lookback = lookback,
+                     horizon = horizon,
+                     gap = gap,
+                     x_assets = x_assets,
+                     y_assets = y_assets,
+                     x_channels = x_channels,
+                     y_channels = y_channels,
+                     assets = assets,
+                     channels = channels,
+                     remove_invalid = remove_invalid)
 
 
 class Panel:
@@ -427,6 +467,8 @@ class Panel:
         """
         Panel subset according to the specified assets and channels.
 
+        Similar to `Pandas Rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.filter.html>`__
+
         Args:
             assets (list): List of assets
             channels (list): List of channels
@@ -441,6 +483,8 @@ class Panel:
     def drop(self, assets=None, channels=None):
         """
         Subset of the Panel columns discarding the specified assets and channels.
+
+        Similar to `Pandas Rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop.html>`__
 
         Args:
             assets (list): List of assets
@@ -485,6 +529,8 @@ class Panel:
         """
         Apply a function along an axis of the DataBlock.
 
+        Similar to `Pandas Apply <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.apply.html>`__
+
         Args:
             func (function): Function to apply to each column or row.
             on (str, default 'row'): Axis along which the function is applied:
@@ -502,6 +548,8 @@ class Panel:
     def update(self, values=None, index: List = None, assets: List = None, channels: List = None):
         """
         Update function for any of Panel properties.
+
+        Similar to `Pandas Update <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.update.html>`__
 
         Args:
             values (ndarray): New values Dataframe.
@@ -557,7 +605,7 @@ class Panel:
 
     def countna(self):
         """
-        Count NA/NaN cells for each Panel.
+        Count NaN cells for each Panel.
 
         Returns:
             ``Panel``: NaN count for each Panel.
@@ -567,7 +615,7 @@ class Panel:
 
     def fillna(self, value=None, method: str = None):
         """
-        Fill NA/NaN values using the specified method.
+        Fill NaN values using the specified method.
 
         Returns:
             ``Panel``: Panel with missing values filled.
@@ -618,7 +666,7 @@ class Panel:
 
     def findna(self, x=True, y=True):
         """
-        Find NA/NaN values index.
+        Find NaN values index.
 
         Returns:
             ``List``: List with index of NaN values.
@@ -640,7 +688,7 @@ class Panel:
 
     def findinvalid(self, x=True, y=True):
         """
-        Find NA/NaN/Inf values index.
+        Find NaN/Inf values index.
 
         Returns:
             ``List``: List with index of invalid values.
@@ -685,7 +733,6 @@ class Panel:
             ``DataBlock``: New panel with the pairs split into training, validation,
             and test sets. To use each set, one must access the properties .train,
             .val and .test.
-
 
         Example:
 
@@ -786,6 +833,15 @@ class Panel:
 
 
     def plot_slider(self, steps: int = 100):
+        """
+        Make side plots with slider.
+
+        Args:
+            steps (int): Number of equally spaced blocks to plot
+
+        Returns:
+            ``Plot``: Plotted data.
+        """
 
         cmap = px.colors.qualitative.Plotly
 
