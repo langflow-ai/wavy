@@ -707,7 +707,7 @@ class Side:
         """
         cmap = px.colors.qualitative.Plotly
 
-        fig = make_subplots(rows=len(self.channels), cols=len(self.assets), subplot_titles=self.assets, shared_xaxes=True)
+        fig = make_subplots(rows=len(self.channels), cols=len(self.assets), subplot_titles=self.assets)
 
         # data = self.as_dataframe()
 
@@ -715,7 +715,7 @@ class Side:
             c = cmap[j]
             for i, asset in enumerate(self.assets):
 
-                showlegend = i <= 0
+                # showlegend = i <= 0
                 # x_df = data.loc[:, (asset, channel)]
 
                 x_df = self.blocks[idx].filter(assets=asset, channels=channel)
@@ -723,16 +723,24 @@ class Side:
                 values = x_df.values.flatten()
 
                 x_trace = go.Scatter(x=index, y=values,
-                                line=dict(width=2, color=c), showlegend=showlegend, name=channel)
+                                line=dict(width=2, color=c), showlegend=False)
 
                 fig.add_trace(x_trace, row=j+1, col=i+1)
                 # Remove empty dates
-                dt_all = pd.date_range(start=index[0],end=index[-1])
-                dt_obs = [d.strftime("%Y-%m-%d") for d in index]
-                dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if not d in dt_obs]
-                fig.update_xaxes(rangebreaks=[dict(values=dt_breaks)])
+                # dt_all = pd.date_range(start=index[0],end=index[-1])
+                # dt_obs = [d.strftime("%Y-%m-%d") for d in index]
+                # dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if not d in dt_obs]
+                # fig.update_xaxes(rangebreaks=[dict(values=dt_breaks)])
 
-        fig.update_layout(showlegend=True)
+        fig.update_layout(
+            template='simple_white',
+            showlegend=True
+            )
+
+        num_assets = len(self.assets)
+        for i, channel in enumerate(self.channels):
+            fig['layout'][f'yaxis{i*num_assets+1}'].update({'title':channel})
+
         fig.show()
 
 
@@ -751,7 +759,7 @@ class Side:
 
         # Create figure
         # fig = go.Figure()
-        fig = make_subplots(rows=len(self.channels), cols=len(self.assets), subplot_titles=self.assets, shared_xaxes=True)
+        fig = make_subplots(rows=len(self.channels), cols=len(self.assets), subplot_titles=self.assets)
 
         graph_number = len(self.channels) * len(self.assets)
 
@@ -779,10 +787,10 @@ class Side:
 
                     fig.add_trace(x_trace, row=j+1, col=i+1)
 
-                    dt_all = pd.date_range(start=index[0],end=index[-1])
-                    dt_obs = [d.strftime("%Y-%m-%d") for d in index]
-                    dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if not d in dt_obs]
-                    fig.update_xaxes(rangebreaks=[dict(values=dt_breaks)])
+                    # dt_all = pd.date_range(start=index[0],end=index[-1])
+                    # dt_obs = [d.strftime("%Y-%m-%d") for d in index]
+                    # dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if not d in dt_obs]
+                    # fig.update_xaxes(rangebreaks=[dict(values=dt_breaks)])
 
         # Make 10th trace visible
         for i in range(graph_number):
@@ -811,7 +819,13 @@ class Side:
         )]
 
         fig.update_layout(
+            template='simple_white',
             sliders=sliders
         )
+
+        # Plot y titles
+        num_assets = len(self.assets)
+        for i, channel in enumerate(self.channels):
+            fig['layout'][f'yaxis{i*num_assets+1}'].update({'title':channel})
 
         fig.show()

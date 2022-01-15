@@ -802,33 +802,46 @@ class Panel:
         """
         cmap = px.colors.qualitative.Plotly
 
-        fig = make_subplots(rows=len(self.channels), cols=len(self.assets), subplot_titles=self.assets, shared_xaxes=True)
+        fig = make_subplots(rows=len(self.channels), cols=len(self.assets), subplot_titles=self.assets)
 
         for j, channel in enumerate(self.channels):
             c = cmap[j]
             for i, asset in enumerate(self.assets):
 
-                showlegend = i <= 0
+                # showlegend = i <= 0
                 x_df = self.x[idx].filter(assets=asset, channels=channel)
                 y_df = self.y[idx].filter(assets=asset, channels=channel)
 
-                x_trace = go.Scatter(x=x_df.index, y=x_df.values.flatten(),
-                                line=dict(width=2, color=c), showlegend=showlegend, name=channel)
+                # x_trace = go.Scatter(x=x_df.index, y=x_df.values.flatten(),
+                #                 line=dict(width=2, color=c), showlegend=False, name=channel)
+                # y_trace = go.Scatter(x=y_df.index, y=y_df.values.flatten(),
+                #                     line=dict(width=2, dash='dot', color=c), showlegend=False)
 
+                x_trace = go.Scatter(x=x_df.index, y=x_df.values.flatten(),
+                                line=dict(width=2, color=c), showlegend=False)
                 y_trace = go.Scatter(x=y_df.index, y=y_df.values.flatten(),
-                                    line=dict(width=2, dash='dot', color=c), showlegend=False)
+                                line=dict(width=2, dash='dot', color=c), showlegend=False)
 
                 fig.add_trace(x_trace, row=j+1, col=i+1)
-
                 fig.add_trace(y_trace, row=j+1, col=i+1)
-                dt_all = pd.date_range(start=x_df.index[0],end=y_df.index[-1])
-                dt_obs_x = [d.strftime("%Y-%m-%d") for d in x_df.index]
-                dt_obs_y = [d.strftime("%Y-%m-%d") for d in y_df.index]
-                dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if (not d in dt_obs_x) and (not d in dt_obs_y)]
-                # fig['layout']['xaxis2'].update_xaxes(rangebreaks=[dict(values=dt_breaks)])
-                fig['layout'][f'xaxis{i+j+1}'].update({'rangebreaks':[dict(values=dt_breaks)]})
+                # dt_all = pd.date_range(start=x_df.index[0],end=y_df.index[-1])
+                # dt_obs_x = [d.strftime("%Y-%m-%d") for d in x_df.index]
+                # dt_obs_y = [d.strftime("%Y-%m-%d") for d in y_df.index]
+                # dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if (not d in dt_obs_x) and (not d in dt_obs_y)]
+                # # fig['layout']['xaxis2'].update_xaxes(rangebreaks=[dict(values=dt_breaks)])
+                # fig['layout'][f'xaxis{i+j+1}'].update({'rangebreaks':[dict(values=dt_breaks)]})
 
-        fig.update_layout(showlegend=True)
+        fig.update_layout(
+            template='simple_white',
+            )
+
+        num_assets = len(self.assets)
+        # num_channels = len(self.channels)
+        for i, channel in enumerate(self.channels):
+            fig['layout'][f'yaxis{i*num_assets+1}'].update({'title':channel})
+        # for i, assets in enumerate(self.assets):
+        #     fig['layout'][f'xaxis{i*num_channels+1}'].update({'title':assets})
+
         fig.show()
 
 
@@ -862,13 +875,13 @@ class Panel:
                 c = cmap[j]
                 for i, asset in enumerate(self.assets):
 
-                    showlegend = i <= 0
+                    # showlegend = i <= 0
 
                     x_df = self.x[step].filter(assets=asset, channels=channel)
                     y_df = self.y[step].filter(assets=asset, channels=channel)
 
                     x_trace = go.Scatter(visible=False, x=x_df.index, y=x_df.values.flatten(),
-                                line=dict(width=2, color=c), showlegend=showlegend, name=channel)
+                                line=dict(width=2, color=c), showlegend=False)
 
                     y_trace = go.Scatter(visible=False, x=y_df.index, y=y_df.values.flatten(),
                                         line=dict(width=2, dash='dot', color=c), showlegend=False)
@@ -884,8 +897,8 @@ class Panel:
                     # # print
                     # fig['layout'][f'xaxis{i+j+1}'].update({'rangebreaks':[dict(values=dt_breaks)]})
 
-        dt_all = pd.date_range(start=self.x[0].index[0],end=self.y[-1].index[-1])
-        dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if (not d in dt_obs_x) and (not d in dt_obs_y)]
+        # dt_all = pd.date_range(start=self.x[0].index[0],end=self.y[-1].index[-1])
+        # dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if (not d in dt_obs_x) and (not d in dt_obs_y)]
         # fig['layout'][f'xaxis1'].update({'rangebreaks':[dict(values=dt_breaks)]})
         # fig['layout'][f'xaxis2'].update({'rangebreaks':[dict(values=dt_breaks)]})
         # fig['layout'][f'xaxis3'].update({'rangebreaks':[dict(values=dt_breaks)]})
@@ -920,15 +933,20 @@ class Panel:
         fig.update_layout(
             template='simple_white',
             sliders=sliders,
-            xaxis_tickformat = '%Y-%m-%d',
-            xaxis2_tickformat = '%Y-%m-%d',
-            xaxis3_tickformat = '%Y-%m-%d',
-            xaxis4_tickformat = '%Y-%m-%d',
-            xaxis=dict(
-                autorange=True,
-                automargin=True,
-                type='date',
-            )
+            # xaxis_tickformat = '%Y-%m-%d',
+            # xaxis2_tickformat = '%Y-%m-%d',
+            # xaxis3_tickformat = '%Y-%m-%d',
+            # xaxis4_tickformat = '%Y-%m-%d',
+            # xaxis=dict(
+            #     autorange=True,
+            #     automargin=True,
+            #     type='date',
+            # )
         )
+
+        # Plot y titles
+        num_assets = len(self.assets)
+        for i, channel in enumerate(self.channels):
+            fig['layout'][f'yaxis{i*num_assets+1}'].update({'title':channel})
 
         fig.show()
