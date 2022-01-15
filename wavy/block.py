@@ -274,35 +274,22 @@ class Block(pd.DataFrame):
     def __init__(self, df, *args, **kwargs):
         super().__init__(df, *args, **kwargs)
 
-    # TODO fix this method
-    # Function to map all dunder functions
-    # def _one_arg(self, other, __f):
+    # def __repr__(self):
     #     if not self.is_valid:
-    #         return self
-    #     elif not other.is_valid:
-    #         return other
-    #     elif isinstance(other, Block):
-    #         return from_matrix(values=getattr(self.values, __f)(other.values), index=self.index, assets=self.assets, channels=self.channels)
+    #         return "<empty block>"
+    #     else:
+    #         return super().__repr__()
 
-    # for dunder in DUNDER_METHODS:
-    #     locals()[dunder] = lambda self, other, __f=dunder: self._one_arg(other, __f)
+    # # TODO check why panel calls __repr__ and block calls __str__
+    # def __str__(self):
+    #     if not self.is_valid:
+    #         return "<empty block>"
+    #     else:
+    #         return super().__repr__()
 
-    def __repr__(self):
-        if not self.is_valid:
-            return "<empty block>"
-        else:
-            return super().__repr__()
-
-    # TODO check why panel calls __repr__ and block calls __str__
-    def __str__(self):
-        if not self.is_valid:
-            return "<empty block>"
-        else:
-            return super().__repr__()
-
-    @property
-    def is_valid(self):
-        return False if any(self.index.isna()) else True
+    # @property
+    # def is_valid(self):
+    #     return False if any(self.index.isna()) else True
 
     @property
     def _constructor(self):

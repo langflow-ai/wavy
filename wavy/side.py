@@ -77,6 +77,21 @@ class Side:
     def __len__(self):
         return len(self.blocks)
 
+    def __repr__(self):
+        summary = pd.Series(
+            {
+                "size": self.__len__(),
+                "num_assets": len(self.assets),
+                "num_channels": len(self.channels),
+                "start": self.start,
+                "end": self.end,
+            },
+            name="Side",
+        )
+
+        print(summary)
+        return f"<Side, size {self.__len__()}>"
+
     @property
     def first(self):
         """
