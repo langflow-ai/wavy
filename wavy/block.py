@@ -3,7 +3,7 @@ from collections import OrderedDict
 import numpy as np
 import pandas as pd
 from pandas.core.frame import DataFrame
-from typing import List
+from typing import List, Union
 from .utils import add_dim, add_level
 
 # Plot
@@ -15,6 +15,8 @@ import plotly.express as px
 pd.set_option("multi_sparse", True)  # To see multilevel indexes
 pd.options.plotting.backend = "plotly"
 from plotly.subplots import make_subplots
+
+FUNCTIONS = ['T', '_AXIS_LEN', '_AXIS_NAMES', '_AXIS_NUMBERS', '_AXIS_ORDERS', '_AXIS_REVERSED', '_AXIS_TO_AXIS_NUMBER', '_HANDLED_TYPES', '__abs__', '__add__', '__and__', '__annotations__', '__array__', '__array_priority__', '__array_ufunc__', '__array_wrap__', '__bool__', '__class__', '__contains__', '__copy__', '__deepcopy__', '__delattr__', '__delitem__', '__dict__', '__dir__', '__divmod__', '__doc__', '__eq__', '__finalize__', '__floordiv__', '__format__', '__ge__', '__getattr__', '__getattribute__', '__getitem__', '__getstate__', '__gt__', '__hash__', '__iadd__', '__iand__', '__ifloordiv__', '__imod__', '__imul__', '__init__', '__init_subclass__', '__invert__', '__ior__', '__ipow__', '__isub__', '__iter__', '__itruediv__', '__ixor__', '__le__', '__len__', '__lt__', '__matmul__', '__mod__', '__module__', '__mul__', '__ne__', '__neg__', '__new__', '__nonzero__', '__or__', '__pos__', '__pow__', '__radd__', '__rand__', '__rdivmod__', '__reduce__', '__reduce_ex__', '__repr__', '__rfloordiv__', '__rmatmul__', '__rmod__', '__rmul__', '__ror__', '__round__', '__rpow__', '__rsub__', '__rtruediv__', '__rxor__', '__setattr__', '__setitem__', '__setstate__', '__sizeof__', '__str__', '__sub__', '__subclasshook__', '__truediv__', '__weakref__', '__xor__', '_accessors', '_accum_func', '_add_numeric_operations', '_agg_by_level', '_agg_examples_doc', '_agg_summary_and_see_also_doc', '_align_frame', '_align_series', '_arith_method', '_as_manager', '_box_col_values', '_can_fast_transpose', '_check_inplace_and_allows_duplicate_labels', '_check_inplace_setting', '_check_is_chained_assignment_possible', '_check_label_or_level_ambiguity', '_check_setitem_copy', '_clear_item_cache', '_clip_with_one_bound', '_clip_with_scalar', '_cmp_method', '_combine_frame', '_consolidate', '_consolidate_inplace', '_construct_axes_dict', '_construct_axes_from_arguments', '_construct_result', '_constructor', '_constructor_sliced', '_convert', '_count_level', '_data', '_dir_additions', '_dir_deletions', '_dispatch_frame_op', '_drop_axis', '_drop_labels_or_levels', '_ensure_valid_index', '_find_valid_index', '_from_arrays', '_from_mgr', '_get_agg_axis', '_get_axis', '_get_axis_name', '_get_axis_number', '_get_axis_resolvers', '_get_block_manager_axis', '_get_bool_data', '_get_cleaned_column_resolvers', '_get_column_array', '_get_index_resolvers', '_get_item_cache', '_get_label_or_level_values', '_get_numeric_data', '_get_value', '_getitem_bool_array', '_getitem_multilevel', '_gotitem', '_hidden_attrs', '_indexed_same', '_info_axis', '_info_axis_name', '_info_axis_number', '_info_repr', '_init_mgr', '_inplace_method', '_internal_names', '_internal_names_set', '_is_copy', '_is_homogeneous_type', '_is_label_or_level_reference', '_is_label_reference', '_is_level_reference', '_is_mixed_type', '_is_view', '_iset_item', '_iset_item_mgr', '_iset_not_inplace', '_iter_column_arrays', '_ixs', '_join_compat', '_logical_func', '_logical_method', '_maybe_cache_changed', '_maybe_update_cacher', '_metadata', '_min_count_stat_function', '_needs_reindex_multi', '_protect_consolidate', '_reduce', '_reindex_axes', '_reindex_columns', '_reindex_index', '_reindex_multi', '_reindex_with_indexers', '_replace_columnwise', '_repr_data_resource_', '_repr_fits_horizontal_', '_repr_fits_vertical_', '_repr_html_', '_repr_latex_', '_reset_cache', '_reset_cacher', '_sanitize_column', '_series', '_set_axis', '_set_axis_name', '_set_axis_nocheck', '_set_is_copy', '_set_item', '_set_item_frame_value', '_set_item_mgr', '_set_value', '_setitem_array', '_setitem_frame', '_setitem_slice', '_slice', '_stat_axis', '_stat_axis_name', '_stat_axis_number', '_stat_function', '_stat_function_ddof', '_take_with_is_copy', '_to_dict_of_blocks', '_typ', '_update_inplace', '_validate_dtype', '_values', '_where', 'abs', 'add', 'add_prefix', 'add_suffix', 'agg', 'aggregate', 'align', 'all', 'any', 'append', 'apply', 'applymap', 'asfreq', 'asof', 'assign', 'astype', 'at', 'at_time', 'attrs', 'axes', 'backfill', 'between_time', 'bfill', 'bool', 'boxplot', 'clip', 'columns', 'combine', 'combine_first', 'compare', 'convert_dtypes', 'copy', 'corr', 'corrwith', 'count', 'cov', 'cummax', 'cummin', 'cumprod', 'cumsum', 'describe', 'diff', 'div', 'divide', 'dot', 'drop', 'drop_duplicates', 'droplevel', 'dropna', 'dtypes', 'duplicated', 'empty', 'eq', 'equals', 'eval', 'ewm', 'expanding', 'explode', 'ffill', 'fillna', 'filter', 'first', 'first_valid_index', 'flags', 'floordiv', 'from_dict', 'from_records', 'ge', 'get', 'groupby', 'gt', 'head', 'hist', 'iat', 'idxmax', 'idxmin', 'iloc', 'index', 'infer_objects', 'info', 'insert', 'interpolate', 'isin', 'isna', 'isnull', 'items', 'iteritems', 'iterrows', 'itertuples', 'join', 'keys', 'kurt', 'kurtosis', 'last', 'last_valid_index', 'le', 'loc', 'lookup', 'lt', 'mad', 'mask', 'max', 'mean', 'median', 'melt', 'memory_usage', 'merge', 'min', 'mod', 'mode', 'mul', 'multiply', 'ndim', 'ne', 'nlargest', 'notna', 'notnull', 'nsmallest', 'nunique', 'pad', 'pct_change', 'pipe', 'pivot', 'pivot_table', 'plot', 'pop', 'pow', 'prod', 'product', 'quantile', 'query', 'radd', 'rank', 'rdiv', 'reindex', 'reindex_like', 'rename', 'rename_axis', 'reorder_levels', 'replace', 'resample', 'reset_index', 'rfloordiv', 'rmod', 'rmul', 'rolling', 'round', 'rpow', 'rsub', 'rtruediv', 'sample', 'select_dtypes', 'sem', 'set_axis', 'set_flags', 'set_index', 'shape', 'shift', 'size', 'skew', 'slice_shift', 'sort_index', 'sort_values', 'sparse', 'squeeze', 'stack', 'std', 'style', 'sub', 'subtract', 'sum', 'swapaxes', 'swaplevel', 'tail', 'take', 'to_clipboard', 'to_csv', 'to_dict', 'to_excel', 'to_feather', 'to_gbq', 'to_hdf', 'to_html', 'to_json', 'to_latex', 'to_markdown', 'to_numpy', 'to_parquet', 'to_period', 'to_pickle', 'to_records', 'to_sql', 'to_stata', 'to_string', 'to_timestamp', 'to_xarray', 'to_xml', 'transform', 'transpose', 'truediv', 'truncate', 'tshift', 'tz_convert', 'tz_localize', 'unstack', 'update', 'value_counts', 'values', 'var', 'where', 'xs']
 
 def from_dataframe(df: DataFrame, asset: str = 'asset'):
     """
@@ -62,6 +64,14 @@ def from_dataframe(df: DataFrame, asset: str = 'asset'):
 
     return tb
 
+def from_series(data, axis=0, index=0, name='none'):
+    if axis == 1:
+        block = from_dataframe(data.to_frame(name=name))
+    else:
+        block = from_dataframe(data.to_frame().T)
+        block.index = [index]
+        
+    return block
 
 def from_dict(data: dict):
     """
@@ -255,6 +265,17 @@ def _rebuild(func):
 
     return wrapper
 
+# def improve_function(func):
+#     @functools.wraps(func)
+#     def wrapper(*args, **kwargs):
+#         df = func(*args, **kwargs)
+
+#         if isinstance(df, _AssetSeries):
+#             return df.to_frame().T
+#         else:
+#             return df
+
+#     return wrapper
 
 class _AssetSeries(pd.Series):
     def __init__(self, df, *args, **kwargs):
@@ -274,6 +295,50 @@ class Block(pd.DataFrame):
     def __init__(self, df, *args, **kwargs):
         super().__init__(df, *args, **kwargs)
 
+
+    # def override_series(self, func, *args, **kwargs):
+    #     df = self.as_dataframe().__getattr__(func)(*args, **kwargs)
+
+    #     if isinstance(df, pd.Series):
+    #         return from_series(df, self.index[0])
+    #     else:
+    #         return df
+
+    # # dir(pd.DataFrame)
+    # # ['min', 'max', 'mean', 'mad']
+    # for func in dir(pd.DataFrame):
+    #     # if not func.startswith('_') and callable(getattr(pd.DataFrame, func)):
+    #     locals()[func] = lambda self, func=func, *args, **kwargs: self.override_series(func, *args, **kwargs)
+
+
+
+    def _check_method(self, method):
+        if method not in self.__class__.__dict__:  # Not defined in method : inherited
+            # return 'inherited'
+            raise NotImplementedError
+        # elif hasattr(super(), method):  # Present in parent : overloaded
+        #     return 'overloaded'
+        # else:  # Not present in parent : newly defined
+        #     return 'newly defined'
+
+
+    # def mean(self):
+    #     return super().mean().to_frame().T
+
+    # def __getattr__(self, name):
+    #     try:
+    #         def wrapper(*args, **kwargs):
+
+    #             df = getattr(self, name)(*args, **kwargs)
+
+    #             if isinstance(df, _AssetSeries):
+    #                 return df.to_frame().T
+    #             else:
+    #                 return df
+    #         return wrapper
+    #     except AttributeError:
+    #         raise AttributeError(f"'Block' object has no attribute '{name}'")
+
     # def __repr__(self):
     #     if not self.is_valid:
     #         return "<empty block>"
@@ -292,6 +357,15 @@ class Block(pd.DataFrame):
     #     return False if any(self.index.isna()) else True
 
     # TODO convert return of dataframe functions to block
+
+    # def _rebuild(func):
+    #     # Avoid problem with frozen list from pandas
+    #     @functools.wraps(func)
+    #     def wrapper(*args, **kwargs):
+    #         df = func(*args, **kwargs)
+    #         return from_matrix(df.values, df.index, df.assets, df.channels)
+
+    #     return wrapper
 
     @property
     def _constructor(self):
@@ -631,7 +705,7 @@ class Block(pd.DataFrame):
         channels = self.channels.replace(to_replace=values, value=new_values)
         return self.update(channels=channels.values)
 
-    def apply(self, func, on: str = 'timestamps'):
+    def wapply(self, func, on: str = 'timestamps'):
         """
         Apply a function along an axis of the DataBlock.
 
@@ -674,7 +748,7 @@ class Block(pd.DataFrame):
         elif on == 'channels':
             return self._channel_apply(func)
 
-        raise ValueError(f"{axis} not acceptable for 'axis'. Available values are [0, 1]")
+        raise ValueError(f"{on} not acceptable for 'axis'. Available values are [0, 1]")
 
     def _timestamp_apply(self, func):
         df = self.as_dataframe().apply(func, axis=0)
@@ -926,10 +1000,11 @@ class Block(pd.DataFrame):
         """
         return pd.DataFrame(self.values, index=self.index, columns=self.columns)
 
-    def fillna(self, value=None, method=None, axis=None, inplace=False, limit=None, downcast=None):
-        # TODO link pandas documentation (Similar/Inherited to pandas.dataframe.fillna)
+    def wfillna(self, value=None, method=None, axis=None, inplace=False, limit=None, downcast=None):
         """
         Fill NaN values using the specified method.
+
+        Similar to `Pandas Fillna <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.fillna.html>`__
 
         Returns:
             ``DataBlock``: DataBlock with missing values filled.
@@ -951,6 +1026,572 @@ class Block(pd.DataFrame):
         2005-12-22  19.460543   0.000000  2.258598  2.261960
         """
         return super().fillna(value, method, axis, inplace, limit, downcast)
+
+
+    def wcount(self, axis: int = 0, numeric_only: bool = False):
+        """
+        Count non-NA cells for each column or row.
+
+        The values None, NaN, NaT, and optionally numpy.inf (depending on pandas.options.mode.use_inf_as_na) are considered NA.
+
+        Similar to `Pandas count <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.count.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            numeric_only (bool): Include only float, int or boolean data.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> block
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> block.wcount()
+                   AAPL       MSFT      
+                   Open Close Open Close
+        2005-12-21    2     2    2     2
+        """
+        return from_series(super().count(axis=axis, numeric_only=numeric_only), axis, self.index[0], 'count')
+
+    def wkurt(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+        """
+        Return unbiased kurtosis over requested axis.
+
+        Kurtosis obtained using Fisher's definition of kurtosis (kurtosis of normal == 0.0). Normalized by N-1.
+        
+        Similar to `Pandas kurt <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.kurt.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> block
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> block.wkurt(axis=1)
+                    asset
+                    kurt
+        Date               
+        2005-12-21 -5.99944
+        2005-12-22 -5.99961
+        """
+        return from_series(super().kurt(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs), axis, self.index[0], 'kurt')
+
+    def wkurtosis(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+        """
+        Return unbiased kurtosis over requested axis.
+
+        Kurtosis obtained using Fisher's definition of kurtosis (kurtosis of normal == 0.0). Normalized by N-1.
+        
+        Similar to `Pandas kurtosis <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.kurtosis.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> block
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> block.wkurtosis(axis=1)
+                    asset
+                    kurt
+        Date               
+        2005-12-21 -5.99944
+        2005-12-22 -5.99961
+        """
+        return from_series(super().kurtosis(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs), axis, self.index[0], 'kurtosis')
+
+    def wmad(self, axis: int = None, skipna: bool = None):
+        """
+        Return the mean absolute deviation of the values over the requested axis.
+
+        Similar to `Pandas mad <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.mad.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> block
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> block.wmad()
+                        AAPL                MSFT          
+                        Open     Close      Open     Close
+        2005-12-21  0.020016  0.007946  0.058291  0.051004
+        """
+        return from_series(super().mad(axis=axis, skipna=skipna), axis, self.index[0], 'mad')
+
+    def wmax(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+        """
+        Return the maximum of the values over the requested axis.
+
+        Similar to `Pandas max <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.max.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> block
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> block.wmax()
+                        AAPL                MSFT           
+                        Open    Close       Open      Close
+        2005-12-21  2.258598  2.26196  19.577126  19.475122
+        """
+        return from_series(super().max(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs), axis, self.index[0], 'max')
+
+    def wmean(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+        """
+        Return the mean of the values over the requested axis.
+
+        Similar to `Pandas mean <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.mean.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> block
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> block.wmean()
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        2005-12-21  2.238582  2.254014  19.518834  19.424118
+        """
+        return from_series(super().mean(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs), axis, self.index[0], 'mean')
+
+    def wmedian(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+        """
+        Return the median of the values over the requested axis.
+
+        Similar to `Pandas median <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.median.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> block
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> block.wmedian()
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        2005-12-21  2.238582  2.254014  19.518834  19.424118
+        """
+        return from_series(super().median(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs), axis, self.index[0], 'median')
+
+
+    def wmin(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+        """
+        Return the minimum of the values over the requested axis.
+
+        Similar to `Pandas min <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.min.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> block
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> block.wmin()
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        2005-12-21  2.218566  2.246069  19.460543  19.373114
+        """
+        return from_series(super().min(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs), axis, self.index[0], 'min')
+
+    def wnunique(self, axis: int = None, dropna: bool = None):
+        """
+        Count number of distinct elements in specified axis.
+
+        Return Series with number of distinct elements. Can ignore NaN values.
+
+        Similar to `Pandas nunique <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.nunique.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            dropna (bool): Don't include NaN in the counts.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> block
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> block.wnunique()
+                AAPL       MSFT      
+                Open Close Open Close
+        2005-12-21    2     2    2     2
+        """
+        return from_series(super().nunique(axis=axis, dropna=dropna), axis, self.index[0], 'nunique')
+
+    def wprod(self, axis: int = None, skipna: bool = None, numeric_only=None, min_count: int = 0, **kwargs):
+        """
+        Return the product of the values over the requested axis.
+
+        Similar to `Pandas prod <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.prod.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            min_count (int): The required number of valid values to perform the operation. If fewer than `min_count` non-NA values are present the result will be NA.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> block
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> block.wprod()
+                        AAPL                  MSFT           
+                        Open     Close        Open      Close
+        2005-12-21  5.010849  5.080517  380.981498  377.29376
+        """
+        return from_series(super().prod(axis=axis, skipna=skipna, numeric_only=numeric_only, min_count=min_count, **kwargs), axis, self.index[0], 'prod')
+
+
+    def wproduct(self, axis: int = None, skipna: bool = None, numeric_only=None, min_count: int = 0, **kwargs):
+        """
+        Return the product of the values over the requested axis.
+
+        Similar to `Pandas product <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.product.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            min_count (int): The required number of valid values to perform the operation. If fewer than `min_count` non-NA values are present the result will be NA.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> block
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> block.wprod()
+                        AAPL                  MSFT           
+                        Open     Close        Open      Close
+        2005-12-21  5.010849  5.080517  380.981498  377.29376
+        """
+        return from_series(super().product(axis=axis, skipna=skipna, numeric_only=numeric_only, min_count=min_count, **kwargs), axis, self.index[0], 'product')
+
+
+    def wquantile(self, q: Union[float, List[float]] = 0.5, interpolation: str = "linear"):
+        """
+        Return value at the given quantile.
+
+        Similar to `Pandas quantile <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.quantile.html>`__
+
+        Args:
+            q (float, array): The quantile(s) to compute, which can lie in range: 0 <= q <= 1.
+            interpolation (str): {'linear', 'lower', 'higher', 'midpoint', 'nearest'}
+            
+                This optional parameter specifies the interpolation method to use, when the desired quantile lies between two data points `i` and `j`:
+
+                * 'linear': `i + (j - i) * fraction`, where `fraction` is the fractional part of the index surrounded by `i` and `j`.
+                * 'lower': `i`.
+                * 'higher': `j`.
+                * 'nearest': `i` or `j` whichever is nearest.
+                * 'midpoint': (`i` + `j`) / 2.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> block
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> block.wquantile(q=0.5, interpolation='linear')
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        2005-12-21  2.238582  2.254014  19.518834  19.424118
+        """
+        return from_series(super().quantile(q=q, interpolation=interpolation), index=self.index[0], name='quantile')
+
+    def wsem(self, axis: int = None, skipna: bool = None, ddof: int = 1, numeric_only=None, **kwargs):
+        """
+        Return unbiased standard error of the mean over requested axis.
+
+        Normalized by N-1 by default. This can be changed using the ddof argument
+
+        Similar to `Pandas sem <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.sem.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            ddof (int): Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents the number of elements.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> block
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> block.wsem()
+                        AAPL                MSFT          
+                        Open     Close      Open     Close
+        2005-12-21  0.020016  0.007946  0.058291  0.051004
+        """
+        return from_series(super().sem(axis=axis, skipna=skipna, ddof=ddof, numeric_only=numeric_only, **kwargs), axis, self.index[0], 'sem')
+
+
+    def wskew(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+        """
+        Return unbiased skew over requested axis.
+
+        Normalized by N-1.
+
+        Similar to `Pandas skew <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.skew.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> block
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> block.wskew(axis=1)
+                       asset
+                        skew
+        Date                
+        2005-12-21  0.000084
+        2005-12-22  0.000067
+        """
+        return from_series(super().skew(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs), axis, self.index[0], 'skew')
+
+
+    def wstd(self, axis: int = None, skipna: bool = None, ddof: int = 1, numeric_only=None, **kwargs):
+        """
+        Return sample standard deviation over requested axis.
+
+        Normalized by N-1 by default. This can be changed using the ddof argument
+
+        Similar to `Pandas std <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.std.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            ddof (int): Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents the number of elements.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> block
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> block.wstd()
+                        AAPL                MSFT          
+                        Open     Close      Open     Close
+        2005-12-21  0.028307  0.011237  0.082436  0.072131
+        """
+        return from_series(super().std(axis=axis, skipna=skipna, ddof=ddof, numeric_only=numeric_only, **kwargs), axis, self.index[0], 'std')
+
+
+    def wsum(self, axis: int = None, skipna: bool = None, numeric_only=None, min_count: int = 0, **kwargs):
+        """
+        Return the sum of the values over the requested axis.
+
+        This is equivalent to the method `numpy.sum`.
+
+        Similar to `Pandas sum <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.sum.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            min_count (int): The required number of valid values to perform the operation. If fewer than `min_count` non-NA values are present the result will be NA.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> block
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> block.wsum()
+                        AAPL                  MSFT           
+                        Open     Close        Open      Close
+        2005-12-21  5.010849  5.080517  380.981498  377.29376
+        """
+        return from_series(super().sum(axis=axis, skipna=skipna, numeric_only=numeric_only, min_count=min_count, **kwargs), axis, self.index[0], 'sum')
+
+
+    def wvar(self, axis: int = None, skipna: bool = None, ddof: int = 1, numeric_only=None, **kwargs):
+        """
+        Return sample variance over requested axis.
+
+        Normalized by N-1 by default. This can be changed using the ddof argument
+
+        Similar to `Pandas var <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.var.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            ddof (int): Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents the number of elements.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> block
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> block.wvar()
+                        AAPL                MSFT          
+                        Open     Close      Open     Close
+        2005-12-21  0.000801  0.000126  0.006796  0.005203
+        """
+        return from_series(super().var(axis=axis, skipna=skipna, ddof=ddof, numeric_only=numeric_only, **kwargs), axis, self.index[0], 'var')
+
 
     def plot(self, assets: List[str] = None, channels: List[str] = None):
         """

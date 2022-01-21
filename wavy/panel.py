@@ -8,6 +8,7 @@ from .block import Block
 from .side import Side
 
 from typing import List
+import random
 
 
 # Plot
@@ -787,6 +788,29 @@ class Panel:
         if self.val_size and self.train_size:
             return self[self.train_size + self.val_size :]
 
+    def panel_sample(self, n: int = None, frac: float = None):
+
+        # If no frac or n, default to n=1.
+        if n is None and frac is None:
+            n = 1
+        elif frac is None and n % 1 != 0:
+            raise ValueError("Only integers accepted as `n` values")
+        elif n is None and frac is not None:
+            n = round(frac * len(self))
+        elif frac is not None:
+            raise ValueError("Please enter a value for `frac` OR `n`, not both")
+
+        # Check for negative sizes
+        if n < 0:
+            raise ValueError(
+                "A negative number of rows requested. Please provide positive value."
+            )
+
+        locs = random.sample(range(0, len(self)), n)
+        locs.sort()
+
+        return Panel(Side(self.x[locs]), Side(self.y[locs]))
+
 
     def plot_block(self, idx, assets: List[str] = None, channels: List[str] = None):
         """
@@ -855,6 +879,9 @@ class Panel:
         Returns:
             ``Plot``: Plotted data.
         """
+
+        if steps > 100:
+            raise ValueError("Number of assets cannot be bigger than 100.")
 
         cmap = px.colors.qualitative.Plotly
 
