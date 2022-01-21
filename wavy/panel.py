@@ -464,11 +464,11 @@ class Panel:
     # TODO tensor4d
     # TODO tensor3d
 
-    def filter(self, assets: List[str] = None, channels: List[str] = None):
+    def wfilter(self, assets: List[str] = None, channels: List[str] = None):
         """
         Panel subset according to the specified assets and channels.
 
-        Similar to `Pandas Rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.filter.html>`__
+        Similar to `Pandas filter <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.filter.html>`__
 
         Args:
             assets (list): List of assets
@@ -477,15 +477,15 @@ class Panel:
         Returns:
             ``Panel``: Filtered Panel
         """
-        x = self.x.filter(assets=assets, channels=channels)
-        y = self.y.filter(assets=assets, channels=channels)
+        x = self.x.wfilter(assets=assets, channels=channels)
+        y = self.y.wfilter(assets=assets, channels=channels)
         return Panel(x, y)
 
-    def drop(self, assets=None, channels=None):
+    def wdrop(self, assets=None, channels=None):
         """
         Subset of the Panel columns discarding the specified assets and channels.
 
-        Similar to `Pandas Rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop.html>`__
+        Similar to `Pandas drop <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop.html>`__
 
         Args:
             assets (list): List of assets
@@ -494,13 +494,15 @@ class Panel:
         Returns:
             ``Panel``: Filtered Panel
         """
-        x = self.x.drop(assets=assets, channels=channels)
-        y = self.y.drop(assets=assets, channels=channels)
+        x = self.x.wdrop(assets=assets, channels=channels)
+        y = self.y.wdrop(assets=assets, channels=channels)
         return Panel(x, y)
 
     def rename_assets(self, dict: dict):
         """
         Rename asset labels.
+
+        Similar to `Pandas rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html#>`__
 
         Args:
             dict (dict): Dictionary with assets to rename
@@ -516,6 +518,8 @@ class Panel:
         """
         Rename channel labels.
 
+        Similar to `Pandas rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html#>`__
+
         Args:
             dict (dict): Dictionary with channels to rename
 
@@ -526,11 +530,11 @@ class Panel:
         y = self.y.rename_channels(dict=dict)
         return Panel(x, y)
 
-    def apply(self, func, axis):
+    def wapply(self, func, axis):
         """
         Apply a function along an axis of the DataBlock.
 
-        Similar to `Pandas Apply <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.apply.html>`__
+        Similar to `Pandas apply <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.apply.html>`__
 
         Args:
             func (function): Function to apply to each column or row.
@@ -542,15 +546,15 @@ class Panel:
         Returns:
             ``Panel``: Result of applying `func` along the given axis of the Panel.
         """
-        x = self.x.apply(func=func, axis=axis)
-        y = self.y.apply(func=func, axis=axis)
+        x = self.x.wapply(func=func, axis=axis)
+        y = self.y.wapply(func=func, axis=axis)
         return Panel(x, y)
 
-    def update(self, values=None, index: List = None, assets: List = None, channels: List = None):
+    def wupdate(self, values=None, index: List = None, assets: List = None, channels: List = None):
         """
         Update function for any of Panel properties.
 
-        Similar to `Pandas Update <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.update.html>`__
+        Similar to `Pandas update <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.update.html>`__
 
         Args:
             values (ndarray): New values Dataframe.
@@ -561,8 +565,8 @@ class Panel:
         Returns:
             ``Panel``: Result of updated Panel.
         """
-        x = Side([block.update(values[i][0], index, assets, channels) for i, block in enumerate(self.x)])
-        y = Side([block.update(values[i][1], index, assets, channels) for i, block in enumerate(self.y)])
+        x = Side([block.wupdate(values[i][0], index, assets, channels) for i, block in enumerate(self.x)])
+        y = Side([block.wupdate(values[i][1], index, assets, channels) for i, block in enumerate(self.y)])
         return Panel(x, y)
 
     def sort_assets(self, order: List[str] = None):
@@ -604,6 +608,8 @@ class Panel:
         y = self.y.swap_cols()
         return Panel(x, y)
 
+    # TODO add count??
+
     def countna(self):
         """
         Count NaN cells for each Panel.
@@ -614,20 +620,24 @@ class Panel:
         values = self.x.countna().values + self.y.countna().values
         return pd.DataFrame(values, index=range(len(self.x.blocks)), columns=['nan'])
 
-    def fillna(self, value=None, method: str = None):
+    def wfillna(self, value=None, method: str = None):
         """
         Fill NaN values using the specified method.
+
+        Similar to `Pandas fillna <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.fillna.html>`__
 
         Returns:
             ``Panel``: Panel with missing values filled.
         """
-        x = self.x.fillna(value=value, method=method)
-        y = self.y.fillna(value=value, method=method)
+        x = self.x.wfillna(value=value, method=method)
+        y = self.y.wfillna(value=value, method=method)
         return Panel(x, y)
 
-    def dropna(self, x=True, y=True):
+    def wdropna(self, x=True, y=True):
         """
         Drop pairs with NaN values from the panel.
+
+        Similar to `Pandas dropna <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.dropna.html>`__
 
         Returns:
             ``Panel``: Panel with NaN values dropped.

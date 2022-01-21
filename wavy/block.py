@@ -312,10 +312,10 @@ class Block(pd.DataFrame):
 
 
 
-    def _check_method(self, method):
-        if method not in self.__class__.__dict__:  # Not defined in method : inherited
-            # return 'inherited'
-            raise NotImplementedError
+    # def _check_method(self, method):
+    #     if method not in self.__class__.__dict__:  # Not defined in method : inherited
+    #         # return 'inherited'
+    #         raise NotImplementedError
         # elif hasattr(super(), method):  # Present in parent : overloaded
         #     return 'overloaded'
         # else:  # Not present in parent : newly defined
@@ -531,11 +531,11 @@ class Block(pd.DataFrame):
         """
         return self.values
 
-    def filter(self, assets: List[str] = None, channels: List[str] = None):
+    def wfilter(self, assets: List[str] = None, channels: List[str] = None):
         """
         Block subset according to the specified assets and channels.
 
-        Similar to `Pandas Rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.filter.html>`__
+        Similar to `Pandas filter <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.filter.html>`__
 
         Args:
             assets (list): List of assets
@@ -553,7 +553,7 @@ class Block(pd.DataFrame):
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> block.filter(assets=['AAPL'], channels=['Open'])
+        >>> block.wfilter(assets=['AAPL'], channels=['Open'])
                         AAPL
                         Open
         Date
@@ -589,11 +589,11 @@ class Block(pd.DataFrame):
         return self.loc[:, (slice(None), channels)][self.assets] if channels else self
 
 
-    def drop(self, assets: List[str] = None, channels: List[str] = None):
+    def wdrop(self, assets: List[str] = None, channels: List[str] = None):
         """
         Subset of the dataframe columns discarding the specified assets and channels.
 
-        Similar to `Pandas Rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop.html>`__
+        Similar to `Pandas drop <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop.html>`__
 
         Args:
             assets (list): List of assets
@@ -611,7 +611,7 @@ class Block(pd.DataFrame):
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> block.drop(assets=['AAPL'], channels=['Open'])
+        >>> block.wdrop(assets=['AAPL'], channels=['Open'])
                          MSFT
                         Close
         Date
@@ -640,7 +640,7 @@ class Block(pd.DataFrame):
         """
         Rename asset labels.
 
-        Similar to `Pandas Rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html#>`__
+        Similar to `Pandas rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html#>`__
 
         Args:
             dict (dict): Dictionary with assets to rename
@@ -675,7 +675,7 @@ class Block(pd.DataFrame):
         """
         Rename channel labels.
 
-        Similar to `Pandas Rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html#>`__
+        Similar to `Pandas rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html#>`__
 
         Args:
             dict (dict): Dictionary with channels to rename
@@ -709,7 +709,7 @@ class Block(pd.DataFrame):
         """
         Apply a function along an axis of the DataBlock.
 
-        Similar to `Pandas Apply <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.apply.html>`__
+        Similar to `Pandas apply <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.apply.html>`__
 
         Args:
             func (function): Function to apply to each column or row.
@@ -735,7 +735,7 @@ class Block(pd.DataFrame):
             Open    Close       Open      Close
         0  2.258598  2.26196  19.577126  19.475122
 
-        >>> block.apply(np.max, on='columns')
+        >>> block.wapply(np.max, on='columns')
                         AAPL       MSFT
                         amax       amax
         Date
@@ -774,11 +774,11 @@ class Block(pd.DataFrame):
             channels=[func.__name__],
         )
 
-    def update(self, values=None, index: List = None, assets: List = None, channels: List = None):
+    def wupdate(self, values=None, index: List = None, assets: List = None, channels: List = None):
         """
         Update function for any of DataBlock properties.
 
-        Similar to `Pandas Update <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.update.html>`__
+        Similar to `Pandas update <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.update.html>`__
 
         Args:
             values (ndarray): New values Dataframe.
@@ -798,7 +798,7 @@ class Block(pd.DataFrame):
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> block.update(assets=['Microsoft', 'Apple'], channels=['Op', 'Cl'])
+        >>> block.wupdate(assets=['Microsoft', 'Apple'], channels=['Op', 'Cl'])
                  Microsoft                 Apple
                         Op         Cl         Op         Cl
         Date
@@ -946,6 +946,7 @@ class Block(pd.DataFrame):
         values = self.values
         return pd.DataFrame(values, index=index, columns=columns)
 
+    # TODO Add count??
 
     def countna(self, type: str = 'asset'):
         """
@@ -1004,7 +1005,7 @@ class Block(pd.DataFrame):
         """
         Fill NaN values using the specified method.
 
-        Similar to `Pandas Fillna <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.fillna.html>`__
+        Similar to `Pandas fillna <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.fillna.html>`__
 
         Returns:
             ``DataBlock``: DataBlock with missing values filled.
@@ -1018,7 +1019,7 @@ class Block(pd.DataFrame):
         2005-12-21  2.218566  2.246069        NaN  19.475122
         2005-12-22  2.258598       NaN  19.460543  19.373114
 
-        >>> block.fillna(0)
+        >>> block.wfillna(0)
                         MSFT                 AAPL
                         Open      Close      Open     Close
         Date

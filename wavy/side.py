@@ -271,11 +271,11 @@ class Side:
         return np.array([block.matrix for block in tqdm(self.blocks)])
 
 
-    def filter(self, assets: List[str] = None, channels: List[str] = None):
+    def wfilter(self, assets: List[str] = None, channels: List[str] = None):
         """
         Side subset according to the specified assets and channels.
 
-        Similar to `Pandas Rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.filter.html>`__
+        Similar to `Pandas filter <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.filter.html>`__
 
         Args:
             assets (list): List of assets
@@ -284,13 +284,13 @@ class Side:
         Returns:
             ``Side``: Filtered Side
         """
-        return Side([block.filter(assets=assets, channels=channels) for block in tqdm(self.blocks)])
+        return Side([block.wfilter(assets=assets, channels=channels) for block in tqdm(self.blocks)])
 
-    def drop(self, assets=None, channels=None):
+    def wdrop(self, assets=None, channels=None):
         """
         Subset of the Side columns discarding the specified assets and channels.
 
-        Similar to `Pandas Rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop.html>`__
+        Similar to `Pandas drop <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop.html>`__
 
         Args:
             assets (list): List of assets
@@ -299,13 +299,13 @@ class Side:
         Returns:
             ``Side``: Filtered Side
         """
-        return Side([block.drop(assets=assets, channels=channels) for block in tqdm(self.blocks)])
+        return Side([block.wdrop(assets=assets, channels=channels) for block in tqdm(self.blocks)])
 
     def rename_assets(self, dict: dict):
         """
         Rename asset labels.
 
-        Similar to `Pandas Rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html#>`__
+        Similar to `Pandas rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html#>`__
 
         Args:
             dict (dict): Dictionary with assets to rename
@@ -319,7 +319,7 @@ class Side:
         """
         Rename channel labels.
 
-        Similar to `Pandas Rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html#>`__
+        Similar to `Pandas rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html#>`__
 
         Args:
             dict (dict): Dictionary with channels to rename
@@ -329,11 +329,11 @@ class Side:
         """
         return Side([block.rename_channels(dict) for block in tqdm(self.blocks)])
 
-    def apply(self, func, on: str = 'timestamps'):
+    def wapply(self, func, on: str = 'timestamps'):
         """
         Apply a function along an axis of the DataBlock.
 
-        Similar to `Pandas Apply <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.apply.html>`__
+        Similar to `Pandas apply <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.apply.html>`__
 
         Args:
             func (function): Function to apply to each column or row.
@@ -345,13 +345,13 @@ class Side:
         Returns:
             ``Side``: Result of applying `func` along the given axis of the Side.
         """
-        return Side([block.apply(func, on) for block in tqdm(self.blocks)])
+        return Side([block.wapply(func, on) for block in tqdm(self.blocks)])
 
-    def update(self, values=None, index: List = None, assets: List = None, channels: List = None):
+    def wupdate(self, values=None, index: List = None, assets: List = None, channels: List = None):
         """
         Update function for any of Side properties.
 
-        Similar to `Pandas Update <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.update.html>`__
+        Similar to `Pandas update <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.update.html>`__
 
         Args:
             values (ndarray): New values Dataframe.
@@ -362,7 +362,7 @@ class Side:
         Returns:
             ``Side``: Result of updated Side.
         """
-        return Side([block.update(values[i], index, assets, channels) for i, block in tqdm(enumerate(self.blocks))])
+        return Side([block.wupdate(values[i], index, assets, channels) for i, block in tqdm(enumerate(self.blocks))])
 
     def _split_assets(self):
         # TODO RN ? Does it make sense??
@@ -402,7 +402,8 @@ class Side:
         """
         return Side([block.swap_cols() for block in tqdm(self.blocks)])
 
-    # Concept: How many blocks contain nan
+    # TODO add count??
+
     def countna(self):
         """
         Count NaN cells for each Block.
@@ -412,7 +413,7 @@ class Side:
 
         Example:
 
-        >>> side.countna
+        >>> side.countna()
            nan
         0    2
         1    2
@@ -420,22 +421,22 @@ class Side:
         values = [block.isnull().values.sum() for block in tqdm(self.blocks)]
         return pd.DataFrame(values, index=range(len(self.blocks)), columns=['nan'])
 
-    def fillna(self, value=None, method: str = None):
+    def wfillna(self, value=None, method: str = None):
         """
         Fill NaN values using the specified method.
 
-        Similar to `Pandas Shift <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.fillna.html>`__
+        Similar to `Pandas fillna <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.fillna.html>`__
 
         Returns:
             ``Side``: Side with missing values filled.
         """
-        return Side([block.fillna(value=value, method=method) for block in tqdm(self.blocks)])
+        return Side([block.wfillna(value=value, method=method) for block in tqdm(self.blocks)])
 
-    def dropna(self, x=True, y=True):
+    def wdropna(self, x=True, y=True):
         """
         Drop pairs with missing values from the panel.
 
-        Similar to `Pandas Shift <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop.html>`__
+        Similar to `Pandas dropna <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop.html>`__
 
         Returns:
             ``Side``: Side with missing values dropped.
@@ -564,12 +565,11 @@ class Side:
         """
         return self.flat().values.flatten()
 
-    def side_shift(self, window: int = 1):
-        # TODO window cannot be negative
+    def wshift(self, window: int = 1):
         """
         Shift side by desired number of blocks.
 
-        Similar to `Pandas Shift <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.shift.html>`__
+        Similar to `Pandas shift <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.shift.html>`__
 
         Args:
             window (int): Number of blocks to shift
@@ -586,7 +586,7 @@ class Side:
         2005-12-21  19.577126  19.475122  2.218566  2.246069
         2005-12-22  19.460543  19.373114  2.258598  2.261960
 
-        >>> side = side.side_shift(window = 1)
+        >>> side = side.wshift(window = 1)
 
         >>> side[0]
                 MSFT       AAPL      
@@ -603,6 +603,8 @@ class Side:
         2005-12-22  19.460543  19.373114  2.258598  2.261960
         """
 
+        assert window >= 0, "Window cannot be negative!"
+
         new_side = []
 
         for i, block in enumerate(self.blocks):
@@ -614,11 +616,11 @@ class Side:
 
         return Side(new_side)
 
-    def side_diff(self, window: int = 1):
+    def wdiff(self, window: int = 1):
         """
         Difference between blocks.
 
-        Similar to `Pandas Shift <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.diff.html>`__
+        Similar to `Pandas diff <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.diff.html>`__
 
         Args:
             window (int): Number of blocks to diff
@@ -635,7 +637,7 @@ class Side:
         2005-12-21  19.577126  19.475122  2.218566  2.246069
         2005-12-22  19.460543  19.373114  2.258598  2.261960
 
-        >>> side = side.side_diff(window = 1)
+        >>> side = side.wdiff(window = 1)
 
         >>> side[0]
                 MSFT       AAPL      
@@ -651,13 +653,13 @@ class Side:
         2005-12-22 -0.116582 -0.102009  0.040033  0.015891
         2005-12-23 -0.138421  0.036438  0.007945 -0.020475
         """
-        return self - self.side_shift(window)
+        return self - self.wshift(window)
 
-    def side_pct_change(self, window: int = 1):
+    def wpct_change(self, window: int = 1):
         """
         Percentage change between the current and a prior block.
 
-        Similar to `Pandas Shift <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.pct_change.html>`__
+        Similar to `Pandas pct_change <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.pct_change.html>`__
 
         Args:
             window (int): Number of blocks to calculate percent change
@@ -674,7 +676,7 @@ class Side:
         2005-12-21  19.577126  19.475122  2.218566  2.246069
         2005-12-22  19.460543  19.373114  2.258598  2.261960
 
-        >>> side = side.side_pct_change(window = 1)
+        >>> side = side.wpct_change(window = 1)
 
         >>> side[0]
                 MSFT       AAPL      
