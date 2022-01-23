@@ -6,9 +6,9 @@ import pandas as pd
 from tqdm.auto import tqdm
 import random
 
-from .block import Block, from_matrix
+from .block import Block, from_matrix, from_series
 
-from typing import List
+from typing import List, Union
 
 # dunder_methods = ['__abs__', '__add__', '__aenter__', '__aexit__', '__aiter__', '__and__', '__anext__', '__await__', '__bool__', '__bytes__', '__call__', '__ceil__', '__class__', '__class_getitem__', '__cmp__', '__coerce__', '__complex__', '__contains__', '__del__', '__delattr__', '__delete__', '__delitem__', '__delslice__', '__dict__', '__dir__', '__div__', '__divmod__', '__enter__', '__eq__', '__exit__', '__float__', '__floor__', '__floordiv__', '__format__', '__fspath__', '__ge__', '__get__', '__getattr__', '__getattribute__', '__getitem__', '__getnewargs__', '__getslice__', '__gt__', '__hash__', '__hex__', '__iadd__', '__iand__', '__idiv__', '__ifloordiv__', '__ilshift__', '__imatmul__', '__imod__', '__import__', '__imul__', '__index__', '__init__', '__init_subclass__', '__instancecheck__', '__int__', '__invert__', '__ior__', '__ipow__', '__irshift__', '__isub__', '__iter__', '__itruediv__', '__ixor__', '__le__', '__len__', '__length_hint__', '__long__', '__lshift__', '__lt__', '__matmul__', '__metaclass__', '__missing__', '__mod__', '__mro__', '__mul__', '__ne__', '__neg__', '__new__', '__next__', '__nonzero__', '__oct__', '__or__', '__pos__', '__pow__', '__prepare__', '__radd__', '__rand__', '__rcmp__', '__rdiv__', '__rdivmod__', '__reduce__', '__reduce_ex__', '__repr__', '__reversed__', '__rfloordiv__', '__rlshift__', '__rmatmul__', '__rmod__', '__rmul__', '__ror__', '__round__', '__rpow__', '__rrshift__', '__rshift__', '__rsub__', '__rtruediv__', '__rxor__', '__set__', '__set_name__', '__setattr__', '__setitem__', '__setslice__', '__sizeof__', '__slots__', '__str__', '__sub__', '__subclasscheck__', '__subclasses__', '__truediv__', '__trunc__', '__unicode__', '__weakref__', '__xor__']
 DUNDER_METHODS = ['__add__', '__sub__', '__mul__', '__truediv__', '__ge__', '__gt__', '__le__', '__lt__', '__pow__']
@@ -744,7 +744,7 @@ class Side:
                 # showlegend = i <= 0
                 # x_df = data.loc[:, (asset, channel)]
 
-                x_df = self.blocks[idx].filter(assets=asset, channels=channel)
+                x_df = self.blocks[idx].wfilter(assets=asset, channels=channel)
                 index = x_df.index
                 values = x_df.values.flatten()
 
@@ -802,7 +802,7 @@ class Side:
 
                     showlegend = i <= 0
 
-                    x_df = self.blocks[step].filter(assets=asset, channels=channel)
+                    x_df = self.blocks[step].wfilter(assets=asset, channels=channel)
                     index = x_df.index
                     values = x_df.values.flatten()
 
@@ -858,3 +858,568 @@ class Side:
             fig['layout'][f'yaxis{i*num_assets+1}'].update({'title':channel})
 
         fig.show()
+
+
+    def wcount(self, axis: int = 0, numeric_only: bool = False):
+        """
+        Count non-NA cells for each column or row.
+
+        The values None, NaN, NaT, and optionally numpy.inf (depending on pandas.options.mode.use_inf_as_na) are considered NA.
+
+        Similar to `Pandas count <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.count.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            numeric_only (bool): Include only float, int or boolean data.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> side[0]
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> side[0].wcount()
+                   AAPL       MSFT      
+                   Open Close Open Close
+        2005-12-21    2     2    2     2
+        """
+        return Side([block.wcount(axis=axis, numeric_only=numeric_only) for block in tqdm(self.blocks)])
+
+    def wkurt(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+        """
+        Return unbiased kurtosis over requested axis.
+
+        Kurtosis obtained using Fisher's definition of kurtosis (kurtosis of normal == 0.0). Normalized by N-1.
+        
+        Similar to `Pandas kurt <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.kurt.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> side[0]
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> side[0].wkurt(axis=1)
+                    asset
+                    kurt
+        Date               
+        2005-12-21 -5.99944
+        2005-12-22 -5.99961
+        """
+        return Side([block.wkurt(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
+
+    def wkurtosis(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+        """
+        Return unbiased kurtosis over requested axis.
+
+        Kurtosis obtained using Fisher's definition of kurtosis (kurtosis of normal == 0.0). Normalized by N-1.
+        
+        Similar to `Pandas kurtosis <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.kurtosis.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> side[0]
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> side[0].wkurtosis(axis=1)
+                    asset
+                    kurt
+        Date               
+        2005-12-21 -5.99944
+        2005-12-22 -5.99961
+        """
+        return Side([block.wkurtosis(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
+
+    def wmad(self, axis: int = None, skipna: bool = None):
+        """
+        Return the mean absolute deviation of the values over the requested axis.
+
+        Similar to `Pandas mad <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.mad.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> side[0]
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> side[0].wmad()
+                        AAPL                MSFT          
+                        Open     Close      Open     Close
+        2005-12-21  0.020016  0.007946  0.058291  0.051004
+        """
+        return Side([block.wmad(axis=axis, skipna=skipna) for block in tqdm(self.blocks)])
+
+    def wmax(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+        """
+        Return the maximum of the values over the requested axis.
+
+        Similar to `Pandas max <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.max.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> side[0]
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> side[0].wmax()
+                        AAPL                MSFT           
+                        Open    Close       Open      Close
+        2005-12-21  2.258598  2.26196  19.577126  19.475122
+        """
+        return Side([block.wmax(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
+
+    def wmean(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+        """
+        Return the mean of the values over the requested axis.
+
+        Similar to `Pandas mean <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.mean.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> side[0]
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> side[0].wmean()
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        2005-12-21  2.238582  2.254014  19.518834  19.424118
+        """
+        return Side([block.wwmean(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
+
+    def wmedian(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+        """
+        Return the median of the values over the requested axis.
+
+        Similar to `Pandas median <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.median.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> side[0]
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> side[0].wmedian()
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        2005-12-21  2.238582  2.254014  19.518834  19.424118
+        """
+        return Side([block.wmedian(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
+
+
+    def wmin(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+        """
+        Return the minimum of the values over the requested axis.
+
+        Similar to `Pandas min <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.min.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> side[0]
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> side[0].wmin()
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        2005-12-21  2.218566  2.246069  19.460543  19.373114
+        """
+        return Side([block.wmin(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
+
+    def wnunique(self, axis: int = None, dropna: bool = None):
+        """
+        Count number of distinct elements in specified axis.
+
+        Return Series with number of distinct elements. Can ignore NaN values.
+
+        Similar to `Pandas nunique <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.nunique.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            dropna (bool): Don't include NaN in the counts.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> side[0]
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> side[0].wnunique()
+                AAPL       MSFT      
+                Open Close Open Close
+        2005-12-21    2     2    2     2
+        """
+        return Side([block.wnunique(axis=axis, dropna=dropna) for block in tqdm(self.blocks)])
+
+    def wprod(self, axis: int = None, skipna: bool = None, numeric_only=None, min_count: int = 0, **kwargs):
+        """
+        Return the product of the values over the requested axis.
+
+        Similar to `Pandas prod <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.prod.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            min_count (int): The required number of valid values to perform the operation. If fewer than `min_count` non-NA values are present the result will be NA.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> side[0]
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> side[0].wprod()
+                        AAPL                  MSFT           
+                        Open     Close        Open      Close
+        2005-12-21  5.010849  5.080517  380.981498  377.29376
+        """
+        return Side([block.wprod(axis=axis, skipna=skipna, numeric_only=numeric_only, min_count=min_count, **kwargs) for block in tqdm(self.blocks)])
+
+
+    def wproduct(self, axis: int = None, skipna: bool = None, numeric_only=None, min_count: int = 0, **kwargs):
+        """
+        Return the product of the values over the requested axis.
+
+        Similar to `Pandas product <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.product.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            min_count (int): The required number of valid values to perform the operation. If fewer than `min_count` non-NA values are present the result will be NA.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> side[0]
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> side[0].wprod()
+                        AAPL                  MSFT           
+                        Open     Close        Open      Close
+        2005-12-21  5.010849  5.080517  380.981498  377.29376
+        """
+        return Side([block.wproduct(axis=axis, skipna=skipna, numeric_only=numeric_only, min_count=min_count, **kwargs) for block in tqdm(self.blocks)])
+
+
+    def wquantile(self, q: Union[float, List[float]] = 0.5, interpolation: str = "linear"):
+        """
+        Return value at the given quantile.
+
+        Similar to `Pandas quantile <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.quantile.html>`__
+
+        Args:
+            q (float, array): The quantile(s) to compute, which can lie in range: 0 <= q <= 1.
+            interpolation (str): {'linear', 'lower', 'higher', 'midpoint', 'nearest'}
+            
+                This optional parameter specifies the interpolation method to use, when the desired quantile lies between two data points `i` and `j`:
+
+                * 'linear': `i + (j - i) * fraction`, where `fraction` is the fractional part of the index surrounded by `i` and `j`.
+                * 'lower': `i`.
+                * 'higher': `j`.
+                * 'nearest': `i` or `j` whichever is nearest.
+                * 'midpoint': (`i` + `j`) / 2.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> side[0]
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> side[0].wquantile(q=0.5, interpolation='linear')
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        2005-12-21  2.238582  2.254014  19.518834  19.424118
+        """
+        return Side([block.wquantile(q=q, interpolation=interpolation) for block in tqdm(self.blocks)])
+
+    def wsem(self, axis: int = None, skipna: bool = None, ddof: int = 1, numeric_only=None, **kwargs):
+        """
+        Return unbiased standard error of the mean over requested axis.
+
+        Normalized by N-1 by default. This can be changed using the ddof argument
+
+        Similar to `Pandas sem <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.sem.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            ddof (int): Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents the number of elements.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> side[0]
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> side[0].wsem()
+                        AAPL                MSFT          
+                        Open     Close      Open     Close
+        2005-12-21  0.020016  0.007946  0.058291  0.051004
+        """
+        return Side([block.wsem(axis=axis, skipna=skipna, ddof=ddof, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
+
+
+    def wskew(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+        """
+        Return unbiased skew over requested axis.
+
+        Normalized by N-1.
+
+        Similar to `Pandas skew <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.skew.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> side[0]
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> side[0].wskew(axis=1)
+                       asset
+                        skew
+        Date                
+        2005-12-21  0.000084
+        2005-12-22  0.000067
+        """
+        return Side([block.wskew(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
+
+
+    def wstd(self, axis: int = None, skipna: bool = None, ddof: int = 1, numeric_only=None, **kwargs):
+        """
+        Return sample standard deviation over requested axis.
+
+        Normalized by N-1 by default. This can be changed using the ddof argument
+
+        Similar to `Pandas std <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.std.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            ddof (int): Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents the number of elements.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> side[0]
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> side[0].wstd()
+                        AAPL                MSFT          
+                        Open     Close      Open     Close
+        2005-12-21  0.028307  0.011237  0.082436  0.072131
+        """
+        return Side([block.wstd(axis=axis, skipna=skipna, ddof=ddof, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
+
+
+    def wsum(self, axis: int = None, skipna: bool = None, numeric_only=None, min_count: int = 0, **kwargs):
+        """
+        Return the sum of the values over the requested axis.
+
+        This is equivalent to the method `numpy.sum`.
+
+        Similar to `Pandas sum <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.sum.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            min_count (int): The required number of valid values to perform the operation. If fewer than `min_count` non-NA values are present the result will be NA.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> side[0]
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> side[0].wsum()
+                        AAPL                  MSFT           
+                        Open     Close        Open      Close
+        2005-12-21  5.010849  5.080517  380.981498  377.29376
+        """
+        return Side([block.wsum(axis=axis, skipna=skipna, numeric_only=numeric_only, min_count=min_count, **kwargs) for block in tqdm(self.blocks)])
+
+
+    def wvar(self, axis: int = None, skipna: bool = None, ddof: int = 1, numeric_only=None, **kwargs):
+        """
+        Return sample variance over requested axis.
+
+        Normalized by N-1 by default. This can be changed using the ddof argument
+
+        Similar to `Pandas var <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.var.html>`__
+
+        Args:
+            axis (int): Axis for the function to be applied on.
+            skipna (bool): Exclude NA/null values when computing the result.
+            ddof (int): Delta Degrees of Freedom. The divisor used in calculations is N - ddof, where N represents the number of elements.
+            numeric_only (bool): Include only float, int or boolean data. If None, will attempt to use everything, then use only numeric data. Not implemented for Series.
+            **kwargs: Additional keyword arguments to be passed to the function.
+
+        Returns:
+            ``DataBlock``: DataBlock with operation executed.
+
+        Example:
+
+        >>> side[0]
+                        AAPL                 MSFT           
+                        Open     Close       Open      Close
+        Date                                                
+        2005-12-21  2.218566  2.246069  19.577126  19.475122
+        2005-12-22  2.258598  2.261960  19.460543  19.373114
+
+        >>> side[0].wvar()
+                        AAPL                MSFT          
+                        Open     Close      Open     Close
+        2005-12-21  0.000801  0.000126  0.006796  0.005203
+        """
+        return Side([block.wvar(axis=axis, skipna=skipna, ddof=ddof, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])

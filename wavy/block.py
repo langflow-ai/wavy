@@ -1618,7 +1618,7 @@ class Block(pd.DataFrame):
                 # showlegend = i <= 0
                 # x_df = data.loc[:, (asset, channel)]
 
-                x_df = self.filter(assets=asset, channels=channel)
+                x_df = self.wfilter(assets=asset, channels=channel)
                 index = x_df.index
                 values = x_df.values.flatten()
 
