@@ -27,20 +27,23 @@ class Baseline:
 
     def _predict(self, type):
         panel_ = self.panel.test.y if type == 'test' else self.panel.val.y
-        df = pd.concat([self.panel.x.as_dataframe(), self.panel.y.as_dataframe()])
-        concatenated = df[~df.index.duplicated(keep="first")]
-        assets = self.panel.assets
-        channels = self.panel.channels
 
-        blocks = []
+        # df = pd.concat([self.panel.x.as_dataframe(), self.panel.y.as_dataframe()])
+        # concatenated = df[~df.index.duplicated(keep="first")]
 
-        for block_data in panel_:
-            index = concatenated.index.get_loc(block_data.index[0])
-            new_values = concatenated.iloc[index-self.panel.horizon:index].values
-            blocks.append(from_matrix(new_values, index = block_data.index, assets=assets, channels=channels))
+        # assets = self.panel.assets
+        # channels = self.panel.channels
 
-        return Side(blocks)
+        # blocks = []
 
+        # for block_data in panel_:
+        #     index = concatenated.index.get_loc(block_data.index[0])
+        #     new_values = concatenated.iloc[index-self.panel.horizon:index].values
+        #     blocks.append(from_matrix(new_values, index = block_data.index, assets=assets, channels=channels))
+
+        blocks = panel_.wshift(self.panel.gap + 1)
+
+        return blocks
     def predict_val(self):
         return self._predict('val')
 

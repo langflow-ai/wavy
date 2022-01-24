@@ -575,7 +575,7 @@ class Side:
             window (int): Number of blocks to shift
 
         Returns:
-            ``Side``: Result of side_shift function.
+            ``Side``: Result of wshift function.
 
         Example:
 
@@ -626,7 +626,7 @@ class Side:
             window (int): Number of blocks to diff
 
         Returns:
-            ``Side``: Result of side_diff function.
+            ``Side``: Result of wdiff function.
 
         Example:
 
@@ -665,7 +665,7 @@ class Side:
             window (int): Number of blocks to calculate percent change
 
         Returns:
-            ``Side``: Result of side_pct_change function.
+            ``Side``: Result of wpct_change function.
 
         Example:
 
@@ -692,7 +692,7 @@ class Side:
         2005-12-22 -0.005955 -0.005238  0.018044  0.007075
         2005-12-23 -0.007113  0.001881  0.003518 -0.009052
         """
-        a = self.side_shift(window)
+        a = self.wshift(window)
         return (self - a) / a
 
     def side_sample(self, n: int = None, frac: float = None):
@@ -1050,7 +1050,7 @@ class Side:
                         Open     Close       Open      Close
         2005-12-21  2.238582  2.254014  19.518834  19.424118
         """
-        return Side([block.wwmean(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
+        return Side([block.wmean(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
 
     def wmedian(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
         """
