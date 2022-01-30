@@ -1,7 +1,7 @@
 import warnings
 
 import tensorflow as tf
-from tensorflow.keras import Model, Sequential
+from tensorflow.keras import Model, Sequential, Input
 from tensorflow.keras.layers import Dense, Flatten, Input, Reshape, concatenate
 from tensorflow.keras.layers import Conv1D, SeparableConv1D, MaxPooling1D
 import pandas as pd
@@ -44,6 +44,7 @@ class Baseline:
         blocks = panel_.wshift(self.panel.gap + 1)
 
         return blocks
+
     def predict_val(self):
         return self._predict('val')
 
@@ -71,6 +72,75 @@ class Baseline:
         # https://stats.stackexchange.com/questions/142873/how-to-determine-the-accuracy-of-regression-which-measure-should-be-used
 
         return metrics_result
+
+
+class KerasBaseline:
+    """Baseline model to predict values by using last (horizon shifted) y values."""
+
+    def __init__(self, panel):
+        self.panel = panel
+
+        self.set_arrays()
+        self.build_model()
+
+    def fit(self, **kwargs):
+        """Fit the model."""
+        self.model.fit(self.x_train, self.y_train, validation_data=(self.x_val, self.y_val), **kwargs)
+        # return self
+
+    def _predict(self, type: str):
+        if type == 'test':
+            predicted = self.model.predict(self.x_test)
+            y = self.panel.test.y
+        else:
+            predicted = self.model.predict(self.x_val)
+            y = self.panel.val.y
+
+        assets = self.panel.assets
+        channels = self.panel.channels
+
+        blocks = []
+
+        for i, block_data in enumerate(predicted):
+            blocks.append(from_matrix(block_data, index = y[i].index, assets=assets, channels=channels))
+
+        return Side(blocks)
+
+    def predict(self):
+        """Predict the test set."""
+        return self._predict(type='test')
+
+    def predict_val(self):
+        """Predict the val set."""
+        return self._predict(type='val')
+
+    def evaluate(self, type: str = 'test'):
+        return True
+
+    def build_model(self):
+        input = Input(shape=(1,))
+        self.model = tf.roll(input, shift=1, axis=0)
+
+
+    def set_arrays(self):
+        if self.use_assets:
+            self.x_train = self.panel.train.x.tensor4d
+            self.x_val = self.panel.val.x.tensor4d
+            self.x_test = self.panel.test.x.tensor4d
+
+            self.y_train = self.panel.train.y.tensor4d
+            self.y_val = self.panel.val.y.tensor4d
+            self.y_test = self.panel.test.y.tensor4d
+
+        else:
+            self.x_train = self.panel.train.x.tensor3d
+            self.x_val = self.panel.val.x.tensor3d
+            self.x_test = self.panel.test.x.tensor3d
+
+            self.y_train = self.panel.train.y.tensor3d
+            self.y_val = self.panel.val.y.tensor3d
+            self.y_test = self.panel.test.y.tensor3d
+
 
 
 class _BaseModel:
@@ -285,7 +355,7 @@ class ConvModel(_BaseModel):
         layers += [dense for _ in range(self.dense_layers)]
         layers += [Dense(units=self.panel.horizon * len(self.panel.assets) * len(self.panel.channels), activation=self.last_activation), Reshape(self.y_train.shape[1:])]
 
-        self.model = tf.keras.Sequential(layers)
+        self.model = Sequential(layers)
 
 class LinearRegression(DenseModel):
     def __init__(self, panel):
