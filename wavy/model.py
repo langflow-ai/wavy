@@ -12,69 +12,19 @@ from sklearn.metrics import mean_squared_error
 
 from typing import List
 
-class Baseline:
-    """Baseline model to predict values by using last (horizon shifted) y values."""
 
-    def __init__(self, panel, metrics: List[str] = ['SE', 'MSE', 'RMSE']):
-        self.panel = panel
-        self.metrics = metrics
+class _ConstantKerasModel(tf.keras.Model):
+    def __init__(self):
+        super().__init__()
 
-    def build_model(self):
-        raise NotImplementedError
-
-    def fit(self, **kwargs):
-        raise NotImplementedError
-
-    def _predict(self, type):
-        panel_ = self.panel.test.y if type == 'test' else self.panel.val.y
-
-        # df = pd.concat([self.panel.x.as_dataframe(), self.panel.y.as_dataframe()])
-        # concatenated = df[~df.index.duplicated(keep="first")]
-
-        # assets = self.panel.assets
-        # channels = self.panel.channels
-
-        # blocks = []
-
-        # for block_data in panel_:
-        #     index = concatenated.index.get_loc(block_data.index[0])
-        #     new_values = concatenated.iloc[index-self.panel.horizon:index].values
-        #     blocks.append(from_matrix(new_values, index = block_data.index, assets=assets, channels=channels))
-
-        blocks = panel_.wshift(self.panel.gap + 1)
-
-        return blocks
-    def predict_val(self):
-        return self._predict('val')
-
-    def predict(self):
-        return self._predict('test')
-
-    def evaluate(self, type: str = 'test'):
-        metrics_result = []
-        if type == 'test':
-            gt = self.panel.test.y.tensor3d
-        else:
-            gt = self.panel.val.y.tensor3d
-
-        for metric in self.metrics:
-            if metric in ['SE', 'MSE', 'RMSE']:
-                n = np.prod(gt.shape)
-                metric_result = np.power(gt - self._predict('test').tensor3d, 2).sum()
-            if metric in ['MSE', 'RMSE']:
-                metric_result = metric_result/n
-            if metric in ['RMSE']:
-                metric_result = np.sqrt(metric_result)
-            metrics_result.append(metric_result)
-
-        # TODO Implement rMSE, R2, AE, RAE
-        # https://stats.stackexchange.com/questions/142873/how-to-determine-the-accuracy-of-regression-which-measure-should-be-used
-
-        return metrics_result
-
+    def call(self, inputs):
+        return inputs
 
 class _BaseModel:
     """Base class for panel models."""
+
+    # TODO: Add warning when panel has nan values
+    # TODO: Auto convert boolean to int
 
     def __init__(self, panel, model_type: str = None, use_assets: bool = False, loss: str = None, optimizer: str = None, metrics: List[str] = None, last_activation: str = None):
 
@@ -84,13 +34,13 @@ class _BaseModel:
                 'optimizer': 'adam',
                 'metrics': ['MAE'],
                 'last_activation': 'linear'
-                },
+            },
             'classifier': {
                 'loss': 'binary_crossentropy',
                 'optimizer': 'adam',
                 'metrics': ['AUC', 'accuracy'],
                 'last_activation': 'sigmoid'
-                },
+            },
             'multi_classifier': {
                 'loss': 'categorical_crossentropy',
                 'optimizer': 'adam',
@@ -102,10 +52,10 @@ class _BaseModel:
         self.panel = panel
         self.use_assets = use_assets
 
-        self.loss = loss if loss else PARAMS[model_type]['loss']
-        self.optimizer = optimizer if optimizer else PARAMS[model_type]['optimizer']
-        self.metrics = metrics if metrics else PARAMS[model_type]['metrics']
-        self.last_activation = last_activation if last_activation else PARAMS[model_type]['last_activation']
+        self.loss = loss or PARAMS[model_type]['loss']
+        self.optimizer = optimizer or PARAMS[model_type]['optimizer']
+        self.metrics = metrics or PARAMS[model_type]['metrics']
+        self.last_activation = last_activation or PARAMS[model_type]['last_activation']
 
         self.set_arrays()
         self.build_model()
@@ -127,10 +77,12 @@ class _BaseModel:
         assets = self.panel.assets
         channels = self.panel.channels
 
-        blocks = []
-
-        for i, block_data in enumerate(predicted):
-            blocks.append(from_matrix(block_data, index = y[i].index, assets=assets, channels=channels))
+        blocks = [
+            from_matrix(
+                block_data, index=y[i].index, assets=assets, channels=channels
+            )
+            for i, block_data in enumerate(predicted)
+        ]
 
         return Side(blocks)
 
@@ -170,12 +122,34 @@ class _BaseModel:
 
     def evaluate(self, type: str = 'test'):
         if type == 'test':
-            acc = self.model.evaluate(self.x_test, self.y_test)
+            return self.model.evaluate(self.x_test, self.y_test)
         elif type == 'val':
-            acc = self.model.evaluate(self.x_val, self.y_val)
+            return self.model.evaluate(self.x_val, self.y_val)
         else:
-            acc = self.model.evaluate(self.x_train, self.y_train)
-        return acc
+            return self.model.evaluate(self.x_train, self.y_train)
+
+class BaselineModel(_BaseModel):
+    def __init__(
+        self,
+        panel,
+        model_type: str,
+        loss: str = None,
+        metrics: List[str] = None,
+    ):
+
+        super().__init__(panel=panel, model_type=model_type, loss=loss, metrics=metrics)
+
+    def set_arrays(self):
+        self.x_train = self.panel.train.y.wshift(1).tensor3d[1:]
+        self.x_val = self.panel.val.y.wshift(1).tensor3d[1:]
+        self.x_test = self.panel.test.y.wshift(1).tensor3d[1:]
+
+        self.y_train = self.panel.train.y.tensor3d[1:]
+        self.y_val = self.panel.val.y.tensor3d[1:]
+        self.y_test = self.panel.test.y.tensor3d[1:]
+
+    def build_model(self):
+        self.model = _ConstantKerasModel()
 
 
 class DenseModel(_BaseModel):
@@ -222,6 +196,7 @@ class DenseModel(_BaseModel):
         layers += [Dense(units=self.panel.horizon * len(self.panel.assets) * len(self.panel.channels), activation=self.last_activation), Reshape(self.y_train.shape[1:])]
 
         self.model = Sequential(layers)
+
 
 class ConvModel(_BaseModel):
     def __init__(
@@ -287,9 +262,10 @@ class ConvModel(_BaseModel):
 
         self.model = tf.keras.Sequential(layers)
 
+
 class LinearRegression(DenseModel):
     def __init__(self, panel):
-        super().__init__(panel, model_type = "regression", dense_layers = 0)
+        super().__init__(panel, model_type="regression", dense_layers=0)
 
 
 class SeparateAssetModel(ConvModel):
@@ -332,18 +308,18 @@ class SeparateAssetModel(ConvModel):
         """
 
         super().__init__(panel=panel,
-            model_type=model_type,
-            conv_layers=conv_layers,
-            conv_filters=conv_filters,
-            kernel_size=kernel_size,
-            dense_layers=dense_layers,
-            dense_units=dense_units,
-            activation=activation,
-            loss=loss,
-            optimizer=optimizer,
-            metrics=metrics,
-            last_activation=last_activation,
-            use_assets=True)
+                         model_type=model_type,
+                         conv_layers=conv_layers,
+                         conv_filters=conv_filters,
+                         kernel_size=kernel_size,
+                         dense_layers=dense_layers,
+                         dense_units=dense_units,
+                         activation=activation,
+                         loss=loss,
+                         optimizer=optimizer,
+                         metrics=metrics,
+                         last_activation=last_activation,
+                         use_assets=True)
 
         # self.hidden_activation = activation
         # self.last_activation = last_activation
@@ -364,6 +340,7 @@ class SeparateAssetModel(ConvModel):
 
     def create_hidden_layers(self, inputs):
         raise NotImplementedError
+
 
 class SeparateAssetConvModel(SeparateAssetModel):
     def __init__(
