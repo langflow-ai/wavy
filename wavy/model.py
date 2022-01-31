@@ -6,7 +6,7 @@ from tensorflow.keras.layers import Dense, Flatten, Input, Reshape, concatenate
 from tensorflow.keras.layers import Conv1D, SeparableConv1D, MaxPooling1D
 import pandas as pd
 import numpy as np
-from .block import from_matrix
+# from .block import from_matrix
 from .side import Side
 from sklearn.metrics import mean_squared_error
 

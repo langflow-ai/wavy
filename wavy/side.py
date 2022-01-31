@@ -1,12 +1,7 @@
-import functools
-import operator
-
-import numpy as np
-import pandas as pd
 from tqdm.auto import tqdm
 import random
 
-from .block import Block, from_matrix, from_series
+# from .block import Block, from_matrix, from_series
 
 from typing import List, Union
 
@@ -82,10 +77,12 @@ class Side:
         summary = pd.Series(
             {
                 "size": self.__len__(),
-                "num_assets": len(self.assets),
-                "num_channels": len(self.channels),
+                # "num_assets": len(self.assets),
+                # "num_channels": len(self.channels),
                 "start": self.start,
                 "end": self.end,
+                "xlevels": len(self.columns.keys()),
+                "ylevels": len(self.columns.keys()),
             },
             name="Side",
         )
@@ -135,7 +132,7 @@ class Side:
         >>> side.start
         Timestamp('2005-12-21 00:00:00')
         """
-        return self.first.start
+        return self.first.index[0]
 
     @property
     def end(self):
@@ -147,48 +144,66 @@ class Side:
         >>> side.end
         Timestamp('2005-12-23 00:00:00')
         """
-        return self.last.end
+        return self.last.index[-1]
 
     @property
-    def assets(self):
+    def columns(self):
         """
-        Side assets.
+        Side columns.
 
         Example:
 
-        >>> side.assets
-        0    AAPL
-        1    MSFT
-        dtype: object
+        >>> side.columns
+        {'Level 0': {'AAPL', 'MSFT'}, 'Level 1': {'Close', 'Open'}}
         """
-        return self.first.assets
 
-    @property
-    def channels(self):
-        """
-        Side channels.
+        dict = {}
 
-        Example:
+        for i in range(len(self.first.columns[0])):
+            dict[f'Level {i}'] = set([col[i] for col in self.first.columns])
 
-        >>> side.channels
-        0    Open
-        1    Close
-        dtype: object
-        """
-        return self.first.channels
+        return dict
 
-    @property
-    def timesteps(self):
-        """
-        Side timesteps.
+    # @property
+    # def assets(self):
+    #     """
+    #     Side assets.
 
-        Example:
+    #     Example:
 
-        >>> side.timesteps
-        DatetimeIndex(['2005-12-21', '2005-12-22', '2005-12-23'], dtype='datetime64[ns]', name='Date', freq=None)
-        """
-        # The same as the index
-        return self.index
+    #     >>> side.assets
+    #     0    AAPL
+    #     1    MSFT
+    #     dtype: object
+    #     """
+    #     return self.first.assets
+
+    # @property
+    # def channels(self):
+    #     """
+    #     Side channels.
+
+    #     Example:
+
+    #     >>> side.channels
+    #     0    Open
+    #     1    Close
+    #     dtype: object
+    #     """
+    #     return self.first.channels
+
+    # @property
+    # def timesteps(self):
+    #     """
+    #     Side timesteps.
+
+    #     Example:
+
+    #     >>> side.timesteps
+    #     DatetimeIndex(['2005-12-21', '2005-12-22', '2005-12-23'], dtype='datetime64[ns]', name='Date', freq=None)
+    #     """
+    #     # The same as the index
+    #     return self.index
 
     @property
     def index(self):
@@ -202,22 +217,20 @@ class Side:
         """
         return self.as_dataframe().index
 
-    # @property
-    # def values(self):
-    #     # TODO
-    #     # ? In block the equivalent name is tensor
-    #     """
-    #     3D matrix with Side value.
+    @property
+    def values(self):
+        """
+        3D matrix with Side value.
 
-    #     Example:
+        Example:
 
-    #     >>> side.values
-    #     array([[[19.57712554, 19.47512245,  2.21856582,  2.24606872],
-    #             [19.46054323, 19.37311363,  2.25859845,  2.26195979]],
-    #            [[19.46054323, 19.37311363,  2.25859845,  2.26195979],
-    #             [19.32212198, 19.40955162,  2.26654326,  2.24148512]]])
-    #     """
-    #     return np.array(self.blocks)
+        >>> side.values
+        array([[[19.57712554, 19.47512245,  2.21856582,  2.24606872],
+                [19.46054323, 19.37311363,  2.25859845,  2.26195979]],
+               [[19.46054323, 19.37311363,  2.25859845,  2.26195979],
+                [19.32212198, 19.40955162,  2.26654326,  2.24148512]]])
+        """
+        return np.array([block.matrix for block in tqdm(self.blocks)])
 
     @property
     def shape(self):
@@ -227,186 +240,206 @@ class Side:
         Example:
 
         >>> side.shape
-        (2, 2, 2, 2)
+        (2, 2, 4)
         """
-        return self.tensor4d.shape
+        return self.values.shape
 
-    @property
-    def tensor4d(self):
+    # @property
+    # def tensor4d(self):
+    #     """
+    #     4D matrix with Side value.
+
+    #     Example:
+
+    #     >>> side.tensor
+    #     array([[[[19.57712554, 19.47512245],
+    #              [19.46054323, 19.37311363]],
+    #             [[ 2.21856582,  2.24606872],
+    #              [ 2.25859845,  2.26195979]]],
+    #            [[[19.46054323, 19.37311363],
+    #              [19.32212198, 19.40955162]],
+    #             [[ 2.25859845,  2.26195979],
+    #              [ 2.26654326,  2.24148512]]]])
+    #     """
+    #     # Could be calculate using using the block function but it is faster this way
+    #     timesteps = self.first.index
+    #     new_shape = (len(self), len(timesteps), len(self.assets), len(self.channels))
+    #     values = self.tensor3d.reshape(*new_shape)
+    #     return values.transpose(0, 2, 1, 3)
+    #     # return np.array([block.tensor for block in tqdm(self.blocks)])
+
+    # @property
+    # def tensor3d(self):
+    #     """
+    #     3D matrix with Side value.
+
+    #     Example:
+
+    #     >>> side.matrix
+    #     array([[[19.57712554, 19.47512245,  2.21856582,  2.24606872],
+    #             [19.46054323, 19.37311363,  2.25859845,  2.26195979]],
+    #            [[19.46054323, 19.37311363,  2.25859845,  2.26195979],
+    #             [19.32212198, 19.40955162,  2.26654326,  2.24148512]]])
+    #     """
+    #     return np.array([block.matrix for block in tqdm(self.blocks)])
+
+
+    # def wfilter(self, assets: List[str] = None, channels: List[str] = None):
+    def filter(self, items=None, like=None, regex=None, axis=None):
         """
-        4D matrix with Side value.
+        Subset the dataframe rows or columns according to the specified index labels.
 
-        Example:
-
-        >>> side.tensor
-        array([[[[19.57712554, 19.47512245],
-                 [19.46054323, 19.37311363]],
-                [[ 2.21856582,  2.24606872],
-                 [ 2.25859845,  2.26195979]]],
-               [[[19.46054323, 19.37311363],
-                 [19.32212198, 19.40955162]],
-                [[ 2.25859845,  2.26195979],
-                 [ 2.26654326,  2.24148512]]]])
-        """
-        # Could be calculate using using the block function but it is faster this way
-        timesteps = self.first.index
-        new_shape = (len(self), len(timesteps), len(self.assets), len(self.channels))
-        values = self.tensor3d.reshape(*new_shape)
-        return values.transpose(0, 2, 1, 3)
-        # return np.array([block.tensor for block in tqdm(self.blocks)])
-
-    @property
-    def tensor3d(self):
-        """
-        3D matrix with Side value.
-
-        Example:
-
-        >>> side.matrix
-        array([[[19.57712554, 19.47512245,  2.21856582,  2.24606872],
-                [19.46054323, 19.37311363,  2.25859845,  2.26195979]],
-               [[19.46054323, 19.37311363,  2.25859845,  2.26195979],
-                [19.32212198, 19.40955162,  2.26654326,  2.24148512]]])
-        """
-        return np.array([block.matrix for block in tqdm(self.blocks)])
-
-
-    def wfilter(self, assets: List[str] = None, channels: List[str] = None):
-        """
-        Side subset according to the specified assets and channels.
+        Note that this routine does not filter a dataframe on its contents. The filter is applied to the labels of the index.
 
         Similar to `Pandas filter <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.filter.html>`__
 
         Args:
-            assets (list): List of assets
-            channels (list): List of channels
+            items (list-like): Keep labels from axis which are in items
+            like (str): Keep labels from axis for which "like in label == True"
+            regex (str): Keep labels from axis for which re.search(regex, label) == True
+            axis (0 or 'index', 1 or 'columns', None): The axis to filter on, expressed either as an index (int) or axis name (str). By default this is the info axis, 'index' for Series, 'columns' for DataFrame.
 
         Returns:
             ``Side``: Filtered Side
         """
-        return Side([block.wfilter(assets=assets, channels=channels) for block in tqdm(self.blocks)])
+        return Side([block.filter(items=items, like=like, regex=regex, axis=axis) for block in tqdm(self.blocks)])
 
-    def wdrop(self, assets=None, channels=None):
+    def drop(self, labels=None, axis=0, index=None, columns=None, level=None, inplace=False, errors='raise'):
         """
-        Subset of the Side columns discarding the specified assets and channels.
+        Return Series with specified index labels removed.
+
+        Remove elements of a Series based on specifying the index labels. When using a multi-index, labels on different levels can be removed by specifying the level.
 
         Similar to `Pandas drop <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop.html>`__
 
         Args:
-            assets (list): List of assets
-            channels (list): List of channels
+            labels (single label or list-like): Index labels to drop.
+            axis (0, default 0): Redundant for application on Series.
+            index (single label or list-like): Redundant for application on Series, but 'index' can be used instead of 'labels'.
+            columns (single label or list-like): No change is made to the Series; use 'index' or 'labels' instead.
+            level (int or level name, optional): For MultiIndex, level for which the labels will be removed.
+            inplace (bool, default False): If True, do operation inplace and return None.
+            errors ({'ignore', 'raise'}, default 'raise'): If 'ignore', suppress error and only existing labels are dropped.
 
         Returns:
             ``Side``: Filtered Side
         """
-        return Side([block.wdrop(assets=assets, channels=channels) for block in tqdm(self.blocks)])
+        return Side([block.drop(labels=labels, axis=axis, index=index, columns=columns, level=level, inplace=inplace, errors='raise') for block in tqdm(self.blocks)])
 
-    def rename_assets(self, dict: dict):
+    # def rename_assets(self, dict: dict):
+    #     """
+    #     Rename asset labels.
+
+    #     Similar to `Pandas rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html#>`__
+
+    #     Args:
+    #         dict (dict): Dictionary with assets to rename
+
+    #     Returns:
+    #         ``Side``: Renamed Side
+    #     """
+    #     return Side([block.rename_assets(dict) for block in tqdm(self.blocks)])
+
+    # def rename_channels(self, dict: dict):
+    #     """
+    #     Rename channel labels.
+
+    #     Similar to `Pandas rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html#>`__
+
+    #     Args:
+    #         dict (dict): Dictionary with channels to rename
+
+    #     Returns:
+    #         ``Side``: Renamed Side
+    #     """
+    #     return Side([block.rename_channels(dict) for block in tqdm(self.blocks)])
+
+    def apply(self, func, convert_dtype=True, args=(), **kwargs):
         """
-        Rename asset labels.
+        Invoke function on values of Series.
 
-        Similar to `Pandas rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html#>`__
-
-        Args:
-            dict (dict): Dictionary with assets to rename
-
-        Returns:
-            ``Side``: Renamed Side
-        """
-        return Side([block.rename_assets(dict) for block in tqdm(self.blocks)])
-
-    def rename_channels(self, dict: dict):
-        """
-        Rename channel labels.
-
-        Similar to `Pandas rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html#>`__
-
-        Args:
-            dict (dict): Dictionary with channels to rename
-
-        Returns:
-            ``Side``: Renamed Side
-        """
-        return Side([block.rename_channels(dict) for block in tqdm(self.blocks)])
-
-    def wapply(self, func, on: str = 'timestamps'):
-        """
-        Apply a function along an axis of the DataBlock.
+        Can be ufunc (a NumPy function that applies to the entire Series) or a Python function that only works on single values.
 
         Similar to `Pandas apply <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.apply.html>`__
 
         Args:
-            func (function): Function to apply to each column or row.
-            on (str, default 'row'): Axis along which the function is applied:
-
-                * 'timestamps': apply function to each timestamps.
-                * 'channels': apply function to each channels.
+            func (function): Python function or NumPy ufunc to apply.
+            convert_dtype (bool, default True): Try to find better dtype for elementwise function results. If False, leave as dtype=object. Note that the dtype is always preserved for some extension array dtypes, such as Categorical.
+            args (tuple): Positional arguments passed to func after the series value.
+            **kwargs: Additional keyword arguments passed to func.
 
         Returns:
             ``Side``: Result of applying `func` along the given axis of the Side.
         """
-        return Side([block.wapply(func, on) for block in tqdm(self.blocks)])
+        return Side([block.apply(func=func, convert_dtype=convert_dtype, args=args, **kwargs) for block in tqdm(self.blocks)])
 
-    def wupdate(self, values=None, index: List = None, assets: List = None, channels: List = None):
+    def update(self, other, join='left', overwrite=True, filter_func=None, errors='ignore'):
         """
-        Update function for any of Side properties.
+        Modify in place using non-NA values from another DataFrame.
+
+        Aligns on indices. There is no return value.
 
         Similar to `Pandas update <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.update.html>`__
 
         Args:
-            values (ndarray): New values Dataframe.
-            index (list): New list of index.
-            assets (list): New list of assets
-            channels (list): New list of channels
+            other (DataFrame, or object coercible into a DataFrame): Should have at least one matching index/column label with the original DataFrame. If a Series is passed, its name attribute must be set, and that will be used as the column name to align with the original DataFrame.
+            join ({'left'}, default 'left'): Only left join is implemented, keeping the index and columns of the original object.
+            overwrite (bool, default True): How to handle non-NA values for overlapping keys:
+
+                * True: overwrite original DataFrame's values with values from other.
+                * False: only update values that are NA in the original DataFrame.
+
+            filter_func (callable(1d-array) -> bool 1d-array, optional): Can choose to replace values other than NA. Return True for values that should be updated.
+            errors ({'raise', 'ignore'}, default 'ignore'): If 'raise', will raise a ValueError if the DataFrame and other both contain non-NA data in the same place.
 
         Returns:
             ``Side``: Result of updated Side.
         """
-        return Side([block.wupdate(values[i], index, assets, channels) for i, block in tqdm(enumerate(self.blocks))])
+        return Side([block.update(other=other, join=join, overwrite=overwrite, filter_func=filter_func, errors=errors) for i, block in tqdm(enumerate(self.blocks))])
 
-    def _split_assets(self):
-        # TODO RN ? Does it make sense??
-        return [self.filter(asset) for asset in self.assets]
-        # return [block.split_assets() for block in tqdm(self.blocks)]
+    # def _split_assets(self):
+    #     # TODO RN ? Does it make sense??
+    #     return [self.filter(asset) for asset in self.assets]
+    #     # return [block.split_assets() for block in tqdm(self.blocks)]
 
-    def sort_assets(self, order: List[str] = None):
-        """
-        Sort assets in alphabetical order.
+    # def sort_assets(self, order: List[str] = None):
+    #     """
+    #     Sort assets in alphabetical order.
 
-        Args:
-            order (List[str]): Asset order to be sorted.
+    #     Args:
+    #         order (List[str]): Asset order to be sorted.
 
-        Returns:
-            ``Side``: Result of sorting assets.
-        """
-        return Side([block.sort_assets(order) for block in tqdm(self.blocks)])
+    #     Returns:
+    #         ``Side``: Result of sorting assets.
+    #     """
+    #     return Side([block.sort_assets(order) for block in tqdm(self.blocks)])
 
-    def sort_channels(self, order: List[str] = None):
-        """
-        Sort channels in alphabetical order.
+    # def sort_channels(self, order: List[str] = None):
+    #     """
+    #     Sort channels in alphabetical order.
 
-        Args:
-            order (List[str]): Channel order to be sorted.
+    #     Args:
+    #         order (List[str]): Channel order to be sorted.
 
-        Returns:
-            ``Side``: Result of sorting channels.
-        """
-        return Side([block.sort_channels(order) for block in tqdm(self.blocks)])
+    #     Returns:
+    #         ``Side``: Result of sorting channels.
+    #     """
+    #     return Side([block.sort_channels(order) for block in tqdm(self.blocks)])
 
-    def swap_cols(self):
-        """
-        Swap columns levels, assets becomes channels and channels becomes assets
+    # def swap_cols(self):
+    #     """
+    #     Swap columns levels, assets becomes channels and channels becomes assets
 
-        Returns:
-            ``Side``: Result of swapping columns.
-        """
-        return Side([block.swap_cols() for block in tqdm(self.blocks)])
+    #     Returns:
+    #         ``Side``: Result of swapping columns.
+    #     """
+    #     return Side([block.swap_cols() for block in tqdm(self.blocks)])
 
     # TODO add count??
 
     def countna(self):
         """
-        Count NaN cells for each Block.
+        Count NaN cells for each Dataframe.
 
         Returns:
             ``DataFrame``: NaN count for each Block.
@@ -421,18 +454,27 @@ class Side:
         values = [block.isnull().values.sum() for block in tqdm(self.blocks)]
         return pd.DataFrame(values, index=range(len(self.blocks)), columns=['nan'])
 
-    def wfillna(self, value=None, method: str = None):
+    def fillna(self, value=None, method=None, axis=None, inplace=False, limit=None, downcast=None):
         """
-        Fill NaN values using the specified method.
+        Fill NA/NaN values using the specified method.
 
         Similar to `Pandas fillna <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.fillna.html>`__
+
+        Args:
+            value (scalar, dict, Series, or DataFrame): Value to use to fill holes (e.g. 0), alternately a dict/Series/DataFrame of values specifying which value to use for each index (for a Series) or column (for a DataFrame). Values not in the dict/Series/DataFrame will not be filled. This value cannot be a list.
+            method ({'backfill', 'bfill', 'pad', 'ffill', None}, default None): Method to use for filling holes in reindexed Series pad / ffill: propagate last valid observation forward to next valid backfill / bfill: use next valid observation to fill gap.
+            axis ({0 or 'index', 1 or 'columns'}): Axis along which to fill missing values.
+            inplace (bool, default False): If True, fill in-place. Note: this will modify any other views on this object (e.g., a no-copy slice for a column in a DataFrame).
+            limit (int, default None): If method is specified, this is the maximum number of consecutive NaN values to forward/backward fill. In other words, if there is a gap with more than this number of consecutive NaNs, it will only be partially filled. If method is not specified, this is the maximum number of entries along the entire axis where NaNs will be filled. Must be greater than 0 if not None.
+            downcast (dict, default is None): A dict of item->dtype of what to downcast if possible, or the string 'infer' which will try to downcast to an appropriate equal type (e.g. float64 to int64 if possible).
 
         Returns:
             ``Side``: Side with missing values filled.
         """
-        return Side([block.wfillna(value=value, method=method) for block in tqdm(self.blocks)])
+        return Side([block.fillna(value=value, method=method, axis=axis, inplace=inplace, limit=limit, downcast=downcast) for block in tqdm(self.blocks)])
 
-    def wdropna(self, x=True, y=True):
+    # TODO dropna be the same as Dataframe and createa dropnadataframes
+    def dropna(self):
         """
         Drop pairs with missing values from the panel.
 
@@ -565,7 +607,7 @@ class Side:
         """
         return self.flat().values.flatten()
 
-    def wshift(self, window: int = 1):
+    def shift(self, window: int = 1):
         """
         Shift side by desired number of blocks.
 
@@ -575,7 +617,7 @@ class Side:
             window (int): Number of blocks to shift
 
         Returns:
-            ``Side``: Result of wshift function.
+            ``Side``: Result of shift function.
 
         Example:
 
@@ -586,7 +628,7 @@ class Side:
         2005-12-21  19.577126  19.475122  2.218566  2.246069
         2005-12-22  19.460543  19.373114  2.258598  2.261960
 
-        >>> side = side.wshift(window = 1)
+        >>> side = side.shift(window = 1)
 
         >>> side[0]
                 MSFT       AAPL      
@@ -610,13 +652,14 @@ class Side:
         for i, block in enumerate(self.blocks):
             new_index = i - window
             new_index = new_index if new_index >= 0 and new_index < len(self.blocks) else None
-            new_values = self.blocks[new_index] if new_index is not None else np.ones(self.blocks[0].shape) * np.nan
-            new_block = from_matrix(values=new_values, index=block.index, assets=block.assets, channels=block.channels)
+            new_values = self.blocks[new_index].values if new_index is not None else np.ones(self.blocks[0].shape) * np.nan
+            # new_block = from_matrix(values=new_values, index=block.index, assets=block.assets, channels=block.channels)
+            new_block = pd.DataFrame(data=new_values, index=block.index, columns=block.columns)
             new_side.append(new_block)
 
         return Side(new_side)
 
-    def wdiff(self, window: int = 1):
+    def diff(self, window: int = 1):
         """
         Difference between blocks.
 
@@ -626,7 +669,7 @@ class Side:
             window (int): Number of blocks to diff
 
         Returns:
-            ``Side``: Result of wdiff function.
+            ``Side``: Result of diff function.
 
         Example:
 
@@ -637,7 +680,7 @@ class Side:
         2005-12-21  19.577126  19.475122  2.218566  2.246069
         2005-12-22  19.460543  19.373114  2.258598  2.261960
 
-        >>> side = side.wdiff(window = 1)
+        >>> side = side.diff(window = 1)
 
         >>> side[0]
                 MSFT       AAPL      
@@ -653,9 +696,9 @@ class Side:
         2005-12-22 -0.116582 -0.102009  0.040033  0.015891
         2005-12-23 -0.138421  0.036438  0.007945 -0.020475
         """
-        return self - self.wshift(window)
+        return self - self.shift(window)
 
-    def wpct_change(self, window: int = 1):
+    def pct_change(self, window: int = 1):
         """
         Percentage change between the current and a prior block.
 
@@ -665,7 +708,7 @@ class Side:
             window (int): Number of blocks to calculate percent change
 
         Returns:
-            ``Side``: Result of wpct_change function.
+            ``Side``: Result of pct_change function.
 
         Example:
 
@@ -676,7 +719,7 @@ class Side:
         2005-12-21  19.577126  19.475122  2.218566  2.246069
         2005-12-22  19.460543  19.373114  2.258598  2.261960
 
-        >>> side = side.wpct_change(window = 1)
+        >>> side = side.pct_change(window = 1)
 
         >>> side[0]
                 MSFT       AAPL      
@@ -692,7 +735,7 @@ class Side:
         2005-12-22 -0.005955 -0.005238  0.018044  0.007075
         2005-12-23 -0.007113  0.001881  0.003518 -0.009052
         """
-        a = self.wshift(window)
+        a = self.shift(window)
         return (self - a) / a
 
     def side_sample(self, n: int = None, frac: float = None):
@@ -802,7 +845,7 @@ class Side:
 
                     showlegend = i <= 0
 
-                    x_df = self.blocks[step].wfilter(assets=asset, channels=channel)
+                    x_df = self.blocks[step].filter(assets=asset, channels=channel)
                     index = x_df.index
                     values = x_df.values.flatten()
 
@@ -860,7 +903,7 @@ class Side:
         fig.show()
 
 
-    def wcount(self, axis: int = 0, numeric_only: bool = False):
+    def count(self, axis: int = 0, numeric_only: bool = False):
         """
         Count non-NA cells for each column or row.
 
@@ -884,14 +927,14 @@ class Side:
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> side[0].wcount()
+        >>> side[0].count()
                    AAPL       MSFT      
                    Open Close Open Close
         2005-12-21    2     2    2     2
         """
-        return Side([block.wcount(axis=axis, numeric_only=numeric_only) for block in tqdm(self.blocks)])
+        return Side([block.count(axis=axis, numeric_only=numeric_only) for block in tqdm(self.blocks)])
 
-    def wkurt(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+    def kurt(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
         """
         Return unbiased kurtosis over requested axis.
 
@@ -917,16 +960,16 @@ class Side:
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> side[0].wkurt(axis=1)
+        >>> side[0].kurt(axis=1)
                     asset
                     kurt
         Date               
         2005-12-21 -5.99944
         2005-12-22 -5.99961
         """
-        return Side([block.wkurt(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
+        return Side([block.kurt(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
 
-    def wkurtosis(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+    def kurtosis(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
         """
         Return unbiased kurtosis over requested axis.
 
@@ -952,16 +995,16 @@ class Side:
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> side[0].wkurtosis(axis=1)
+        >>> side[0].kurtosis(axis=1)
                     asset
                     kurt
         Date               
         2005-12-21 -5.99944
         2005-12-22 -5.99961
         """
-        return Side([block.wkurtosis(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
+        return Side([block.kurtosis(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
 
-    def wmad(self, axis: int = None, skipna: bool = None):
+    def mad(self, axis: int = None, skipna: bool = None):
         """
         Return the mean absolute deviation of the values over the requested axis.
 
@@ -983,14 +1026,14 @@ class Side:
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> side[0].wmad()
+        >>> side[0].mad()
                         AAPL                MSFT          
                         Open     Close      Open     Close
         2005-12-21  0.020016  0.007946  0.058291  0.051004
         """
-        return Side([block.wmad(axis=axis, skipna=skipna) for block in tqdm(self.blocks)])
+        return Side([block.mad(axis=axis, skipna=skipna) for block in tqdm(self.blocks)])
 
-    def wmax(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+    def max(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
         """
         Return the maximum of the values over the requested axis.
 
@@ -1014,14 +1057,14 @@ class Side:
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> side[0].wmax()
+        >>> side[0].max()
                         AAPL                MSFT           
                         Open    Close       Open      Close
         2005-12-21  2.258598  2.26196  19.577126  19.475122
         """
-        return Side([block.wmax(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
+        return Side([block.max(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
 
-    def wmean(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+    def mean(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
         """
         Return the mean of the values over the requested axis.
 
@@ -1050,9 +1093,9 @@ class Side:
                         Open     Close       Open      Close
         2005-12-21  2.238582  2.254014  19.518834  19.424118
         """
-        return Side([block.wmean(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
+        return Side([block.mean(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
 
-    def wmedian(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+    def median(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
         """
         Return the median of the values over the requested axis.
 
@@ -1081,10 +1124,10 @@ class Side:
                         Open     Close       Open      Close
         2005-12-21  2.238582  2.254014  19.518834  19.424118
         """
-        return Side([block.wmedian(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
+        return Side([block.median(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
 
 
-    def wmin(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+    def min(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
         """
         Return the minimum of the values over the requested axis.
 
@@ -1108,14 +1151,14 @@ class Side:
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> side[0].wmin()
+        >>> side[0].min()
                         AAPL                 MSFT           
                         Open     Close       Open      Close
         2005-12-21  2.218566  2.246069  19.460543  19.373114
         """
-        return Side([block.wmin(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
+        return Side([block.min(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
 
-    def wnunique(self, axis: int = None, dropna: bool = None):
+    def nunique(self, axis: int = None, dropna: bool = None):
         """
         Count number of distinct elements in specified axis.
 
@@ -1139,14 +1182,14 @@ class Side:
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> side[0].wnunique()
+        >>> side[0].nunique()
                 AAPL       MSFT      
                 Open Close Open Close
         2005-12-21    2     2    2     2
         """
-        return Side([block.wnunique(axis=axis, dropna=dropna) for block in tqdm(self.blocks)])
+        return Side([block.nunique(axis=axis, dropna=dropna) for block in tqdm(self.blocks)])
 
-    def wprod(self, axis: int = None, skipna: bool = None, numeric_only=None, min_count: int = 0, **kwargs):
+    def prod(self, axis: int = None, skipna: bool = None, numeric_only=None, min_count: int = 0, **kwargs):
         """
         Return the product of the values over the requested axis.
 
@@ -1171,15 +1214,15 @@ class Side:
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> side[0].wprod()
+        >>> side[0].prod()
                         AAPL                  MSFT           
                         Open     Close        Open      Close
         2005-12-21  5.010849  5.080517  380.981498  377.29376
         """
-        return Side([block.wprod(axis=axis, skipna=skipna, numeric_only=numeric_only, min_count=min_count, **kwargs) for block in tqdm(self.blocks)])
+        return Side([block.prod(axis=axis, skipna=skipna, numeric_only=numeric_only, min_count=min_count, **kwargs) for block in tqdm(self.blocks)])
 
 
-    def wproduct(self, axis: int = None, skipna: bool = None, numeric_only=None, min_count: int = 0, **kwargs):
+    def product(self, axis: int = None, skipna: bool = None, numeric_only=None, min_count: int = 0, **kwargs):
         """
         Return the product of the values over the requested axis.
 
@@ -1204,15 +1247,15 @@ class Side:
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> side[0].wprod()
+        >>> side[0].prod()
                         AAPL                  MSFT           
                         Open     Close        Open      Close
         2005-12-21  5.010849  5.080517  380.981498  377.29376
         """
-        return Side([block.wproduct(axis=axis, skipna=skipna, numeric_only=numeric_only, min_count=min_count, **kwargs) for block in tqdm(self.blocks)])
+        return Side([block.product(axis=axis, skipna=skipna, numeric_only=numeric_only, min_count=min_count, **kwargs) for block in tqdm(self.blocks)])
 
 
-    def wquantile(self, q: Union[float, List[float]] = 0.5, interpolation: str = "linear"):
+    def quantile(self, q: Union[float, List[float]] = 0.5, interpolation: str = "linear"):
         """
         Return value at the given quantile.
 
@@ -1242,14 +1285,14 @@ class Side:
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> side[0].wquantile(q=0.5, interpolation='linear')
+        >>> side[0].quantile(q=0.5, interpolation='linear')
                         AAPL                 MSFT           
                         Open     Close       Open      Close
         2005-12-21  2.238582  2.254014  19.518834  19.424118
         """
-        return Side([block.wquantile(q=q, interpolation=interpolation) for block in tqdm(self.blocks)])
+        return Side([block.quantile(q=q, interpolation=interpolation) for block in tqdm(self.blocks)])
 
-    def wsem(self, axis: int = None, skipna: bool = None, ddof: int = 1, numeric_only=None, **kwargs):
+    def sem(self, axis: int = None, skipna: bool = None, ddof: int = 1, numeric_only=None, **kwargs):
         """
         Return unbiased standard error of the mean over requested axis.
 
@@ -1276,15 +1319,15 @@ class Side:
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> side[0].wsem()
+        >>> side[0].sem()
                         AAPL                MSFT          
                         Open     Close      Open     Close
         2005-12-21  0.020016  0.007946  0.058291  0.051004
         """
-        return Side([block.wsem(axis=axis, skipna=skipna, ddof=ddof, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
+        return Side([block.sem(axis=axis, skipna=skipna, ddof=ddof, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
 
 
-    def wskew(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+    def skew(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
         """
         Return unbiased skew over requested axis.
 
@@ -1310,17 +1353,17 @@ class Side:
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> side[0].wskew(axis=1)
+        >>> side[0].skew(axis=1)
                        asset
                         skew
         Date                
         2005-12-21  0.000084
         2005-12-22  0.000067
         """
-        return Side([block.wskew(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
+        return Side([block.skew(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
 
 
-    def wstd(self, axis: int = None, skipna: bool = None, ddof: int = 1, numeric_only=None, **kwargs):
+    def std(self, axis: int = None, skipna: bool = None, ddof: int = 1, numeric_only=None, **kwargs):
         """
         Return sample standard deviation over requested axis.
 
@@ -1347,15 +1390,15 @@ class Side:
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> side[0].wstd()
+        >>> side[0].std()
                         AAPL                MSFT          
                         Open     Close      Open     Close
         2005-12-21  0.028307  0.011237  0.082436  0.072131
         """
-        return Side([block.wstd(axis=axis, skipna=skipna, ddof=ddof, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
+        return Side([block.std(axis=axis, skipna=skipna, ddof=ddof, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
 
 
-    def wsum(self, axis: int = None, skipna: bool = None, numeric_only=None, min_count: int = 0, **kwargs):
+    def sum(self, axis: int = None, skipna: bool = None, numeric_only=None, min_count: int = 0, **kwargs):
         """
         Return the sum of the values over the requested axis.
 
@@ -1382,15 +1425,15 @@ class Side:
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> side[0].wsum()
+        >>> side[0].sum()
                         AAPL                  MSFT           
                         Open     Close        Open      Close
         2005-12-21  5.010849  5.080517  380.981498  377.29376
         """
-        return Side([block.wsum(axis=axis, skipna=skipna, numeric_only=numeric_only, min_count=min_count, **kwargs) for block in tqdm(self.blocks)])
+        return Side([block.sum(axis=axis, skipna=skipna, numeric_only=numeric_only, min_count=min_count, **kwargs) for block in tqdm(self.blocks)])
 
 
-    def wvar(self, axis: int = None, skipna: bool = None, ddof: int = 1, numeric_only=None, **kwargs):
+    def var(self, axis: int = None, skipna: bool = None, ddof: int = 1, numeric_only=None, **kwargs):
         """
         Return sample variance over requested axis.
 
@@ -1417,9 +1460,9 @@ class Side:
         2005-12-21  2.218566  2.246069  19.577126  19.475122
         2005-12-22  2.258598  2.261960  19.460543  19.373114
 
-        >>> side[0].wvar()
+        >>> side[0].var()
                         AAPL                MSFT          
                         Open     Close      Open     Close
         2005-12-21  0.000801  0.000126  0.006796  0.005203
         """
-        return Side([block.wvar(axis=axis, skipna=skipna, ddof=ddof, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
+        return Side([block.var(axis=axis, skipna=skipna, ddof=ddof, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])

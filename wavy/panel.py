@@ -4,7 +4,7 @@ from typing import Iterable
 import numpy as np
 import pandas as pd
 
-from .block import Block, from_series
+# from .block import Block, from_series
 from .side import Side
 
 from tqdm.auto import tqdm
@@ -56,73 +56,127 @@ from plotly.subplots import make_subplots
 #     return Panel(x, y)
 
 
-def from_xy_data(x, y, lookback:int, horizon:int, gap:int = 0, remove_invalid: bool = False):
-    """
-    Create a panel from two dataframes.
+# def from_xy_data(x, y, lookback:int, horizon:int, gap:int = 0, remove_invalid: bool = False):
+#     """
+#     Create a panel from two dataframes.
 
-    Args:
-        x (DataFrame): x DataFrame
-        y (DataFrame): y DataFrame
-        lookback (int): lookback size
-        horizont (int): horizont size
-        gap (int): gap between x and y
-        remove_invalid (bool): Remove blocks that contains NaN/Inf values
+#     Args:
+#         x (DataFrame): x DataFrame
+#         y (DataFrame): y DataFrame
+#         lookback (int): lookback size
+#         horizont (int): horizont size
+#         gap (int): gap between x and y
+#         remove_invalid (bool): Remove blocks that contains NaN/Inf values
 
-    Returns:
-        ``Panel``: Data Panel
+#     Returns:
+#         ``Panel``: Data Panel
 
-    Example:
+#     Example:
 
-    >>> from_xy_data(x, y, 5, 5, 0)
-    size                               1
-    lookback                           2
-    horizon                            2
-    num_xassets                        2
-    num_yassets                        2
-    num_xchannels                      2
-    num_ychannels                      2
-    start            2005-12-27 00:00:00
-    end              2005-12-30 00:00:00
-    Name: Panel, dtype: object
-    <Panel, size 1>
-    """
+#     >>> from_xy_data(x, y, 5, 5, 0)
+#     size                               1
+#     lookback                           2
+#     horizon                            2
+#     num_xassets                        2
+#     num_yassets                        2
+#     num_xchannels                      2
+#     num_ychannels                      2
+#     start            2005-12-27 00:00:00
+#     end              2005-12-30 00:00:00
+#     Name: Panel, dtype: object
+#     <Panel, size 1>
+#     """
 
-    x_timesteps = len(x.index)
+#     x_timesteps = len(x.index)
 
-    if x_timesteps - lookback - horizon - gap <= -1:
-        raise ValueError("Not enough timesteps to build")
+#     if x_timesteps - lookback - horizon - gap <= -1:
+#         raise ValueError("Not enough timesteps to build")
 
-    end = x_timesteps - horizon - gap + 1
+#     end = x_timesteps - horizon - gap + 1
 
-    # Convert to blocks
-    x = Block(x)
-    y = Block(y)
+#     # Convert to blocks
+#     x = Block(x)
+#     y = Block(y)
 
-    indexes = np.arange(lookback, end)
-    xblocks, yblocks = [], []
+#     indexes = np.arange(lookback, end)
+#     xblocks, yblocks = [], []
 
-    for i in indexes:
-        xblocks.append(x.iloc[i - lookback : i])
-        yblocks.append(y.iloc[i + gap : i + gap + horizon])
+#     for i in indexes:
+#         xblocks.append(x.iloc[i - lookback : i])
+#         yblocks.append(y.iloc[i + gap : i + gap + horizon])
 
-    panel = Panel(Side(xblocks), Side(yblocks), gap=gap)
+#     panel = Panel(Side(xblocks), Side(yblocks), gap=gap)
 
-    if remove_invalid:
-        panel = panel.dropinvalid()
-    return panel
+#     if remove_invalid:
+#         panel = panel.dropinvalid()
+#     return panel
 
 
-def from_data(df,
+# def from_data(df,
+#               lookback:int,
+#               horizon:int,
+#               gap:int = 0,
+#               x_assets: List[str] = None,
+#               y_assets: List[str] = None,
+#               x_channels: List[str] = None,
+#               y_channels: List[str] = None,
+#               assets: List[str] = None,
+#               channels: List[str] = None,
+#               remove_invalid: bool = False):
+#     """
+#     Create a panel from a dataframe.
+
+#     Args:
+#         df (DataFrame): Values DataFrame
+#         lookback (int): lookback size
+#         horizont (int): horizont size
+#         gap (int): gap between x and y
+#         x_assets (list): List of x assets
+#         y_assets (list): List of y assets
+#         x_channels (list): List of x channels
+#         y_channels (list): List of y channels
+#         assets (list): List of assets
+#         channels (list): List of channels
+#         remove_invalid (bool): Remove blocks that contains NaN/Inf values
+
+#     Returns:
+#         ``Panel``: Data Panel
+
+#     Example:
+
+#     >>> from_data(df, 5, 5, 0)
+#     size                               1
+#     lookback                           2
+#     horizon                            2
+#     num_xassets                        2
+#     num_yassets                        2
+#     num_xchannels                      2
+#     num_ychannels                      2
+#     start            2005-12-27 00:00:00
+#     end              2005-12-30 00:00:00
+#     Name: Panel, dtype: object
+#     <Panel, size 1>
+#     """
+
+#     if assets:
+#         x_assets, y_assets = assets, assets
+#     if channels:
+#         x_channels, y_channels = channels, channels
+
+#     df = Block(df)
+
+#     if df.T.index.nlevels == 1:
+#         df = df.add_level('asset')
+
+#     xdata = df.wfilter(x_assets, x_channels)
+#     ydata = df.wfilter(y_assets, y_channels)
+#     return from_xy_data(xdata, ydata, lookback, horizon, gap)
+
+
+def create_panel(df,
               lookback:int,
               horizon:int,
-              gap:int = 0,
-              x_assets: List[str] = None,
-              y_assets: List[str] = None,
-              x_channels: List[str] = None,
-              y_channels: List[str] = None,
-              assets: List[str] = None,
-              channels: List[str] = None,
-              remove_invalid: bool = False):
+              gap:int = 0):
     """
     Create a panel from a dataframe.
 
@@ -131,13 +185,6 @@ def from_data(df,
         lookback (int): lookback size
         horizont (int): horizont size
         gap (int): gap between x and y
-        x_assets (list): List of x assets
-        y_assets (list): List of y assets
-        x_channels (list): List of x channels
-        y_channels (list): List of y channels
-        assets (list): List of assets
-        channels (list): List of channels
-        remove_invalid (bool): Remove blocks that contains NaN/Inf values
 
     Returns:
         ``Panel``: Data Panel
@@ -158,83 +205,107 @@ def from_data(df,
     <Panel, size 1>
     """
 
-    if assets:
-        x_assets, y_assets = assets, assets
-    if channels:
-        x_channels, y_channels = channels, channels
+    # if assets:
+    #     x_assets, y_assets = assets, assets
+    # if channels:
+    #     x_channels, y_channels = channels, channels
 
-    df = Block(df)
+    # df = Block(df)
 
-    if df.T.index.nlevels == 1:
-        df = df.add_level('asset')
+    # if df.T.index.nlevels == 1:
+    #     df = df.add_level('asset')
 
-    xdata = df.wfilter(x_assets, x_channels)
-    ydata = df.wfilter(y_assets, y_channels)
-    return from_xy_data(xdata, ydata, lookback, horizon, gap)
+    # xdata = df.wfilter(x_assets, x_channels)
+    # ydata = df.wfilter(y_assets, y_channels)
+    # return from_xy_data(xdata, ydata, lookback, horizon, gap)
 
 
-def from_single_level(df,
-                      lookback:int,
-                      horizon:int,
-                      gap:int,
-                      asset_column:str,
-                      index_name:str,
-                      x_assets: List[str] = None,
-                      y_assets: List[str] = None,
-                      x_channels: List[str] = None,
-                      y_channels: List[str] = None,
-                      assets: List[str] = None,
-                      channels: List[str] = None,
-                      remove_invalid: bool = False):
-    """
-    Create a panel from a single level dataframe.
+    x_timesteps = len(df.index)
 
-    Args:
-        df (DataFrame): Values DataFrame
-        lookback (int): lookback size
-        horizont (int): horizont size
-        gap (int): gap between x and y
-        asset_column (str): column name that will be converter to asset
-        index_name (str): index column name
-        x_assets (list): List of x assets
-        y_assets (list): List of y assets
-        x_channels (list): List of x channels
-        y_channels (list): List of y channels
-        assets (list): List of assets
-        channels (list): List of channels
-        remove_invalid (bool): Remove blocks that contains NaN/Inf values
+    if x_timesteps - lookback - horizon - gap <= -1:
+        raise ValueError("Not enough timesteps to build")
 
-    Returns:
-        ``Panel``: Data Panel
-    """
+    end = x_timesteps - horizon - gap + 1
 
-    if asset_column not in df:
-        raise ValueError("'asset_column' not in dataframe.")
-    if index_name not in df:
-        raise ValueError("'index_name' not in dataframe.")
+    # Convert to blocks
+    x = df
+    y = df
 
-    df = df.set_index(index_name)
+    indexes = np.arange(lookback, end)
+    xblocks, yblocks = [], []
 
-    df_list = []
-    countries = df[asset_column].unique()
-    for country in countries:
-        temp_df = df[df[asset_column]==country]
-        temp_df.pop(asset_column)
-        df_list.append(temp_df)
+    for i in indexes:
+        xblocks.append(x.iloc[i - lookback : i])
+        yblocks.append(y.iloc[i + gap : i + gap + horizon])
 
-    new_df = pd.concat(df_list, axis = 1, keys=(countries))
+    panel = Panel(Side(xblocks), Side(yblocks), gap=gap)
 
-    return from_data(new_df,
-                     lookback = lookback,
-                     horizon = horizon,
-                     gap = gap,
-                     x_assets = x_assets,
-                     y_assets = y_assets,
-                     x_channels = x_channels,
-                     y_channels = y_channels,
-                     assets = assets,
-                     channels = channels,
-                     remove_invalid = remove_invalid)
+    return panel
+
+
+
+# def from_single_level(df,
+#                       lookback:int,
+#                       horizon:int,
+#                       gap:int,
+#                       asset_column:str,
+#                       index_name:str,
+#                       x_assets: List[str] = None,
+#                       y_assets: List[str] = None,
+#                       x_channels: List[str] = None,
+#                       y_channels: List[str] = None,
+#                       assets: List[str] = None,
+#                       channels: List[str] = None,
+#                       remove_invalid: bool = False):
+#     """
+#     Create a panel from a single level dataframe.
+
+#     Args:
+#         df (DataFrame): Values DataFrame
+#         lookback (int): lookback size
+#         horizont (int): horizont size
+#         gap (int): gap between x and y
+#         asset_column (str): column name that will be converter to asset
+#         index_name (str): index column name
+#         x_assets (list): List of x assets
+#         y_assets (list): List of y assets
+#         x_channels (list): List of x channels
+#         y_channels (list): List of y channels
+#         assets (list): List of assets
+#         channels (list): List of channels
+#         remove_invalid (bool): Remove blocks that contains NaN/Inf values
+
+#     Returns:
+#         ``Panel``: Data Panel
+#     """
+
+#     if asset_column not in df:
+#         raise ValueError("'asset_column' not in dataframe.")
+#     if index_name not in df:
+#         raise ValueError("'index_name' not in dataframe.")
+
+#     df = df.set_index(index_name)
+
+#     df_list = []
+#     countries = df[asset_column].unique()
+#     for country in countries:
+#         temp_df = df[df[asset_column]==country]
+#         temp_df.pop(asset_column)
+#         df_list.append(temp_df)
+
+#     new_df = pd.concat(df_list, axis = 1, keys=(countries))
+
+#     return from_data(new_df,
+#                      lookback = lookback,
+#                      horizon = horizon,
+#                      gap = gap,
+#                      x_assets = x_assets,
+#                      y_assets = y_assets,
+#                      x_channels = x_channels,
+#                      y_channels = y_channels,
+#                      assets = assets,
+#                      channels = channels,
+#                      remove_invalid = remove_invalid)
 
 
 class Panel:
@@ -390,33 +461,33 @@ class Panel:
         """
         return self.y.end
 
-    @property
-    def assets(self):
-        """
-        Panel assets.
+    # @property
+    # def assets(self):
+    #     """
+    #     Panel assets.
 
-        Example:
+    #     Example:
 
-        >>> panel.assets
-        0    AAPL
-        1    MSFT
-        dtype: object
-        """
-        return self.x.first.assets
+    #     >>> panel.assets
+    #     0    AAPL
+    #     1    MSFT
+    #     dtype: object
+    #     """
+    #     return self.x.first.assets
 
-    @property
-    def channels(self):
-        """
-        Panel channels.
+    # @property
+    # def channels(self):
+    #     """
+    #     Panel channels.
 
-        Example:
+    #     Example:
 
-        >>> panel.channels
-        0    Open
-        1    Close
-        dtype: object
-        """
-        return self.x.first.channels
+    #     >>> panel.channels
+    #     0    Open
+    #     1    Close
+    #     dtype: object
+    #     """
+    #     return self.x.first.channels
 
     @property
     def timesteps(self):
@@ -463,6 +534,19 @@ class Panel:
         """
         return pd.DataFrame([self.x.shape, self.y.shape], index=["x", "y"], columns=self._DIMS)
 
+    @property
+    def columns(self):
+        """
+        Side columns.
+
+        Example:
+
+        >>> side.columns
+        {'Level 0': {'AAPL', 'MSFT'}, 'Level 1': {'Close', 'Open'}}
+        """
+
+        return self.x.columns
+
     # TODO tensor4d
     # TODO tensor3d
 
@@ -500,37 +584,37 @@ class Panel:
         y = self.y.wdrop(assets=assets, channels=channels)
         return Panel(x, y)
 
-    def rename_assets(self, dict: dict):
-        """
-        Rename asset labels.
+    # def rename_assets(self, dict: dict):
+    #     """
+    #     Rename asset labels.
 
-        Similar to `Pandas rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html#>`__
+    #     Similar to `Pandas rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html#>`__
 
-        Args:
-            dict (dict): Dictionary with assets to rename
+    #     Args:
+    #         dict (dict): Dictionary with assets to rename
 
-        Returns:
-            ``Panel``: Renamed Panel
-        """
-        x = self.x.rename_assets(dict=dict)
-        y = self.y.rename_assets(dict=dict)
-        return Panel(x, y)
+    #     Returns:
+    #         ``Panel``: Renamed Panel
+    #     """
+    #     x = self.x.rename_assets(dict=dict)
+    #     y = self.y.rename_assets(dict=dict)
+    #     return Panel(x, y)
 
-    def rename_channels(self, dict: dict):
-        """
-        Rename channel labels.
+    # def rename_channels(self, dict: dict):
+    #     """
+    #     Rename channel labels.
 
-        Similar to `Pandas rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html#>`__
+    #     Similar to `Pandas rename <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html#>`__
 
-        Args:
-            dict (dict): Dictionary with channels to rename
+    #     Args:
+    #         dict (dict): Dictionary with channels to rename
 
-        Returns:
-            ``Panel``: Renamed Panel
-        """
-        x = self.x.rename_channels(dict=dict)
-        y = self.y.rename_channels(dict=dict)
-        return Panel(x, y)
+    #     Returns:
+    #         ``Panel``: Renamed Panel
+    #     """
+    #     x = self.x.rename_channels(dict=dict)
+    #     y = self.y.rename_channels(dict=dict)
+    #     return Panel(x, y)
 
     def wapply(self, func, axis):
         """
@@ -571,44 +655,44 @@ class Panel:
         y = Side([block.wupdate(values[i][1], index, assets, channels) for i, block in enumerate(self.y)])
         return Panel(x, y)
 
-    def sort_assets(self, order: List[str] = None):
-        """
-        Sort assets in alphabetical order.
+    # def sort_assets(self, order: List[str] = None):
+    #     """
+    #     Sort assets in alphabetical order.
 
-        Args:
-            order (List[str]): Asset order to be sorted.
+    #     Args:
+    #         order (List[str]): Asset order to be sorted.
 
-        Returns:
-            ``Panel``: Result of sorting assets.
-        """
-        x = self.x.sort_assets(order=order)
-        y = self.y.sort_assets(order=order)
-        return Panel(x, y)
+    #     Returns:
+    #         ``Panel``: Result of sorting assets.
+    #     """
+    #     x = self.x.sort_assets(order=order)
+    #     y = self.y.sort_assets(order=order)
+    #     return Panel(x, y)
 
-    def sort_channels(self, order: List[str] = None):
-        """
-        Sort channels in alphabetical order.
+    # def sort_channels(self, order: List[str] = None):
+    #     """
+    #     Sort channels in alphabetical order.
 
-        Args:
-            order (List[str]): Channel order to be sorted.
+    #     Args:
+    #         order (List[str]): Channel order to be sorted.
 
-        Returns:
-            ``Panel``: Result of sorting channels.
-        """
-        x = self.x.sort_channels(order=order)
-        y = self.y.sort_channels(order=order)
-        return Panel(x, y)
+    #     Returns:
+    #         ``Panel``: Result of sorting channels.
+    #     """
+    #     x = self.x.sort_channels(order=order)
+    #     y = self.y.sort_channels(order=order)
+    #     return Panel(x, y)
 
-    def swap_cols(self):
-        """
-        Swap columns levels, assets becomes channels and channels becomes assets
+    # def swap_cols(self):
+    #     """
+    #     Swap columns levels, assets becomes channels and channels becomes assets
 
-        Returns:
-            ``Panel``: Result of swapping columns.
-        """
-        x = self.x.swap_cols()
-        y = self.y.swap_cols()
-        return Panel(x, y)
+    #     Returns:
+    #         ``Panel``: Result of swapping columns.
+    #     """
+    #     x = self.x.swap_cols()
+    #     y = self.y.swap_cols()
+    #     return Panel(x, y)
 
     # TODO add count??
 
@@ -719,12 +803,14 @@ class Panel:
                 "lookback": self.lookback,
                 "horizon": self.horizon,
                 "gap": self.gap,
-                "num_xassets": len(self.x.assets),
-                "num_yassets": len(self.y.assets),
-                "num_xchannels": len(self.x.channels),
-                "num_ychannels": len(self.y.channels),
+                # "num_xassets": len(self.x.assets),
+                # "num_yassets": len(self.y.assets),
+                # "num_xchannels": len(self.x.channels),
+                # "num_ychannels": len(self.y.channels),
                 "start": self.x.start,
                 "end": self.y.end,
+                "xlevels": len(self.x.columns.keys()),
+                "ylevels": len(self.y.columns.keys()),
             },
             name="Panel",
         )
