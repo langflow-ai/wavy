@@ -20,13 +20,14 @@ class _ConstantKerasModel(tf.keras.Model):
     def call(self, inputs):
         return inputs
 
+
 class _BaseModel:
     """Base class for panel models."""
 
     # TODO: Add warning when panel has nan values
     # TODO: Auto convert boolean to int
 
-    def __init__(self, panel, model_type: str = None, use_assets: bool = False, loss: str = None, optimizer: str = None, metrics: List[str] = None, last_activation: str = None):
+    def __init__(self, panel, model_type: str = None, loss: str = None, optimizer: str = None, metrics: List[str] = None, last_activation: str = None):
 
         PARAMS = {
             'regression': {
@@ -50,7 +51,6 @@ class _BaseModel:
         }
 
         self.panel = panel
-        self.use_assets = use_assets
 
         self.loss = loss or PARAMS[model_type]['loss']
         self.optimizer = optimizer or PARAMS[model_type]['optimizer']
@@ -95,23 +95,13 @@ class _BaseModel:
         return self._predict(type='val')
 
     def set_arrays(self):
-        if self.use_assets:
-            self.x_train = self.panel.train.x.tensor4d
-            self.x_val = self.panel.val.x.tensor4d
-            self.x_test = self.panel.test.x.tensor4d
+        self.x_train = self.panel.train.x.tensor3d
+        self.x_val = self.panel.val.x.tensor3d
+        self.x_test = self.panel.test.x.tensor3d
 
-            self.y_train = self.panel.train.y.tensor4d
-            self.y_val = self.panel.val.y.tensor4d
-            self.y_test = self.panel.test.y.tensor4d
-
-        else:
-            self.x_train = self.panel.train.x.tensor3d
-            self.x_val = self.panel.val.x.tensor3d
-            self.x_test = self.panel.test.x.tensor3d
-
-            self.y_train = self.panel.train.y.tensor3d
-            self.y_val = self.panel.val.y.tensor3d
-            self.y_test = self.panel.test.y.tensor3d
+        self.y_train = self.panel.train.y.tensor3d
+        self.y_val = self.panel.val.y.tensor3d
+        self.y_test = self.panel.test.y.tensor3d
 
     def compile_model(self):
         self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=self.metrics)
@@ -127,6 +117,7 @@ class _BaseModel:
             return self.model.evaluate(self.x_val, self.y_val)
         else:
             return self.model.evaluate(self.x_train, self.y_train)
+
 
 class BaselineModel(_BaseModel):
     def __init__(
@@ -187,7 +178,7 @@ class DenseModel(_BaseModel):
         self.dense_units = dense_units
         self.activation = activation
 
-        super().__init__(panel=panel, model_type=model_type, loss=loss, optimizer=optimizer, metrics=metrics, last_activation=last_activation, use_assets=False)
+        super().__init__(panel=panel, model_type=model_type, loss=loss, optimizer=optimizer, metrics=metrics, last_activation=last_activation)
 
     def build_model(self):
         dense = Dense(units=self.dense_units, activation=self.activation)
@@ -212,8 +203,7 @@ class ConvModel(_BaseModel):
         loss: str = None,
         optimizer: str = None,
         metrics: List[str] = None,
-        last_activation: str = None,
-        use_assets: bool = False
+        last_activation: str = None
     ):
         """
         Convolution Model.
@@ -231,7 +221,6 @@ class ConvModel(_BaseModel):
             optimizer (str): Optimizer name
             metrics (List[str]): Metrics list
             last_activation (str): Activation type of the last layer
-            use_assets (bool): Flag indicating if assets should be separated or not
 
         Returns:
             ``DenseModel``: Constructed DenseModel
@@ -244,7 +233,7 @@ class ConvModel(_BaseModel):
         self.dense_units = dense_units
         self.activation = activation
 
-        super().__init__(panel=panel, model_type=model_type, loss=loss, optimizer=optimizer, metrics=metrics, last_activation=last_activation, use_assets=use_assets)
+        super().__init__(panel=panel, model_type=model_type, loss=loss, optimizer=optimizer, metrics=metrics, last_activation=last_activation)
 
     def build_model(self):
         if self.panel.lookback % self.kernel_size != 0:
@@ -301,7 +290,6 @@ class SeparateAssetModel(ConvModel):
             optimizer (str): Optimizer name
             metrics (List[str]): Metrics list
             last_activation (str): Activation type of the last layer
-            use_assets (bool): Flag indicating if assets should be separated or not
 
         Returns:
             ``DenseModel``: Constructed DenseModel
@@ -319,7 +307,7 @@ class SeparateAssetModel(ConvModel):
                          optimizer=optimizer,
                          metrics=metrics,
                          last_activation=last_activation,
-                         use_assets=True)
+                         )
 
         # self.hidden_activation = activation
         # self.last_activation = last_activation
@@ -399,7 +387,7 @@ class SeparateAssetConvModel(SeparateAssetModel):
 
 #         self.hidden_size = hidden_size
 #         self.filters = filters
-#         super().__init__(panel=panel, use_assets=True)
+#         super().__init__(panel=panel)
 #         self.model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
 
 #     def build_asset_hidden(self, input_):
