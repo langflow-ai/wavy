@@ -81,8 +81,7 @@ class Side:
                 # "num_channels": len(self.channels),
                 "start": self.start,
                 "end": self.end,
-                "xlevels": len(self.columns.keys()),
-                "ylevels": len(self.columns.keys()),
+                "levels": len(self.columns.keys()),
             },
             name="Side",
         )
@@ -395,7 +394,7 @@ class Side:
         Returns:
             ``Side``: Result of updated Side.
         """
-        return Side([block.update(other=other, join=join, overwrite=overwrite, filter_func=filter_func, errors=errors) for i, block in tqdm(enumerate(self.blocks))])
+        return Side([block.update(other=other, join=join, overwrite=overwrite, filter_func=filter_func, errors=errors) for block in tqdm(self.blocks)])
 
     # def _split_assets(self):
     #     # TODO RN ? Does it make sense??
@@ -760,148 +759,6 @@ class Side:
         locs.sort()
 
         return self[locs]
-
-
-    def plot_block(self, idx, assets: List[str] = None, channels: List[str] = None):
-        """
-        Side plot according to the specified assets and channels.
-
-        Args:
-            idx (int): Panel index
-            assets (list): List of assets
-            channels (list): List of channels
-
-        Returns:
-            ``Plot``: Plotted data
-        """
-        cmap = px.colors.qualitative.Plotly
-
-        fig = make_subplots(rows=len(self.channels), cols=len(self.assets), subplot_titles=self.assets)
-
-        # data = self.as_dataframe()
-
-        for j, channel in enumerate(self.channels):
-            c = cmap[j]
-            for i, asset in enumerate(self.assets):
-
-                # showlegend = i <= 0
-                # x_df = data.loc[:, (asset, channel)]
-
-                x_df = self.blocks[idx].wfilter(assets=asset, channels=channel)
-                index = x_df.index
-                values = x_df.values.flatten()
-
-                x_trace = go.Scatter(x=index, y=values,
-                                line=dict(width=2, color=c), showlegend=False)
-
-                fig.add_trace(x_trace, row=j+1, col=i+1)
-                # Remove empty dates
-                # dt_all = pd.date_range(start=index[0],end=index[-1])
-                # dt_obs = [d.strftime("%Y-%m-%d") for d in index]
-                # dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if not d in dt_obs]
-                # fig.update_xaxes(rangebreaks=[dict(values=dt_breaks)])
-
-        fig.update_layout(
-            template='simple_white',
-            showlegend=True
-            )
-
-        num_assets = len(self.assets)
-        for i, channel in enumerate(self.channels):
-            fig['layout'][f'yaxis{i*num_assets+1}'].update({'title':channel})
-
-        fig.show()
-
-
-    def plot_slider(self, steps: int = 100):
-        """
-        Make side plots with slider.
-
-        Args:
-            steps (int): Number of equally spaced blocks to plot
-
-        Returns:
-            ``Plot``: Plotted data.
-        """
-
-        if steps > 100:
-            raise ValueError("Number of assets cannot be bigger than 100.")
-
-        cmap = px.colors.qualitative.Plotly
-
-        # Create figure
-        # fig = go.Figure()
-        fig = make_subplots(rows=len(self.channels), cols=len(self.assets), subplot_titles=self.assets)
-
-        graph_number = len(self.channels) * len(self.assets)
-
-        # Add traces, one for each slider step
-        len_ = np.linspace(0,len(self.blocks), steps, dtype=int, endpoint=False)
-        for step in len_: #np.arange(len(panel_.x.blocks)):
-
-            for j, channel in enumerate(self.channels):
-                c = cmap[j]
-                for i, asset in enumerate(self.assets):
-
-                    showlegend = i <= 0
-
-                    x_df = self.blocks[step].filter(assets=asset, channels=channel)
-                    index = x_df.index
-                    values = x_df.values.flatten()
-
-                    x_trace = go.Scatter(visible=False,
-                                        x=index,
-                                        y=values,
-                                        line=dict(width=2, color=c), showlegend=showlegend, name=channel)
-
-                    # x_trace = go.Scatter(x=index, y=values,
-                    #                     line=dict(width=2, color=c), showlegend=showlegend, name=channel)
-
-                    fig.add_trace(x_trace, row=j+1, col=i+1)
-
-                    # dt_all = pd.date_range(start=index[0],end=index[-1])
-                    # dt_obs = [d.strftime("%Y-%m-%d") for d in index]
-                    # dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if not d in dt_obs]
-                    # fig.update_xaxes(rangebreaks=[dict(values=dt_breaks)])
-
-        # Make 10th trace visible
-        for i in range(graph_number):
-            fig.data[i].visible = True
-
-        # Create and add slider
-        steps_ = []
-        for i in range(steps):
-            step = dict(
-                method="update",
-                args=[{"visible": [False] * len(fig.data)},
-                    {"title": "Block " + str(len_[i])}],  # layout attribute
-            )
-
-            for g in range(graph_number):
-                step["args"][0]["visible"][i*graph_number+g] = True  # Toggle i'th trace to "visible"
-
-            steps_.append(step)
-
-
-        sliders = [dict(
-            active=0,
-            # currentvalue={"prefix": "Block: "},
-            pad={"t": 50},
-            steps=steps_
-        )]
-
-        fig.update_layout(
-            template='simple_white',
-            sliders=sliders
-        )
-
-        # Plot y titles
-        num_assets = len(self.assets)
-        for i, channel in enumerate(self.channels):
-            fig['layout'][f'yaxis{i*num_assets+1}'].update({'title':channel})
-
-        fig.show()
-
 
     def count(self, axis: int = 0, numeric_only: bool = False):
         """
@@ -1466,3 +1323,147 @@ class Side:
         2005-12-21  0.000801  0.000126  0.006796  0.005203
         """
         return Side([block.var(axis=axis, skipna=skipna, ddof=ddof, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
+
+
+    def plot_block(self, idx):
+        """
+        Side plot according to the specified assets and channels.
+
+        Args:
+            idx (int): Panel index
+            assets (list): List of assets
+            channels (list): List of channels
+
+        Returns:
+            ``Plot``: Plotted data
+        """
+        cmap = px.colors.qualitative.Plotly
+
+        graphs = len(self.columns)
+
+        fig = make_subplots(rows=len(self.channels), cols=len(self.assets), subplot_titles=self.assets)
+
+        # len(self.columns.keys())
+        # data = self.as_dataframe()
+
+        for j, channel in enumerate(self.channels):
+            c = cmap[j]
+            for i, asset in enumerate(self.assets):
+
+                # showlegend = i <= 0
+                # x_df = data.loc[:, (asset, channel)]
+
+                x_df = self.blocks[idx].filter(assets=asset, channels=channel)
+                index = x_df.index
+                values = x_df.values.flatten()
+
+                x_trace = go.Scatter(x=index, y=values,
+                                line=dict(width=2, color=c), showlegend=False)
+
+                fig.add_trace(x_trace, row=j+1, col=i+1)
+                # Remove empty dates
+                # dt_all = pd.date_range(start=index[0],end=index[-1])
+                # dt_obs = [d.strftime("%Y-%m-%d") for d in index]
+                # dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if not d in dt_obs]
+                # fig.update_xaxes(rangebreaks=[dict(values=dt_breaks)])
+
+        fig.update_layout(
+            template='simple_white',
+            showlegend=True
+            )
+
+        num_assets = len(self.assets)
+        for i, channel in enumerate(self.channels):
+            fig['layout'][f'yaxis{i*num_assets+1}'].update({'title':channel})
+
+        fig.show()
+
+
+    def plot_slider(self, steps: int = 100):
+        """
+        Make side plots with slider.
+
+        Args:
+            steps (int): Number of equally spaced blocks to plot
+
+        Returns:
+            ``Plot``: Plotted data.
+        """
+
+        if steps > 100:
+            raise ValueError("Number of assets cannot be bigger than 100.")
+
+        cmap = px.colors.qualitative.Plotly
+
+        # Create figure
+        # fig = go.Figure()
+        fig = make_subplots(rows=len(self.channels), cols=len(self.assets), subplot_titles=self.assets)
+
+        graph_number = len(self.channels) * len(self.assets)
+
+        # Add traces, one for each slider step
+        len_ = np.linspace(0,len(self.blocks), steps, dtype=int, endpoint=False)
+        for step in len_: #np.arange(len(panel_.x.blocks)):
+
+            for j, channel in enumerate(self.channels):
+                c = cmap[j]
+                for i, asset in enumerate(self.assets):
+
+                    showlegend = i <= 0
+
+                    x_df = self.blocks[step].filter(assets=asset, channels=channel)
+                    index = x_df.index
+                    values = x_df.values.flatten()
+
+                    x_trace = go.Scatter(visible=False,
+                                        x=index,
+                                        y=values,
+                                        line=dict(width=2, color=c), showlegend=showlegend, name=channel)
+
+                    # x_trace = go.Scatter(x=index, y=values,
+                    #                     line=dict(width=2, color=c), showlegend=showlegend, name=channel)
+
+                    fig.add_trace(x_trace, row=j+1, col=i+1)
+
+                    # dt_all = pd.date_range(start=index[0],end=index[-1])
+                    # dt_obs = [d.strftime("%Y-%m-%d") for d in index]
+                    # dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if not d in dt_obs]
+                    # fig.update_xaxes(rangebreaks=[dict(values=dt_breaks)])
+
+        # Make 10th trace visible
+        for i in range(graph_number):
+            fig.data[i].visible = True
+
+        # Create and add slider
+        steps_ = []
+        for i in range(steps):
+            step = dict(
+                method="update",
+                args=[{"visible": [False] * len(fig.data)},
+                    {"title": "Block " + str(len_[i])}],  # layout attribute
+            )
+
+            for g in range(graph_number):
+                step["args"][0]["visible"][i*graph_number+g] = True  # Toggle i'th trace to "visible"
+
+            steps_.append(step)
+
+
+        sliders = [dict(
+            active=0,
+            # currentvalue={"prefix": "Block: "},
+            pad={"t": 50},
+            steps=steps_
+        )]
+
+        fig.update_layout(
+            template='simple_white',
+            sliders=sliders
+        )
+
+        # Plot y titles
+        num_assets = len(self.assets)
+        for i, channel in enumerate(self.channels):
+            fig['layout'][f'yaxis{i*num_assets+1}'].update({'title':channel})
+
+        fig.show()
