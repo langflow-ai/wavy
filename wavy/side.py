@@ -91,6 +91,8 @@ class Side:
 
     @property
     def first(self):
+        # ? Necessary?
+        # Why not return self[0]?
         """
         Side first DataBlock.
 
@@ -107,6 +109,7 @@ class Side:
 
     @property
     def last(self):
+        # Same comments from first()
         """
         Side last DataBlock.
 
@@ -206,6 +209,7 @@ class Side:
 
     @property
     def index(self):
+        # Maybe describe a bit better? What is the index of the side? Is it the first date of each block?
         """
         Side index.
 
@@ -454,6 +458,7 @@ class Side:
         return pd.DataFrame(values, index=range(len(self.blocks)), columns=['nan'])
 
     def fillna(self, value=None, method=None, axis=None, inplace=False, limit=None, downcast=None):
+        # @micro
         """
         Fill NA/NaN values using the specified method.
 
@@ -474,6 +479,7 @@ class Side:
 
     # TODO dropna be the same as Dataframe and createa dropnadataframes
     def dropna(self):
+        # @macro
         """
         Drop pairs with missing values from the panel.
 
@@ -494,6 +500,7 @@ class Side:
     #         return values.transpose(0, 2, 1, 3)
 
     def findna(self):
+        # @macro
         """
         Find NaN values index.
 
@@ -505,6 +512,7 @@ class Side:
         return values[values == True].index.tolist()
 
     def findinf(self):
+        # TODO: Remove
         """
         Find Inf values index.
 
@@ -537,6 +545,7 @@ class Side:
         return df[~df.index.duplicated(keep="first")]
 
     def flat(self):
+        # Maybe the name is confusing since there's another func called flatten?
         """
         2D array with the flat value of each Block.
 
@@ -607,6 +616,7 @@ class Side:
         return self.flat().values.flatten()
 
     def shift(self, window: int = 1):
+        # @macro
         """
         Shift side by desired number of blocks.
 
@@ -659,6 +669,7 @@ class Side:
         return Side(new_side)
 
     def diff(self, window: int = 1):
+        # @macro
         """
         Difference between blocks.
 
@@ -698,6 +709,7 @@ class Side:
         return self - self.shift(window)
 
     def pct_change(self, window: int = 1):
+        # @macro
         """
         Percentage change between the current and a prior block.
 
@@ -738,6 +750,7 @@ class Side:
         return (self - a) / a
 
     def side_sample(self, n: int = None, frac: float = None):
+        # TODO: Remove? Seems unnecessary.
 
         # If no frac or n, default to n=1.
         if n is None and frac is None:
@@ -761,6 +774,7 @@ class Side:
         return self[locs]
 
     def count(self, axis: int = 0, numeric_only: bool = False):
+        # @micro
         """
         Count non-NA cells for each column or row.
 
@@ -792,6 +806,7 @@ class Side:
         return Side([block.count(axis=axis, numeric_only=numeric_only) for block in tqdm(self.blocks)])
 
     def kurt(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+        # @micro
         """
         Return unbiased kurtosis over requested axis.
 
@@ -827,6 +842,8 @@ class Side:
         return Side([block.kurt(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
 
     def kurtosis(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+        # @micro
+        # ? Do we need to define these functions one by one? Could work like pandas plotly backend...
         """
         Return unbiased kurtosis over requested axis.
 
@@ -862,6 +879,7 @@ class Side:
         return Side([block.kurtosis(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
 
     def mad(self, axis: int = None, skipna: bool = None):
+        # @micro
         """
         Return the mean absolute deviation of the values over the requested axis.
 
@@ -891,6 +909,7 @@ class Side:
         return Side([block.mad(axis=axis, skipna=skipna) for block in tqdm(self.blocks)])
 
     def max(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+        # @micro
         """
         Return the maximum of the values over the requested axis.
 
@@ -922,6 +941,7 @@ class Side:
         return Side([block.max(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
 
     def mean(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+        # @micro
         """
         Return the mean of the values over the requested axis.
 
@@ -953,6 +973,7 @@ class Side:
         return Side([block.mean(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
 
     def median(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+        # @micro
         """
         Return the median of the values over the requested axis.
 
@@ -985,6 +1006,7 @@ class Side:
 
 
     def min(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+        # @micro
         """
         Return the minimum of the values over the requested axis.
 
@@ -1016,6 +1038,7 @@ class Side:
         return Side([block.min(axis=axis, skipna=skipna, numeric_only=numeric_only, **kwargs) for block in tqdm(self.blocks)])
 
     def nunique(self, axis: int = None, dropna: bool = None):
+        # @micro
         """
         Count number of distinct elements in specified axis.
 
@@ -1047,6 +1070,7 @@ class Side:
         return Side([block.nunique(axis=axis, dropna=dropna) for block in tqdm(self.blocks)])
 
     def prod(self, axis: int = None, skipna: bool = None, numeric_only=None, min_count: int = 0, **kwargs):
+        # @micro
         """
         Return the product of the values over the requested axis.
 
@@ -1080,6 +1104,7 @@ class Side:
 
 
     def product(self, axis: int = None, skipna: bool = None, numeric_only=None, min_count: int = 0, **kwargs):
+        # @micro
         """
         Return the product of the values over the requested axis.
 
@@ -1113,6 +1138,7 @@ class Side:
 
 
     def quantile(self, q: Union[float, List[float]] = 0.5, interpolation: str = "linear"):
+        # @micro
         """
         Return value at the given quantile.
 
@@ -1150,6 +1176,7 @@ class Side:
         return Side([block.quantile(q=q, interpolation=interpolation) for block in tqdm(self.blocks)])
 
     def sem(self, axis: int = None, skipna: bool = None, ddof: int = 1, numeric_only=None, **kwargs):
+        # @micro
         """
         Return unbiased standard error of the mean over requested axis.
 
@@ -1185,6 +1212,7 @@ class Side:
 
 
     def skew(self, axis: int = None, skipna: bool = None, numeric_only=None, **kwargs):
+        # @micro
         """
         Return unbiased skew over requested axis.
 
@@ -1221,6 +1249,7 @@ class Side:
 
 
     def std(self, axis: int = None, skipna: bool = None, ddof: int = 1, numeric_only=None, **kwargs):
+        # @micro
         """
         Return sample standard deviation over requested axis.
 
@@ -1256,6 +1285,7 @@ class Side:
 
 
     def sum(self, axis: int = None, skipna: bool = None, numeric_only=None, min_count: int = 0, **kwargs):
+        # @micro
         """
         Return the sum of the values over the requested axis.
 
@@ -1291,6 +1321,7 @@ class Side:
 
 
     def var(self, axis: int = None, skipna: bool = None, ddof: int = 1, numeric_only=None, **kwargs):
+        # @micro
         """
         Return sample variance over requested axis.
 
