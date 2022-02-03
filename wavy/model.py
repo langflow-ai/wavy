@@ -7,7 +7,7 @@ from tensorflow.keras.layers import Conv1D, SeparableConv1D, MaxPooling1D
 import pandas as pd
 import numpy as np
 # from .block import from_matrix
-from .side import Side
+from .panel import Panel
 from sklearn.metrics import mean_squared_error
 
 from typing import List
@@ -51,7 +51,7 @@ class KerasBaseline:
         for i, block_data in enumerate(predicted):
             blocks.append(from_matrix(block_data, index = y[i].index, assets=assets, channels=channels))
 
-        return Side(blocks)
+        return Panel(blocks)
 
     def predict(self):
         """Predict the test set."""
@@ -153,7 +153,7 @@ class _BaseModel:
             for i, block_data in enumerate(predicted)
         ]
 
-        return Side(blocks)
+        return Panel(blocks)
 
     def predict(self):
         """Predict the test set."""
@@ -229,7 +229,7 @@ class DenseModel(_BaseModel):
         Dense Model.
 
         Args:
-            panel (Side): Side with data
+            panel (Panel): Panel with data
             model_type (str): Model type (regression, classifier, multi_classifier)
             dense_layers (int): Number of dense layers
             dense_units (int): Number of neurons in each dense layer
@@ -278,7 +278,7 @@ class ConvModel(_BaseModel):
         Convolution Model.
 
         Args:
-            panel (Side): Side with data
+            panel (Panel): Panel with data
             model_type (str): Model type (regression, classifier, multi_classifier)
             conv_layers (int): Number of convolution layers
             conv_filters (int): Number of convolution filters
@@ -347,7 +347,7 @@ class SeparateAssetModel(ConvModel):
         Separate Asset Model.
 
         Args:
-            panel (Side): Side with data
+            panel (Panel): Panel with data
             model_type (str): Model type (regression, classifier, multi_classifier)
             conv_layers (int): Number of convolution layers
             conv_filters (int): Number of convolution filters
