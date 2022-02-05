@@ -110,7 +110,7 @@ class BaselineModel(_BaseModel):
         self.y_val = self.y.val.values[1:]
         self.y_test = self.y.test.values[1:]
 
-    def build_model(self):
+    def build(self):
         self.model = _ConstantKerasModel()
 
 
@@ -150,11 +150,11 @@ class DenseModel(_BaseModel):
 
         super().__init__(x=x, y=y, model_type=model_type, loss=loss, optimizer=optimizer, metrics=metrics, last_activation=last_activation)
 
-    def build_model(self):
+    def build(self):
         dense = Dense(units=self.dense_units, activation=self.activation)
         layers = [Flatten()]  # (time, features) => (time*features)
         layers += [dense for _ in range(self.dense_layers)]
-        layers += [Dense(units=self.panel.horizon * len(self.panel.assets) * len(self.panel.channels), activation=self.last_activation), Reshape(self.y_train.shape[1:])]
+        layers += [Dense(units=self.y.timesteps * len(self.x.columns), activation=self.last_activation), Reshape(self.y_train.shape[1:])]
 
         self.model = Sequential(layers)
 
@@ -204,7 +204,7 @@ class ConvModel(_BaseModel):
 
         super().__init__(x=x, y=y, model_type=model_type, loss=loss, optimizer=optimizer, metrics=metrics, last_activation=last_activation)
 
-    def build_model(self):
+    def build(self):
         if self.x.timesteps % self.kernel_size != 0:
             warnings.warn("Kernel size is not a divisor of lookback.")
 
@@ -216,7 +216,7 @@ class ConvModel(_BaseModel):
         layers += [Flatten()]
         layers += [conv for _ in range(self.conv_layers)]
         layers += [dense for _ in range(self.dense_layers)]
-        layers += [Dense(units=self.panel.horizon * len(self.panel.assets) * len(self.panel.channels), activation=self.last_activation), Reshape(self.y_train.shape[1:])]
+        layers += [Dense(units=self.y.timesteps * len(self.x.columns), activation=self.last_activation), Reshape(self.y_train.shape[1:])]
 
         self.model = Sequential(layers)
 

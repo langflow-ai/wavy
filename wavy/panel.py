@@ -103,6 +103,8 @@ class Panel:
         self.at = _AtIndexer()
         self.iat = _iAtIndexer()
 
+        self.set_training_split()
+
     def __getattr__(self, name):
         try:
             def wrapper(*args, **kwargs):
@@ -431,6 +433,62 @@ class Panel:
         """
         a = self.shift(window)
         return (self - a) / a
+
+
+    def set_training_split(self, val_size=0.2, test_size=0.1):
+        """
+        Time series split into training, validation, and test sets, avoiding data leakage.
+        Splits the panel in training, validation, and test panels, accessed with the properties
+        .train, .val and .test. The sum of the three sizes inserted must equals one.
+        Args:
+            val_size (float): Percentage of data used for the validation set.
+            test_size (float): Percentage of data used for the test set.
+        Example:
+        >>> panel.set_training_split(val_size=0.2, test_size=0.1)
+        >>> train = panel.train
+        >>> val = panel.val
+        >>> test = panel.test
+        """
+
+        train_size = len(self) - int(len(self) * test_size)
+
+        self.test_size = int(len(self) * test_size)
+        self.val_size = int(train_size * val_size)
+        self.train_size = train_size - self.val_size
+        assert self.train_size + self.val_size + self.test_size == len(self)
+
+    @property
+    def train(self):
+        """
+        Returns the Panel with the pairs of the training set, according to
+        the parameters given in the 'set_train_val_test_sets' function.
+        Returns:
+            ``Panel``: Panel with the pairs of the training set.
+        """
+        if self.train_size:
+            return self[:self.train_size]
+
+    @property
+    def val(self):
+        """
+        Returns the Panel with the pairs of the validation set, according to
+        the parameters given in the 'set_train_val_test_sets' function.
+        Returns:
+            ``Panel``: Panel with the pairs of the validation set.
+        """
+        if self.val_size and self.train_size:
+            return self[self.train_size : int(self.train_size + self.val_size)]
+
+    @property
+    def test(self):
+        """
+        Returns the Panel with the pairs of the testing set, according to
+        the parameters given in the 'set_train_val_test_sets' function.
+        Returns:
+            ``Panel``: Panel with the pairs of the testing set.
+        """
+        if self.val_size and self.train_size:
+            return self[self.train_size + self.val_size :]
 
     def plot_frame(self, index):
         """
