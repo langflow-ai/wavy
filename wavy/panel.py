@@ -135,7 +135,7 @@ class Panel:
         summary = pd.Series(
             {
                 "size": len(self),
-                "timesteps": len(self.frames[0]),
+                "timesteps": self.timesteps,
                 "start": self.index.iloc[0],
                 "end": self.index.iloc[-1]
             },
@@ -195,6 +195,10 @@ class Panel:
                 [19.32212198, 19.40955162,  2.26654326,  2.24148512]]])
         """
         return np.array([frame.values for frame in tqdm(self.frames)])
+
+    @property
+    def timesteps(self):
+        return len(self[0])
 
     @property
     def shape(self):
