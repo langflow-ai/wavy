@@ -617,3 +617,7 @@ class Panel:
         #     fig['layout'][f'yaxis{i*num_assets+1}'].update({'title':channel})
 
         fig.show()
+
+
+# TODO: Implement update() function: given 3d array, change values of the frames, keeping indexes
+# TODO: Implement match() function: given another panel, return this panel on the indexes of the other panel
