@@ -9,8 +9,15 @@ from tensorflow.keras import Input, Model, Sequential
 from tensorflow.keras.layers import (Conv1D, Dense, Flatten, Input,
                                      MaxPooling1D, Reshape, SeparableConv1D,
                                      concatenate)
-
 from .panel import Panel
+
+
+from plotly.subplots import make_subplots
+import plotly.express as px
+import plotly.graph_objects as go
+import plotly as px
+from matplotlib.pyplot import title
+import math
 
 
 class _ConstantKerasModel(tf.keras.Model):
@@ -88,6 +95,44 @@ class _BaseModel:
     def predict(self, x):
         # TODO: Output prediction as a panel - needs something similar to from_matrix method
         return self.model.predict(x.values)
+
+    def plot_prediction(self, x):
+        cmap = px.colors.qualitative.Plotly
+
+        columns_size = len(self.columns)
+
+        fig = px.line(x)
+
+        # fig = make_subplots(rows=math.ceil(columns_size / 2), cols=2, subplot_titles=[' '.join(column) for column in self.columns])
+
+        # for i, column in enumerate(self.columns):
+        #     c = cmap[i]
+
+        #     x_df = self.frames[index].loc[:, column]
+        #     idx = x_df.index
+        #     values = x_df.values.flatten()
+
+        #     x_trace = go.Scatter(x=idx, y=values, line=dict(width=2, color=c), showlegend=False)
+
+        #     row = math.floor(i / 2)
+        #     col = i % 2
+        #     fig.add_trace(x_trace, row=row + 1, col=col + 1)
+        #     # Remove empty dates
+        #     # dt_all = pd.date_range(start=index[0],end=index[-1])
+        #     # dt_obs = [d.strftime("%Y-%m-%d") for d in index]
+        #     # dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if not d in dt_obs]
+        #     # fig.update_xaxes(rangebreaks=[dict(values=dt_breaks)])
+
+        fig.update_layout(
+            template='simple_white',
+            showlegend=True
+        )
+
+        # num_assets = len(self.assets)
+        # for i, channel in enumerate(self.channels):
+        #     fig['layout'][f'yaxis{i*num_assets+1}'].update({'title':channel})
+
+        fig.show()
 
 class BaselineModel(_BaseModel):
     def __init__(
