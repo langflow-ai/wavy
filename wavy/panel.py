@@ -65,8 +65,13 @@ def create_panels(df,
     xframes, yframes = [], []
 
     for i in indexes:
-        xframes.append(x.iloc[i - lookback : i])
-        yframes.append(y.iloc[i + gap : i + gap + horizon])
+        x_frame = x.iloc[i - lookback : i]
+        x_frame.frame_index = i
+        xframes.append(x_frame)
+
+        y_frame = y.iloc[i + gap : i + gap + horizon]
+        y_frame.frame_index = i
+        yframes.append(y_frame)
 
     return Panel(xframes), Panel(yframes)
 
@@ -434,6 +439,45 @@ class Panel:
         a = self.shift(window)
         return (self - a) / a
 
+    # def update(self, other, join='left', overwrite=True, filter_func=None, errors='ignore'):
+    #     '''
+    #     Modify in place using non-NA values from another DataFrame.
+
+    #     Aligns on indices. There is no return value.
+
+    #     Args:
+    #         other (DataFrame, or object coercible into a DataFrame): Should have at least one matching index/column label with the original DataFrame. If a Series is passed, its name attribute must be set, and that will be used as the column name to align with the original DataFrame.
+    #         join ({'left'}, default 'left'): Only left join is implemented, keeping the index and columns of the original object.
+    #         overwrite (bool, default True): How to handle non-NA values for overlapping keys:
+
+    #             * True: overwrite original DataFrame's values with values from other.
+    #             * False: only update values that are NA in the original DataFrame.
+            
+    #         filter_func (callable(1d-array) -> bool 1d-array, optional): Can choose to replace values other than NA. Return True for values that should be updated.
+    #         errors ({'raise', 'ignore'}, default 'ignore'): If 'raise', will raise a ValueError if the DataFrame and other both contain non-NA data in the same place.
+
+    #     Returns:
+    #         ``None``: Method directly changes calling object
+    #     '''
+    #     for i, frame in tqdm(enumerate(self.frames)):
+    #         z = pd.DataFrame(data=other[i], columns=frame.columns, index=frame.index)
+    #         frame.update(z, join=join, overwrite=overwrite, filter_func=filter_func, errors=errors)
+    #     return None
+
+    def match(self, other):
+        '''
+        Modify in place using non-NA values from another DataFrame.
+
+        Aligns on indices. There is no return value.
+
+        Args:
+            other (DataFrame, or object coercible into a DataFrame): Should have at least one matching index/column label with the original DataFrame. If a Series is passed, its name attribute must be set, and that will be used as the column name to align with the original DataFrame.
+
+        Returns:
+            ``None``: Method directly changes calling object
+        '''
+        index = [frame.frame_index for frame in other]
+        return Panel([frame for frame in tqdm(self.frames) if frame.frame_index in index])
 
     def set_training_split(self, val_size=0.2, test_size=0.1):
         """
@@ -617,7 +661,3 @@ class Panel:
         #     fig['layout'][f'yaxis{i*num_assets+1}'].update({'title':channel})
 
         fig.show()
-
-
-# TODO: Implement update() function: given 3d array, change values of the frames, keeping indexes
-# TODO: Implement match() function: given another panel, return this panel on the indexes of the other panel
