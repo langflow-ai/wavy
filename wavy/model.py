@@ -10,8 +10,6 @@ from tensorflow.keras.layers import (Conv1D, Dense, Flatten, Input,
                                      MaxPooling1D, Reshape, SeparableConv1D,
                                      concatenate)
 
-from .panel import Panel
-
 
 class _ConstantKerasModel(tf.keras.Model):
     """ A Keras model that returns the input values as outputs. """
@@ -38,13 +36,13 @@ class _BaseModel:
                 'metrics': ['MAE'],
                 'last_activation': 'linear'
             },
-            'classifier': {
+            'classification': {
                 'loss': 'binary_crossentropy',
                 'optimizer': 'adam',
                 'metrics': ['AUC', 'accuracy'],
                 'last_activation': 'sigmoid'
             },
-            'multi_classifier': {
+            'multi_classification': {
                 'loss': 'categorical_crossentropy',
                 'optimizer': 'adam',
                 'metrics': ['AUC', 'accuracy'],
@@ -132,7 +130,7 @@ class DenseModel(_BaseModel):
         Dense Model.
         Args:
             panel (Panel): Panel with data
-            model_type (str): Model type (regression, classifier, multi_classifier)
+            model_type (str): Model type (regression, classification, multi_classification)
             dense_layers (int): Number of dense layers
             dense_units (int): Number of neurons in each dense layer
             activation (str): Activation type of each dense layer
@@ -180,7 +178,7 @@ class ConvModel(_BaseModel):
         Convolution Model.
         Args:
             panel (Panel): Panel with data
-            model_type (str): Model type (regression, classifier, multi_classifier)
+            model_type (str): Model type (regression, classification, multi_classification)
             conv_layers (int): Number of convolution layers
             conv_filters (int): Number of convolution filters
             kernel_size (int): Kernel size of convolution layer
@@ -224,3 +222,5 @@ class ConvModel(_BaseModel):
 class LinearRegression(DenseModel):
     def __init__(self, x, y):
         super().__init__(x=x, y=y, model_type="regression", dense_layers=0)
+
+# TODO: Add LogisticRegression
