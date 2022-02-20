@@ -220,7 +220,52 @@ class ConvModel(_BaseModel):
 
 
 class LinearRegression(DenseModel):
-    def __init__(self, x, y):
-        super().__init__(x=x, y=y, model_type="regression", dense_layers=0)
+    def __init__(self, x, y, **kwargs):
+        super().__init__(x=x, y=y, model_type="regression", dense_layers=0, **kwargs)
+
+
+
+class ShallowModel:
+    def __init__(self, x, y, model, metrics):
+        # TODO: Include model_type and metrics for scoring
+
+        """ model: Scikit-learn model
+            metrics: List of sklearn metrics to use for scoring
+        """
+
+        self.x = x
+        self.y = y
+
+        if len(self.y.columns) > 1:
+            raise ValueError("ShallowModel can only be used for single-output models.")
+
+        self.model = model()
+        self.metrics = metrics
+        self.set_arrays()
+
+    def set_arrays(self):
+
+        self.x_train = self.x.train.flat()
+        self.y_train = self.y.train.flat()
+
+        self.x_val = self.x.val.flat()
+        self.y_val = self.y.val.flat()
+
+        self.x_test = self.x.test.flat()
+        self.y_test = self.y.test.flat()
+
+
+    def fit(self, **kwargs):
+        """Fit the model."""
+        self.model.fit(X=self.x_train, y=self.y_train, **kwargs)
+        scores = [scorer(self.model.predict(self.x_val), self.y_val) for scorer in self.metrics]
+        return f"Model Trained. Scores: {[round(i, 3) for i in scores]}"
+
 
 # TODO: Add LogisticRegression
+# TODO: Add LSTMModel or RecurrentModel
+# TODO: Add Grid Search
+# TODO: Add Warm-Up
+# TODO: Add Early Stopping
+
+# TODO: Add option for shallow models (using panel.flat() on the background)

@@ -58,9 +58,8 @@ def bfill(arr, axis):
 
 # TODO: Check how this works
 def get_all_unique(array):
-    all_ = [i for i in array[0]]
-    for i in array[1:]:
-        all_.append(i[-1])
+    all_ = list(array[0])
+    all_.extend(i[-1] for i in array[1:])
     return np.array(all_)
 
 
@@ -173,7 +172,7 @@ def last_min(x):
 
 
 def _get_active(obj):
-    return getattr(obj, "_" + obj._active_block)
+    return getattr(obj, f'_{obj._active_block}')
 
 
 def _get_block_attr(obj, name):
