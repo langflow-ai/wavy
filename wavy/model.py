@@ -263,9 +263,14 @@ class ShallowModel:
 
 
 # TODO: Add LogisticRegression
-# TODO: Add LSTMModel or RecurrentModel
+# TODO: Add LSTMModel / GRU / Transformer ...
 # TODO: Add Grid Search
 # TODO: Add Warm-Up
 # TODO: Add Early Stopping
 
-# TODO: Add option for shallow models (using panel.flat() on the background)
+# TODO: Add below:
+# GRID SEARCH / RANDOM SEARCH / GENETIC ALGORITHM (NEAT) / Reinforcement Learning
+
+# - Optimize hyperparameters
+# - Optimize hyperparameters and models
+# - Optimize hyperparameters and models and lookback/horizon/gap

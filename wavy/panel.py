@@ -130,8 +130,10 @@ class Panel:
 
     def __getitem__(self, key):
         if isinstance(key, list):
+            if all(isinstance(k, str) for k in key):
+                return self.loc[:, key]
             return [self.frames[i] for i in key]
-        if isinstance(key, slice):
+        elif isinstance(key, slice):
             return Panel(self.frames.__getitem__(key))
         return self.frames.__getitem__(key)
 
