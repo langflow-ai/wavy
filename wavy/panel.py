@@ -17,6 +17,14 @@ DUNDER_METHODS = ['__add__', '__sub__', '__mul__', '__truediv__', '__ge__', '__g
 pd.set_option("multi_sparse", True)  # To see multilevel indexes
 pd.options.plotting.backend = "plotly"
 
+from copy import deepcopy
+
+def update(panel, other):
+    panel = deepcopy(panel)
+
+    for i, j in zip(panel, other):
+        i.iloc[:,:] = j
+    return panel
 
 def create_panels(df,
                   lookback: int,

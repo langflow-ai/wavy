@@ -9,7 +9,7 @@ from tensorflow.keras import Input, Model, Sequential
 from tensorflow.keras.layers import (Conv1D, Dense, Flatten, Input,
                                      MaxPooling1D, Reshape, SeparableConv1D,
                                      concatenate)
-from .panel import Panel
+from .panel import Panel, update
 
 
 from plotly.subplots import make_subplots
@@ -107,11 +107,8 @@ class _BaseModel:
         # raise NotImplementedError
         pass
 
-    def predict(self, x=None):
-        # TODO: Output prediction as a panel - needs something similar to from_matrix method
-        if x is None:
-            x = self.x_test
-        return self.model.predict(x.values)
+    def predict(self):
+        return update(self.y.test, self.model.predict(self.x_test))
 
     def plot_prediction(self, x):
         cmap = px.colors.qualitative.Plotly
@@ -152,6 +149,7 @@ class _BaseModel:
         fig.show()
 
 class BaselineModel(_BaseModel):
+    SHIFT = 1
     def __init__(
         self,
         x,
@@ -164,16 +162,19 @@ class BaselineModel(_BaseModel):
         super().__init__(x=x, y=y, model_type=model_type, loss=loss, metrics=metrics)
 
     def set_arrays(self):
-        self.x_train = self.y.train.shift(1).values[1:]
-        self.x_val = self.y.val.shift(1).values[1:]
-        self.x_test = self.y.test.shift(1).values[1:]
+        self.x_train = self.y.train.shift(self.SHIFT).values[self.SHIFT:]
+        self.x_val = self.y.val.shift(self.SHIFT).values[self.SHIFT:]
+        self.x_test = self.y.test.shift(self.SHIFT).values[self.SHIFT:]
 
-        self.y_train = self.y.train.values[1:]
-        self.y_val = self.y.val.values[1:]
-        self.y_test = self.y.test.values[1:]
+        self.y_train = self.y.train.values[self.SHIFT:]
+        self.y_val = self.y.val.values[self.SHIFT:]
+        self.y_test = self.y.test.values[self.SHIFT:]
 
     def build(self):
         self.model = _UnchangedKerasModel()
+
+    def predict(self):
+        return update(self.y.test[1:], self.model.predict(self.x_test))
 
 
 class ConstantModel(_BaseModel):
