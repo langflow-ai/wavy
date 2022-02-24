@@ -20,7 +20,10 @@ from matplotlib.pyplot import title
 import math
 
 
-class _ConstantKerasModel(tf.keras.Model):
+
+
+
+class _UnchangedKerasModel(tf.keras.Model):
     """ A Keras model that returns the input values as outputs. """
 
     def __init__(self):
@@ -30,9 +33,21 @@ class _ConstantKerasModel(tf.keras.Model):
         return inputs
 
 
+class _ConstantKerasModel(tf.keras.Model):
+    """ A Keras model that returns constant values with the shape of the input. """
+
+    def __init__(self, constant=0):
+        super().__init__()
+        self.constant = constant
+
+    def call(self, inputs):
+        return tf.constant(self.constant, shape=inputs.shape)
+
+
 class _BaseModel:
     """Base class for panel models."""
 
+    # TODO: Add score method (predicts and compares to y_test using metrics)
     # TODO: Add warning when panel has nan values
     # TODO: Auto convert boolean to int
 
@@ -45,13 +60,13 @@ class _BaseModel:
                 'metrics': ['MAE'],
                 'last_activation': 'linear'
             },
-            'classifier': {
+            'classification': {
                 'loss': 'binary_crossentropy',
                 'optimizer': 'adam',
                 'metrics': ['AUC', 'accuracy'],
                 'last_activation': 'sigmoid'
             },
-            'multi_classifier': {
+            'multi_classification': {
                 'loss': 'categorical_crossentropy',
                 'optimizer': 'adam',
                 'metrics': ['AUC', 'accuracy'],
@@ -92,8 +107,10 @@ class _BaseModel:
         # raise NotImplementedError
         pass
 
-    def predict(self, x):
+    def predict(self, x=None):
         # TODO: Output prediction as a panel - needs something similar to from_matrix method
+        if x is None:
+            x = self.x_test
         return self.model.predict(x.values)
 
     def plot_prediction(self, x):
@@ -156,7 +173,25 @@ class BaselineModel(_BaseModel):
         self.y_test = self.y.test.values[1:]
 
     def build(self):
-        self.model = _ConstantKerasModel()
+        self.model = _UnchangedKerasModel()
+
+
+class ConstantModel(_BaseModel):
+    def __init__(
+        self,
+        x,
+        y,
+        model_type: str,
+        loss: str = None,
+        metrics: List[str] = None,
+        constant: float = 0,
+    ):
+
+        self.constant = constant
+        super().__init__(x=x, y=y, model_type=model_type, loss=loss, metrics=metrics)
+
+    def build(self):
+        self.model = _ConstantKerasModel(self.constant) # ! Not working
 
 
 class DenseModel(_BaseModel):
@@ -177,7 +212,7 @@ class DenseModel(_BaseModel):
         Dense Model.
         Args:
             panel (Panel): Panel with data
-            model_type (str): Model type (regression, classifier, multi_classifier)
+            model_type (str): Model type (regression, classification, multi_classification)
             dense_layers (int): Number of dense layers
             dense_units (int): Number of neurons in each dense layer
             activation (str): Activation type of each dense layer
@@ -199,7 +234,8 @@ class DenseModel(_BaseModel):
         dense = Dense(units=self.dense_units, activation=self.activation)
         layers = [Flatten()]  # (time, features) => (time*features)
         layers += [dense for _ in range(self.dense_layers)]
-        layers += [Dense(units=self.y.timesteps * len(self.x.columns), activation=self.last_activation), Reshape(self.y_train.shape[1:])]
+        layers += [Dense(units=self.y.timesteps * len(self.y.columns), activation=self.last_activation), Reshape(self.y_train.shape[1:])]
+        # TODO: Final layer is repetitive accross models
 
         self.model = Sequential(layers)
 
@@ -225,7 +261,7 @@ class ConvModel(_BaseModel):
         Convolution Model.
         Args:
             panel (Panel): Panel with data
-            model_type (str): Model type (regression, classifier, multi_classifier)
+            model_type (str): Model type (regression, classification, multi_classification)
             conv_layers (int): Number of convolution layers
             conv_filters (int): Number of convolution filters
             kernel_size (int): Kernel size of convolution layer
@@ -261,11 +297,80 @@ class ConvModel(_BaseModel):
         layers += [Flatten()]
         layers += [conv for _ in range(self.conv_layers)]
         layers += [dense for _ in range(self.dense_layers)]
-        layers += [Dense(units=self.y.timesteps * len(self.x.columns), activation=self.last_activation), Reshape(self.y_train.shape[1:])]
+        layers += [Dense(units=self.y.timesteps * len(self.y.columns), activation=self.last_activation), Reshape(self.y_train.shape[1:])]
+        # TODO: Final layer is repetitive accross models
 
         self.model = Sequential(layers)
 
 
 class LinearRegression(DenseModel):
-    def __init__(self, x, y):
-        super().__init__(x=x, y=y, model_type="regression", dense_layers=0)
+    def __init__(self, x, y, **kwargs):
+        super().__init__(x=x, y=y, model_type="regression", dense_layers=0, **kwargs)
+
+
+class ShallowModel:
+    def __init__(self, x, y, model, metrics, **kwargs):
+        # TODO: Include model_type and metrics for scoring
+        # TODO: Add predict
+
+        """ model: Scikit-learn model
+            metrics: List of sklearn metrics to use for scoring
+        """
+
+        self.x = x
+        self.y = y
+
+        if len(self.y.columns) > 1:
+            raise ValueError("ShallowModel can only be used for single-output models.")
+
+        self.model = model(**kwargs)
+        self.metrics = metrics
+        self.set_arrays()
+
+    def set_arrays(self):
+
+        self.x_train = self.x.train.flat()
+        self.y_train = self.y.train.flat()
+
+        self.x_val = self.x.val.flat()
+        self.y_val = self.y.val.flat()
+
+        self.x_test = self.x.test.flat()
+        self.y_test = self.y.test.flat()
+
+
+    def fit(self, **kwargs):
+        """Fit the model."""
+        self.model.fit(X=self.x_train, y=self.y_train, **kwargs)
+        scores = [scorer(self.model.predict(self.x_val), self.y_val) for scorer in self.metrics]
+        return f"Model Trained. Scores: {[round(i, 5) for i in scores]}"
+
+
+
+# TODO: Add function to compute default results per model
+
+# def compute_score_per_model(models=[all models here]):
+#     scores = {}
+#     for model in models:
+#         scores[model.name] = model.score()
+#     return scores
+
+# TODO: Add LogisticRegression
+# TODO: Add LSTMModel / GRU / Transformer ...
+# TODO: Feature Selection
+# TODO: Model explainability (e.g. feature importance, shap)
+# TODO: Add Grid Search
+# TODO: Add Warm-Up
+# TODO: Add Early Stopping
+# TODO: Add other baseline models, e.g. model that always predicts a constant value
+
+
+# # def score(val?, test?):
+#     return self.compute_metrcis(self.predict(x.val), y.val)
+
+# TODO: Add below:
+# GRID SEARCH / RANDOM SEARCH / GENETIC ALGORITHM (NEAT) / Reinforcement Learning
+
+# - Optimize hyperparameters
+# - Optimize hyperparameters and models
+# - Optimize hyperparameters and models and lookback/horizon/gap

@@ -19,9 +19,9 @@ pd.options.plotting.backend = "plotly"
 
 
 def create_panels(df,
-                 lookback: int,
-                 horizon: int,
-                 gap: int = 0):
+                  lookback: int,
+                  horizon: int,
+                  gap: int = 0):
     """
     Create a panel from a dataframe.
 
@@ -130,8 +130,10 @@ class Panel:
 
     def __getitem__(self, key):
         if isinstance(key, list):
+            if all(isinstance(k, str) for k in key):
+                return self.loc[:, key]
             return [self.frames[i] for i in key]
-        if isinstance(key, slice):
+        elif isinstance(key, slice):
             return Panel(self.frames.__getitem__(key))
         return self.frames.__getitem__(key)
 
@@ -274,8 +276,7 @@ class Panel:
         return values[values == True].index.tolist()
 
     def flat(self):
-        # Maybe the name is confusing since there's another func called flatten?
-        # TODO rename function
+        # TODO: Add column names instead of only index
         """
         2D array with the flat value of each frame.
 
@@ -452,7 +453,7 @@ class Panel:
 
     #             * True: overwrite original DataFrame's values with values from other.
     #             * False: only update values that are NA in the original DataFrame.
-            
+
     #         filter_func (callable(1d-array) -> bool 1d-array, optional): Can choose to replace values other than NA. Return True for values that should be updated.
     #         errors ({'raise', 'ignore'}, default 'ignore'): If 'raise', will raise a ValueError if the DataFrame and other both contain non-NA data in the same place.
 
@@ -464,19 +465,19 @@ class Panel:
     #         frame.update(z, join=join, overwrite=overwrite, filter_func=filter_func, errors=errors)
     #     return None
 
-    def match(self, other):
+    def match(self, other_panel):
         '''
-        Modify in place using non-NA values from another DataFrame.
+        Modify in place using non-NA values from another Panel.
 
         Aligns on indices. There is no return value.
 
         Args:
-            other (DataFrame, or object coercible into a DataFrame): Should have at least one matching index/column label with the original DataFrame. If a Series is passed, its name attribute must be set, and that will be used as the column name to align with the original DataFrame.
+            other_panel: (Panel, or object coercible into a Panel)
 
         Returns:
             ``None``: Method directly changes calling object
         '''
-        index = [frame.frame_index for frame in other]
+        index = [frame.frame_index for frame in other_panel]
         return Panel([frame for frame in tqdm(self.frames) if frame.frame_index in index])
 
     def set_training_split(self, val_size=0.2, test_size=0.1):
