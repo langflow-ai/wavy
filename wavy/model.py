@@ -258,7 +258,6 @@ class LinearRegression(DenseModel):
         super().__init__(x=x, y=y, model_type="regression", dense_layers=0, **kwargs)
 
 
-
 class ShallowModel:
     def __init__(self, x, y, model, metrics, **kwargs):
         # TODO: Include model_type and metrics for scoring
@@ -308,10 +307,16 @@ class ShallowModel:
 
 # TODO: Add LogisticRegression
 # TODO: Add LSTMModel / GRU / Transformer ...
+# TODO: Feature Selection
+# TODO: Model explainability (e.g. feature importance, shap)
 # TODO: Add Grid Search
 # TODO: Add Warm-Up
 # TODO: Add Early Stopping
 # TODO: Add other baseline models, e.g. model that always predicts a constant value
+
+
+# # def score(val?, test?):
+#     return self.compute_metrcis(self.predict(x.val), y.val)
 
 # TODO: Add below:
 # GRID SEARCH / RANDOM SEARCH / GENETIC ALGORITHM (NEAT) / Reinforcement Learning
