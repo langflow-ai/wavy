@@ -9,7 +9,7 @@ from tensorflow.keras import Input, Model, Sequential
 from tensorflow.keras.layers import (Conv1D, Dense, Flatten, Input,
                                      MaxPooling1D, Reshape, SeparableConv1D,
                                      concatenate)
-from .panel import Panel, update
+from .panel import Panel
 
 
 from plotly.subplots import make_subplots
@@ -18,9 +18,6 @@ import plotly.graph_objects as go
 import plotly as px
 from matplotlib.pyplot import title
 import math
-
-
-
 
 
 class _UnchangedKerasModel(tf.keras.Model):
@@ -108,7 +105,7 @@ class _BaseModel:
         pass
 
     def predict(self):
-        return update(self.y.test, self.model.predict(self.x_test))
+        return self.y.test.update(self.model.predict(self.x_test))
 
     def plot_prediction(self, x):
         cmap = px.colors.qualitative.Plotly
@@ -148,8 +145,10 @@ class _BaseModel:
 
         fig.show()
 
+
 class BaselineModel(_BaseModel):
     SHIFT = 1
+
     def __init__(
         self,
         x,
@@ -157,24 +156,29 @@ class BaselineModel(_BaseModel):
         model_type: str,
         loss: str = None,
         metrics: List[str] = None,
+        fillna=0,
     ):
 
+        self.fillna = fillna
         super().__init__(x=x, y=y, model_type=model_type, loss=loss, metrics=metrics)
 
     def set_arrays(self):
-        self.x_train = self.y.train.shift(self.SHIFT).values[self.SHIFT:]
-        self.x_val = self.y.val.shift(self.SHIFT).values[self.SHIFT:]
-        self.x_test = self.y.test.shift(self.SHIFT).values[self.SHIFT:]
 
-        self.y_train = self.y.train.values[self.SHIFT:]
-        self.y_val = self.y.val.values[self.SHIFT:]
-        self.y_test = self.y.test.values[self.SHIFT:]
+        warnings.warn(f'Filling nan values with {self.fillna}')
+
+        self.x_train = self.y.train.as_dataframe().shift(self.SHIFT).fillna(self.fillna).values
+        self.x_val = self.y.val.as_dataframe().shift(self.SHIFT).fillna(self.fillna).values
+        self.x_test = self.y.test.as_dataframe().shift(self.SHIFT).fillna(self.fillna).values
+
+        self.y_train = self.y.train.as_dataframe().values
+        self.y_val = self.y.val.as_dataframe().values
+        self.y_test = self.y.test.as_dataframe().values
 
     def build(self):
         self.model = _UnchangedKerasModel()
 
     def predict(self):
-        return update(self.y.test[1:], self.model.predict(self.x_test))
+        return self.y.test.update(self.model.predict(self.x_test))
 
 
 class ConstantModel(_BaseModel):
@@ -192,7 +196,7 @@ class ConstantModel(_BaseModel):
         super().__init__(x=x, y=y, model_type=model_type, loss=loss, metrics=metrics)
 
     def build(self):
-        self.model = _ConstantKerasModel(self.constant) # ! Not working
+        self.model = _ConstantKerasModel(self.constant)  # ! Not working
 
 
 class DenseModel(_BaseModel):
@@ -313,7 +317,6 @@ class ShallowModel:
     def __init__(self, x, y, model, metrics, **kwargs):
         # TODO: Include model_type and metrics for scoring
         # TODO: Add predict
-
         """ model: Scikit-learn model
             metrics: List of sklearn metrics to use for scoring
         """
@@ -330,22 +333,20 @@ class ShallowModel:
 
     def set_arrays(self):
 
-        self.x_train = self.x.train.flat()
-        self.y_train = self.y.train.flat()
+        self.x_train = self.x.train.as_dataframe()
+        self.y_train = self.y.train.as_dataframe()
 
-        self.x_val = self.x.val.flat()
-        self.y_val = self.y.val.flat()
+        self.x_val = self.x.val.as_dataframe()
+        self.y_val = self.y.val.as_dataframe()
 
-        self.x_test = self.x.test.flat()
-        self.y_test = self.y.test.flat()
-
+        self.x_test = self.x.test.as_dataframe()
+        self.y_test = self.y.test.as_dataframe()
 
     def fit(self, **kwargs):
         """Fit the model."""
         self.model.fit(X=self.x_train, y=self.y_train, **kwargs)
         scores = [scorer(self.model.predict(self.x_val), self.y_val) for scorer in self.metrics]
         return f"Model Trained. Scores: {[round(i, 5) for i in scores]}"
-
 
 
 # TODO: Add function to compute default results per model

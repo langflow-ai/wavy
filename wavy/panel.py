@@ -19,12 +19,6 @@ pd.options.plotting.backend = "plotly"
 
 from copy import deepcopy
 
-def update(panel, other):
-    panel = deepcopy(panel)
-
-    for i, j in zip(panel, other):
-        i.iloc[:,:] = j
-    return panel
 
 def create_panels(df,
                   lookback: int,
@@ -73,6 +67,7 @@ def create_panels(df,
     xframes, yframes = [], []
 
     for i in indexes:
+        # ! functions that create a new panel might keep old frame indexes
         x_frame = x.iloc[i - lookback : i]
         x_frame.frame_index = i
         xframes.append(x_frame)
@@ -283,17 +278,15 @@ class Panel:
         values = np.isinf(pd.Series([frame.values.sum() for frame in self]))
         return values[values == True].index.tolist()
 
-    def flat(self):
+    def as_dataframe(self, flatten=False):
         # TODO: Add column names instead of only index
         """
-        2D array with the flat value of each frame.
 
-        Returns:
-            ``DataFrame``: Result of flat function.
+        flatten=True will return one panel frame per row
 
         Example:
 
-        Panel containing two frame, will present the following result.
+        Panel containing two frames will present the following result:
 
         >>> panel[0]
                         MSFT                 AAPL
@@ -302,23 +295,22 @@ class Panel:
         2005-12-21  19.577126  19.475122  2.218566  2.246069
         2005-12-22  19.460543  19.373114  2.258598  2.261960
 
-        >>> panel[-1]
-                        MSFT                 AAPL
-                        Open      Close      Open     Close
-        Date
-        2005-12-22  19.460543  19.373114  2.258598  2.261960
-        2005-12-23  19.322122  19.409552  2.266543  2.241485
-
-        Where only the last timestep of each frame is used as index.
-
-        >>> panel.flat()
+        >>> panel.as_dataframe(flatten=True)
                            0         1        2        3         4         5        6        7
         2005-12-22 19.577126 19.475122 2.218566 2.246069 19.460543 19.373114 2.258598 2.261960
         2005-12-23 19.460543 19.373114 2.258598 2.261960 19.322122 19.409552 2.266543 2.241485
         """
-        values = np.array([i.values.flatten() for i in self.frames])
-        index = [i.index[-1] for i in self.frames]
-        return pd.DataFrame(values, index=index)
+
+        if flatten:
+            values = np.array([i.values.flatten() for i in self.frames])
+            index = [i.index[-1] for i in self.frames]
+            return pd.DataFrame(values, index=index)
+
+        else:
+            df = self[0].copy()
+            for i in self[1:]:
+                df = df.append(i[self.timesteps - 1:])
+            return df
 
     def shift(self, window: int = 1):
         """
@@ -510,6 +502,13 @@ class Panel:
         self.train_size = train_size - self.val_size
         assert self.train_size + self.val_size + self.test_size == len(self)
 
+    def update(self, other):
+        panel = deepcopy(self)
+
+        for i, j in zip(panel, other):
+            i.iloc[:,:] = j
+        return panel
+
     @property
     def train(self):
         """
@@ -542,6 +541,9 @@ class Panel:
         """
         if self.val_size and self.train_size:
             return self[self.train_size + self.val_size :]
+
+    def plot(self, **kwargs):
+        return self.as_dataframe().plot(**kwargs)
 
     def plot_frame(self, index):
         """
