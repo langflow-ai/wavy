@@ -1,4 +1,5 @@
 import math
+from turtle import filling
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -28,13 +29,33 @@ def add_line_trace(fig, df, col, color, add_markers=False, dash=None, area=False
     )
 
 
-def add_bar_trace(fig, df, col,):
+def add_bar_trace(fig, df, col):
     fig.add_trace(
         go.Bar(
             x=df.index,
             y=df[col],
         )
     )
+
+
+def add_lineball_trace(fig, df, col,):
+    fig.add_trace(
+        go.Bar(
+            x=df.index,
+            y=df[col],
+            width=1,
+            marker=dict(line=dict(width=0.6, color="gray"), opacity=0.5, color="gray"),
+        )
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=df.index,
+            y=df[col],
+            mode="markers",
+        )
+    )
+
 
 
 def add_scatter_trace(fig, df, col, mode="markers"):
@@ -47,7 +68,7 @@ def add_scatter_trace(fig, df, col, mode="markers"):
     )
 
 
-def add_vline_trace(fig, df, col, up_thresh, down_thresh):
+def add_thresh_vline_trace(fig, df, col, up_thresh, down_thresh):
 
     up_df = df[df[col] > up_thresh].index
     down_df = df[df[col] < down_thresh].index
@@ -61,16 +82,30 @@ def add_vline_trace(fig, df, col, up_thresh, down_thresh):
         fig.add_vline(x=i, line_dash="dot", line_color="red",)
 
 
-def add_background_trace(fig, df, text, color, opacity):
+def add_colored_background_trace(fig, df, text, color, opacity):
     fig.add_vrect(x0=df.index.min(), x1=df.index.max(),
                   annotation_text=text, annotation_position="top left",
                   fillcolor=color, opacity=opacity, line_width=0, layer="below")
 
 
-def split_background(fig, data, color="gray"):
-    add_background_trace(fig, data['train'], text="Train", color=color, opacity=0.6)
-    add_background_trace(fig, data['val'], text="Validation", color=color, opacity=0.4)
-    add_background_trace(fig, data['test'], text="Test", color=color, opacity=0.2)
+def split_background(fig, data, col, color="gray", opacity=1):
+    # BUG: Seems to break if using "ggplot2"
+
+    xtrain_min = data['train'].index.min()
+    xval_min = data['val'].index.min()
+    xtest_min = data['test'].index.min()
+
+    ymax = max(data['train'][col].max(), data['val'][col].max(), data['test'][col].max())
+
+    fig.add_vline(x=xtrain_min, line_dash="dot", line_color=color, opacity=opacity)
+    fig.add_vline(x=xval_min, line_dash="dot", line_color=color, opacity=opacity)
+    fig.add_vline(x=xtest_min, line_dash="dot", line_color=color, opacity=opacity)
+
+    fig.add_annotation(x=xtrain_min, y=ymax, text="Train", showarrow=False, xshift=20)
+    fig.add_annotation(x=xval_min, y=ymax, text="Validation", showarrow=False, xshift=35)
+    fig.add_annotation(x=xtest_min, y=ymax, text="Test", showarrow=False, xshift=18)
+
+    return fig
 
 
 def line_plot(fig, data, col, color='#c94f4f'):
@@ -82,11 +117,11 @@ def line_plot(fig, data, col, color='#c94f4f'):
 
 def compile_plot(fig, title="Panel Plot", **kwargs):
     fig.update_layout(
-        plot_bgcolor="white",
+        # plot_bgcolor="black",
         showlegend=False,
         title=title,
-        xaxis=dict(title="Period", showgrid=False, zeroline=False),
-        yaxis=dict(title="Value", showgrid=False, zeroline=False,),
+        # xaxis=dict(title="Period", showgrid=False, zeroline=False),
+        # yaxis=dict(title="Value", showgrid=False, zeroline=False,),
         **kwargs,
     )
 
@@ -105,7 +140,7 @@ def panel_plot(panel, col=None):
 
     fig = go.Figure()
     line_plot(fig, data, col)
-    split_background(fig, data)
+    split_background(fig, data, col)
     compile_plot(fig)
 
     return fig
