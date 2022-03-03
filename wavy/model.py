@@ -9,18 +9,9 @@ from tensorflow.keras import Input, Model, Sequential
 from tensorflow.keras.layers import (Conv1D, Dense, Flatten, Input,
                                      MaxPooling1D, Reshape, SeparableConv1D,
                                      concatenate)
-from .panel import Panel
 
 
-from plotly.subplots import make_subplots
-import plotly.express as px
-import plotly.graph_objects as go
-import plotly as px
-from matplotlib.pyplot import title
-import math
-
-
-class _UnchangedKerasModel(tf.keras.Model):
+class _ConstantKerasModel(tf.keras.Model):
     """ A Keras model that returns the input values as outputs. """
 
     def __init__(self):
@@ -30,21 +21,9 @@ class _UnchangedKerasModel(tf.keras.Model):
         return inputs
 
 
-class _ConstantKerasModel(tf.keras.Model):
-    """ A Keras model that returns constant values with the shape of the input. """
-
-    def __init__(self, constant=0):
-        super().__init__()
-        self.constant = constant
-
-    def call(self, inputs):
-        return tf.constant(self.constant, shape=inputs.shape)
-
-
 class _BaseModel:
     """Base class for panel models."""
 
-    # TODO: Add score method (predicts and compares to y_test using metrics)
     # TODO: Add warning when panel has nan values
     # TODO: Auto convert boolean to int
 
@@ -82,6 +61,7 @@ class _BaseModel:
         self.set_arrays()
         self.build()
         self.compile()
+        self.model._name = self.__class__.__name__
 
     def set_arrays(self):
         self.x_train = self.x.train.values
@@ -95,59 +75,44 @@ class _BaseModel:
     def fit(self, **kwargs):
         """Fit the model."""
         self.model.fit(self.x_train, self.y_train, validation_data=(self.x_val, self.y_val), **kwargs)
-        # return self
 
-    def compile(self):
-        self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=self.metrics)
+    def compile(self, **kwargs):
+        self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=self.metrics, **kwargs)
 
     def build(self):
-        # raise NotImplementedError
         pass
 
-    def predict(self):
-        return self.y.test.update(self.model.predict(self.x_test))
+    def predict(self, **kwargs):
+        pred_train = self.model.predict(self.x_train, **kwargs)
+        pred_val = self.model.predict(self.x_val, **kwargs)
+        pred_test = self.model.predict(self.x_test, **kwargs)
+        return self.y.update(np.concatenate([pred_train, pred_val, pred_test]))
 
-    def plot_prediction(self, x):
-        cmap = px.colors.qualitative.Plotly
-
-        columns_size = len(self.columns)
-
-        fig = px.line(x)
-
-        # fig = make_subplots(rows=math.ceil(columns_size / 2), cols=2, subplot_titles=[' '.join(column) for column in self.columns])
-
-        # for i, column in enumerate(self.columns):
-        #     c = cmap[i]
-
-        #     x_df = self.frames[index].loc[:, column]
-        #     idx = x_df.index
-        #     values = x_df.values.flatten()
-
-        #     x_trace = go.Scatter(x=idx, y=values, line=dict(width=2, color=c), showlegend=False)
-
-        #     row = math.floor(i / 2)
-        #     col = i % 2
-        #     fig.add_trace(x_trace, row=row + 1, col=col + 1)
-        #     # Remove empty dates
-        #     # dt_all = pd.date_range(start=index[0],end=index[-1])
-        #     # dt_obs = [d.strftime("%Y-%m-%d") for d in index]
-        #     # dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if not d in dt_obs]
-        #     # fig.update_xaxes(rangebreaks=[dict(values=dt_breaks)])
-
-        fig.update_layout(
-            template='simple_white',
-            showlegend=True
-        )
-
-        # num_assets = len(self.assets)
-        # for i, channel in enumerate(self.channels):
-        #     fig['layout'][f'yaxis{i*num_assets+1}'].update({'title':channel})
-
-        fig.show()
+    def score(self, **kwargs):
+        metrics_names = self.model.metrics_names
+        metrics = self.model.evaluate(self.x_test, self.y_test, **kwargs)
+        return pd.Series(metrics, index=metrics_names)
 
 
-class BaselineModel(_BaseModel):
-    SHIFT = 1
+
+class _Baseline(_BaseModel):
+
+    def __init__(
+        self,
+        x,
+        y,
+        model_type: str,
+        loss: str = None,
+        metrics: List[str] = None,
+    ):
+
+        super().__init__(x=x, y=y, model_type=model_type, loss=loss, metrics=metrics)
+
+    def build(self):
+        self.model = _ConstantKerasModel()
+
+
+class BaselineShift(_Baseline):
 
     def __init__(
         self,
@@ -157,31 +122,30 @@ class BaselineModel(_BaseModel):
         loss: str = None,
         metrics: List[str] = None,
         fillna=0,
+        shift=1,
     ):
 
         self.fillna = fillna
+        self.shift = shift
         super().__init__(x=x, y=y, model_type=model_type, loss=loss, metrics=metrics)
 
     def set_arrays(self):
 
         warnings.warn(f'Filling nan values with {self.fillna}')
 
-        self.x_train = self.y.train.as_dataframe().shift(self.SHIFT).fillna(self.fillna).values
-        self.x_val = self.y.val.as_dataframe().shift(self.SHIFT).fillna(self.fillna).values
-        self.x_test = self.y.test.as_dataframe().shift(self.SHIFT).fillna(self.fillna).values
+        self.x_train = self.y.train.as_dataframe().shift(self.shift).fillna(self.fillna).values
+        self.x_val = self.y.val.as_dataframe().shift(self.shift).fillna(self.fillna).values
+        self.x_test = self.y.test.as_dataframe().shift(self.shift).fillna(self.fillna).values
 
         self.y_train = self.y.train.as_dataframe().values
         self.y_val = self.y.val.as_dataframe().values
         self.y_test = self.y.test.as_dataframe().values
 
     def build(self):
-        self.model = _UnchangedKerasModel()
-
-    def predict(self):
-        return self.y.test.update(self.model.predict(self.x_test))
+        self.model = _ConstantKerasModel()
 
 
-class ConstantModel(_BaseModel):
+class BaselineConstant(_Baseline):
     def __init__(
         self,
         x,
@@ -195,8 +159,15 @@ class ConstantModel(_BaseModel):
         self.constant = constant
         super().__init__(x=x, y=y, model_type=model_type, loss=loss, metrics=metrics)
 
-    def build(self):
-        self.model = _ConstantKerasModel(self.constant)  # ! Not working
+    def set_arrays(self):
+
+        self.x_train = np.full(self.y.train.shape, self.constant)
+        self.x_val = np.full(self.y.val.shape, self.constant)
+        self.x_test = np.full(self.y.test.shape, self.constant)
+
+        self.y_train = self.y.train.as_dataframe().values
+        self.y_val = self.y.val.as_dataframe().values
+        self.y_test = self.y.test.as_dataframe().values
 
 
 class DenseModel(_BaseModel):
@@ -240,7 +211,6 @@ class DenseModel(_BaseModel):
         layers = [Flatten()]  # (time, features) => (time*features)
         layers += [dense for _ in range(self.dense_layers)]
         layers += [Dense(units=self.y.timesteps * len(self.y.columns), activation=self.last_activation), Reshape(self.y_train.shape[1:])]
-        # TODO: Final layer is repetitive accross models
 
         self.model = Sequential(layers)
 
@@ -303,7 +273,6 @@ class ConvModel(_BaseModel):
         layers += [conv for _ in range(self.conv_layers)]
         layers += [dense for _ in range(self.dense_layers)]
         layers += [Dense(units=self.y.timesteps * len(self.y.columns), activation=self.last_activation), Reshape(self.y_train.shape[1:])]
-        # TODO: Final layer is repetitive accross models
 
         self.model = Sequential(layers)
 
@@ -313,10 +282,15 @@ class LinearRegression(DenseModel):
         super().__init__(x=x, y=y, model_type="regression", dense_layers=0, **kwargs)
 
 
+class LogisticRegression(DenseModel):
+    def __init__(self, x, y, **kwargs):
+        super().__init__(x=x, y=y, model_type="classification", dense_layers=0, **kwargs)
+
+
 class ShallowModel:
     def __init__(self, x, y, model, metrics, **kwargs):
+        # TODO: Add remaining functions (predict, score, etc.)
         # TODO: Include model_type and metrics for scoring
-        # TODO: Add predict
         """ model: Scikit-learn model
             metrics: List of sklearn metrics to use for scoring
         """
@@ -333,46 +307,44 @@ class ShallowModel:
 
     def set_arrays(self):
 
-        self.x_train = self.x.train.as_dataframe()
-        self.y_train = self.y.train.as_dataframe()
+        self.x_train = self.x.train.as_dataframe(flatten=True)
+        self.y_train = self.y.train.as_dataframe(flatten=True)
 
-        self.x_val = self.x.val.as_dataframe()
-        self.y_val = self.y.val.as_dataframe()
+        self.x_val = self.x.val.as_dataframe(flatten=True)
+        self.y_val = self.y.val.as_dataframe(flatten=True)
 
-        self.x_test = self.x.test.as_dataframe()
-        self.y_test = self.y.test.as_dataframe()
+        self.x_test = self.x.test.as_dataframe(flatten=True)
+        self.y_test = self.y.test.as_dataframe(flatten=True)
 
     def fit(self, **kwargs):
         """Fit the model."""
         self.model.fit(X=self.x_train, y=self.y_train, **kwargs)
         scores = [scorer(self.model.predict(self.x_val), self.y_val) for scorer in self.metrics]
-        return f"Model Trained. Scores: {[round(i, 5) for i in scores]}"
+        return f"Model Trained. Validation Scores: {[round(i, 5) for i in scores]}"
 
 
-# TODO: Add function to compute default results per model
 
-# def compute_score_per_model(models=[all models here]):
-#     scores = {}
-#     for model in models:
-#         scores[model.name] = model.score()
-#     return scores
+def compute_score_per_model(*models):
+    return pd.DataFrame([model.score(verbose=0) for model in models], index=[model.model.name for model in models])
 
-# TODO: Add LogisticRegression
-# TODO: Add LSTMModel / GRU / Transformer ...
-# TODO: Feature Selection
-# TODO: Model explainability (e.g. feature importance, shap)
-# TODO: Add Grid Search
+
+def compute_default_scores(x, y, model_type, metrics, epochs=10, verbose=0, **kwargs):
+    models = [BaselineConstant, BaselineShift, DenseModel, ConvModel]
+    models = [model(x=x, y=y, model_type=model_type, metrics=metrics) for model in models]
+    for model in models:
+        model.fit(epochs=epochs, verbose=verbose, **kwargs)
+    return compute_score_per_model(*models)
+
+
+# TODO: Add LSTMModel / GRU / Transformer / ?
 # TODO: Add Warm-Up
 # TODO: Add Early Stopping
-# TODO: Add other baseline models, e.g. model that always predicts a constant value
 
-
-# # def score(val?, test?):
-#     return self.compute_metrcis(self.predict(x.val), y.val)
-
-# TODO: Add below:
-# GRID SEARCH / RANDOM SEARCH / GENETIC ALGORITHM (NEAT) / Reinforcement Learning
-
+# TODO: Feature Selection
+# TODO: Model explainability (e.g. feature importance, shap)
+# TODO: Grid Search / Random Search / Bayesian Optimization / Genetic Algorithm:
 # - Optimize hyperparameters
 # - Optimize hyperparameters and models
 # - Optimize hyperparameters and models and lookback/horizon/gap
+
+# TODO: Reinforcement Learning
