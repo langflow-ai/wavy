@@ -10,6 +10,8 @@ from tensorflow.keras.layers import (Conv1D, Dense, Flatten, Input,
                                      MaxPooling1D, Reshape, SeparableConv1D,
                                      concatenate)
 
+from .plot import panel_plot
+
 
 class _ConstantKerasModel(tf.keras.Model):
     """ A Keras model that returns the input values as outputs. """
@@ -88,11 +90,29 @@ class _BaseModel:
         pred_test = self.model.predict(self.x_test, **kwargs)
         return self.y.update(np.concatenate([pred_train, pred_val, pred_test]))
 
-    def score(self, **kwargs):
+    def score(self, on=None, **kwargs):
+        # TODO: Improve conditions to run faster
         metrics_names = self.model.metrics_names
-        metrics = self.model.evaluate(self.x_test, self.y_test, **kwargs)
-        return pd.Series(metrics, index=metrics_names)
 
+        train_metrics = self.model.evaluate(self.x_train, self.y_train, verbose=0, **kwargs)
+        val_metrics = self.model.evaluate(self.x_val, self.y_val, verbose=0, **kwargs)
+        test_metrics = self.model.evaluate(self.x_test, self.y_test, verbose=0, **kwargs)
+
+        if on == 'train':
+            return pd.Series(train_metrics, index=metrics_names)
+        if on == 'val':
+            return pd.Series(val_metrics, index=metrics_names)
+        if on == 'test':
+            return pd.Series(test_metrics, index=metrics_names)
+
+        return pd.DataFrame({'train': train_metrics, 'val': val_metrics, 'test': test_metrics}, index=metrics_names)
+
+    def residuals(self):
+        return self.predict() - self.y
+
+    def plot_residuals(self):
+        # TODO: use area plot
+        return panel_plot(self.residuals())
 
 
 class _Baseline(_BaseModel):
@@ -323,9 +343,8 @@ class ShallowModel:
         return f"Model Trained. Validation Scores: {[round(i, 5) for i in scores]}"
 
 
-
-def compute_score_per_model(*models):
-    return pd.DataFrame([model.score(verbose=0) for model in models], index=[model.model.name for model in models])
+def compute_score_per_model(*models, on='val'):
+    return pd.DataFrame([model.score(on=on) for model in models], index=[model.model.name for model in models])
 
 
 def compute_default_scores(x, y, model_type, metrics, epochs=10, verbose=0, **kwargs):
@@ -342,6 +361,7 @@ def compute_default_scores(x, y, model_type, metrics, epochs=10, verbose=0, **kw
 
 # TODO: Feature Selection
 # TODO: Model explainability (e.g. feature importance, shap)
+
 # TODO: Grid Search / Random Search / Bayesian Optimization / Genetic Algorithm:
 # - Optimize hyperparameters
 # - Optimize hyperparameters and models
