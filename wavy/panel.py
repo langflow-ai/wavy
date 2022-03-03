@@ -1,13 +1,15 @@
+import warnings
 from plotly.subplots import make_subplots
+from tqdm.auto import tqdm
+
+import math
+import numpy as np
+import pandas as pd
+import plotly as px
 import plotly.express as px
 import plotly.graph_objects as go
-import plotly as px
-import pandas as pd
-import numpy as np
-from matplotlib.pyplot import title
-from tqdm.auto import tqdm
-from typing import List, Union
-import math
+
+from .plot import plot, plot_frame, plot_slider
 
 # dunder_methods = ['__abs__', '__add__', '__aenter__', '__aexit__', '__aiter__', '__and__', '__anext__', '__await__', '__bool__', '__bytes__', '__call__', '__ceil__', '__class__', '__class_getitem__', '__cmp__', '__coerce__', '__complex__', '__contains__', '__del__', '__delattr__', '__delete__', '__delitem__', '__delslice__', '__dict__', '__dir__', '__div__', '__divmod__', '__enter__', '__eq__', '__exit__', '__float__', '__floor__', '__floordiv__', '__format__', '__fspath__', '__ge__', '__get__', '__getattr__', '__getattribute__', '__getitem__', '__getnewargs__', '__getslice__', '__gt__', '__hash__', '__hex__', '__iadd__', '__iand__', '__idiv__', '__ifloordiv__', '__ilshift__', '__imatmul__', '__imod__', '__import__', '__imul__', '__index__', '__init__', '__init_subclass__', '__instancecheck__', '__int__', '__invert__', '__ior__', '__ipow__', '__irshift__', '__isub__', '__iter__', '__itruediv__', '__ixor__', '__le__', '__len__', '__length_hint__', '__long__', '__lshift__', '__lt__', '__matmul__', '__metaclass__', '__missing__', '__mod__', '__mro__', '__mul__', '__ne__', '__neg__', '__new__', '__next__', '__nonzero__', '__oct__', '__or__', '__pos__', '__pow__', '__prepare__', '__radd__', '__rand__', '__rcmp__', '__rdiv__', '__rdivmod__', '__reduce__', '__reduce_ex__', '__repr__', '__reversed__', '__rfloordiv__', '__rlshift__', '__rmatmul__', '__rmod__', '__rmul__', '__ror__', '__round__', '__rpow__', '__rrshift__', '__rshift__', '__rsub__', '__rtruediv__', '__rxor__', '__set__', '__set_name__', '__setattr__', '__setitem__', '__setslice__', '__sizeof__', '__slots__', '__str__', '__sub__', '__subclasscheck__', '__subclasses__', '__truediv__', '__trunc__', '__unicode__', '__weakref__', '__xor__']
 
@@ -67,7 +69,7 @@ def create_panels(df,
     xframes, yframes = [], []
 
     for i in indexes:
-        # ! functions that create a new panel might keep old frame indexes
+        # ? functions that create a new panel might keep old frame indexes
         x_frame = x.iloc[i - lookback : i]
         x_frame.frame_index = i
         xframes.append(x_frame)
@@ -81,8 +83,8 @@ def create_panels(df,
 
 class Panel:
     def __init__(self, frames):
-        # TODO: frames must have increasing indexes, add warning and reindex
-        # TODO this check should be done when creating the panel
+        # ? Should frames always have increasing indexes? Maybe add warning and reindex
+        # ? What about duplicated indices?
 
         class _IXIndexer:
             def __getitem__(self, item):
@@ -465,19 +467,17 @@ class Panel:
     #         frame.update(z, join=join, overwrite=overwrite, filter_func=filter_func, errors=errors)
     #     return None
 
-    def match(self, other_panel):
-        '''
-        Modify in place using non-NA values from another Panel.
-
-        Aligns on indices. There is no return value.
+    def match(self, other):
+        """
+        Modify using values from another Panel. Aligns on indices.
 
         Args:
-            other_panel: (Panel, or object coercible into a Panel)
+            other: (Panel)
 
         Returns:
-            ``None``: Method directly changes calling object
-        '''
-        index = [frame.frame_index for frame in other_panel]
+            ``Panel``: Result of match function.
+        """
+        index = [frame.frame_index for frame in other]
         return Panel([frame for frame in tqdm(self.frames) if frame.frame_index in index])
 
     def set_training_split(self, val_size=0.2, test_size=0.1):
@@ -504,6 +504,15 @@ class Panel:
 
     def update(self, other):
         panel = deepcopy(self)
+
+        df = panel.as_dataframe()
+        if len(df) != len(other):
+            if not isinstance(other, pd.DataFrame):
+                raise ValueError("If using different sizes, other must be a DataFrame")
+
+            assert not all(other.index.duplicated())
+            warnings.warn("Sizes don't match. Using dataframe indexes and columns to update.")
+            other = other.loc[df.index, df.columns].values
 
         for i, j in zip(panel, other):
             i.iloc[:,:] = j
@@ -543,132 +552,10 @@ class Panel:
             return self[self.train_size + self.val_size :]
 
     def plot(self, **kwargs):
-        return self.as_dataframe().plot(**kwargs)
+        return plot(self, **kwargs)
 
     def plot_frame(self, index):
-        """
-        Dataframe plot.
+        return plot_frame(self, index)
 
-        Args:
-            index (int): Panel index
-
-        Returns:
-            ``Plot``: Plotted data
-        """
-        cmap = px.colors.qualitative.Plotly
-
-        columns_size = len(self.columns)
-
-        fig = make_subplots(rows=math.ceil(columns_size / 2), cols=2, subplot_titles=[' '.join(column) for column in self.columns])
-
-        for i, column in enumerate(self.columns):
-            c = cmap[i]
-
-            x_df = self.frames[index].loc[:, column]
-            idx = x_df.index
-            values = x_df.values.flatten()
-
-            x_trace = go.Scatter(x=idx, y=values, line=dict(width=2, color=c), showlegend=False)
-
-            row = math.floor(i / 2)
-            col = i % 2
-            fig.add_trace(x_trace, row=row + 1, col=col + 1)
-            # Remove empty dates
-            # dt_all = pd.date_range(start=index[0],end=index[-1])
-            # dt_obs = [d.strftime("%Y-%m-%d") for d in index]
-            # dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if not d in dt_obs]
-            # fig.update_xaxes(rangebreaks=[dict(values=dt_breaks)])
-
-        fig.update_layout(
-            template='simple_white',
-            showlegend=True
-        )
-
-        # num_assets = len(self.assets)
-        # for i, channel in enumerate(self.channels):
-        #     fig['layout'][f'yaxis{i*num_assets+1}'].update({'title':channel})
-
-        fig.show()
-
-    def plot_slider(self, steps: int = 100):
-        """
-        Make panel plots with slider.
-
-        Args:
-            steps (int): Number of equally spaced frames to plot
-
-        Returns:
-            ``Plot``: Plotted data.
-        """
-
-        if steps > 100:
-            raise ValueError("Number of assets cannot be bigger than 100.")
-
-        cmap = px.colors.qualitative.Plotly
-
-        # Create figure
-        columns_size = len(self.columns)
-        fig = make_subplots(rows=math.ceil(columns_size / 2), cols=2, subplot_titles=[' '.join(column) for column in self.columns])
-        # fig = make_subplots(rows=len(self.channels), cols=len(self.assets), subplot_titles=self.assets)
-
-        # Add traces, one for each slider step
-        len_ = np.linspace(0, len(self.frames), steps, dtype=int, endpoint=False)
-        for step in len_:  # np.arange(len(panel_.x.frames)):
-
-            for i, column in enumerate(self.columns):
-                c = cmap[i]
-
-                x_df = self.frames[step].loc[:, column]
-                index = x_df.index
-                values = x_df.values.flatten()
-
-                x_trace = go.Scatter(visible=False, x=index, y=values, line=dict(width=2, color=c), showlegend=False)
-
-                # x_trace = go.Scatter(x=index, y=values,
-                #                     line=dict(width=2, color=c), showlegend=showlegend, name=channel)
-
-                row = math.floor(i / 2)
-                col = i % 2
-                fig.add_trace(x_trace, row=row + 1, col=col + 1)
-
-                # dt_all = pd.date_range(start=index[0],end=index[-1])
-                # dt_obs = [d.strftime("%Y-%m-%d") for d in index]
-                # dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if not d in dt_obs]
-                # fig.update_xaxes(rangebreaks=[dict(values=dt_breaks)])
-
-        # Make 10th trace visible
-        for i in range(columns_size):
-            fig.data[i].visible = True
-
-        # Create and add slider
-        steps_ = []
-        for i in range(steps):
-            step = dict(
-                method="update",
-                args=[{"visible": [False] * len(fig.data)},
-                      {"title": "frame " + str(len_[i])}],  # layout attribute
-            )
-
-            for g in range(columns_size):
-                step["args"][0]["visible"][i * columns_size + g] = True  # Toggle i'th trace to "visible"
-
-            steps_.append(step)
-
-        sliders = [dict(
-            active=0,
-            # currentvalue={"prefix": "frame: "},
-            pad={"t": 50},
-            steps=steps_
-        )]
-
-        fig.update_layout(
-            template='simple_white',
-            sliders=sliders
-        )
-
-        # Plot y titles
-        # num_assets = len(self.assets)
-        # for i, channel in enumerate(self.channels):
-        #     fig['layout'][f'yaxis{i*num_assets+1}'].update({'title':channel})
-
-        fig.show()
+    def plot_slider(self, steps):
+        return plot_slider(self, steps)
