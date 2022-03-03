@@ -67,8 +67,6 @@ def add_background_trace(fig, df, text, color, opacity):
                   fillcolor=color, opacity=opacity, line_width=0, layer="below")
 
 
-
-
 def split_background(fig, data, color="gray"):
     add_background_trace(fig, data['train'], text="Train", color=color, opacity=0.6)
     add_background_trace(fig, data['val'], text="Validation", color=color, opacity=0.4)
@@ -82,22 +80,24 @@ def line_plot(fig, data, col, color='#c94f4f'):
     add_line_trace(fig, data['test'], col, color=color, opacity=1)
 
 
-def compile_plot(fig):
+def compile_plot(fig, title="Panel Plot", **kwargs):
     fig.update_layout(
         plot_bgcolor="white",
         showlegend=False,
-        title="Time Series",
-        xaxis=dict(title="Periods", showgrid=False, zeroline=False),
-        yaxis=dict(
-            title="Value",
-            showgrid=False,
-            zerolinewidth=2,
-            zerolinecolor='gray',
-        ),
+        title=title,
+        xaxis=dict(title="Period", showgrid=False, zeroline=False),
+        yaxis=dict(title="Value", showgrid=False, zeroline=False,),
+        **kwargs,
     )
 
 
-def panel_plot(panel, col):
+def panel_plot(panel, col=None):
+    if col is None:
+        if len(panel.columns) == 1:
+            col = panel.columns[0]
+        else:
+            raise ValueError("Must specify column to plot")
+
     data = {'train': panel.train.as_dataframe(),
             'val': panel.val.as_dataframe(),
             'test': panel.test.as_dataframe()
@@ -109,8 +109,6 @@ def panel_plot(panel, col):
     compile_plot(fig)
 
     return fig
-
-
 
 
 # def plot_many(panels, **kwargs):
@@ -261,7 +259,6 @@ def plot_slider(panel, steps=100):
                 {"title": f"frame {str(len_[i])}"},
             ],
         )
-
 
         for g in range(columns_size):
             step["args"][0]["visible"][i * columns_size + g] = True  # Toggle i'th trace to "visible"
