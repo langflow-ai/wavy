@@ -7,185 +7,211 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.io as pio
 
-pio.templates.default = "plotly_white"
-
 # TODO: Set plotting configs and add kwargs to functions
+# TODO: Check if kwargs would overwrite fig.add_trace if same params are used
 
+class Figure:
+    """ Higher level wrapper for plotly, especially focused on time series plots.
 
-def add_line_trace(fig, df, col, color, add_markers=False, dash=None, area=False, opacity=1):
+    1. Lower level functions
+    - Given a series, create the trace
+    - e.g. add_line, add_bar, add_scatter
+    - Contain all the logic for creating the trace
+    - Don't carry **kwargs, keep simple parameters for simplicity
 
-    mode = "lines+markers" if add_markers else "lines"
-    fill = 'tozeroy' if area else None
+    2. Higher level functions
+    - Group lower level functions into a single function
 
-    fig.add_trace(
-        go.Scatter(
-            x=df.index,
-            y=df[col],
-            mode=mode,
-            line=dict(width=1.5, dash=dash, color=color),
-            fill=fill,
-            opacity=opacity,
+    """
+
+    def __init__(self):
+        self.fig = go.Figure()
+        # TODO: Add fill area between 2 series
+
+    def line(self, series, dash=None, **kwargs):
+        # TODO: Add trace names for hovering
+
+        self.fig.add_trace(
+            go.Scatter(
+                x=series.index,
+                y=series,
+                mode="lines",
+                line=dict(width=1.5, dash=dash, **kwargs),
+            )
         )
-    )
 
-
-def add_bar_trace(fig, df, col):
-    fig.add_trace(
-        go.Bar(
-            x=df.index,
-            y=df[col],
+    def area(self, series, **kwargs):
+        self.fig.add_trace(
+            go.Scatter(
+                x=series.index,
+                y=series,
+                mode="lines",
+                line=dict(width=1.5, **kwargs),
+                fill='tozeroy',
+            )
         )
-    )
 
-
-def add_lineball_trace(fig, df, col,):
-    fig.add_trace(
-        go.Bar(
-            x=df.index,
-            y=df[col],
-            width=1,
-            marker=dict(line=dict(width=0.6, color="gray"), opacity=0.5, color="gray"),
+    def bar(self, series, **kwargs):
+        self.fig.add_trace(
+            go.Bar(
+                x=series.index,
+                y=series,
+                **kwargs,
+            )
         )
-    )
 
-    fig.add_trace(
-        go.Scatter(
-            x=df.index,
-            y=df[col],
-            mode="markers",
+    def linebar(self, series, color="gray", opacity=0.5, **kwargs):
+        self.fig.add_trace(
+            go.Bar(
+                x=series.index,
+                y=series,
+                width=1,
+                marker=dict(line=dict(width=0.6, color=color), opacity=opacity, color=color, **kwargs,),
+            )
         )
-    )
 
-
-
-def add_scatter_trace(fig, df, col, mode="markers"):
-    fig.add_trace(
-        go.Scatter(
-            x=df.index,
-            y=df[col],
-            mode=mode,
+    def scatter(self, series, **kwargs):
+        self.fig.add_trace(
+            go.Scatter(
+                x=series.index,
+                y=series,
+                mode="markers",
+                **kwargs,
+            )
         )
-    )
+
+    def dotline(self, series, color="gray", opacity=0.5):
+        # ? Name might be confusing
+        self.linebar(series, color=color, opacity=opacity)
+        self.scatter(series)
+
+    def threshline(self, series, up_thresh, down_thresh, up_color, down_color):
+
+        up_df = series[series > up_thresh].index
+        down_df = series[series < down_thresh].index
+
+        print(len(down_df), len(up_df))
+
+        for i in up_df:
+            self.fig.add_vline(x=i, line_dash="dot", line_color=up_color,)
+
+        for i in down_df:
+            self.fig.add_vline(x=i, line_dash="dot", line_color=down_color,)
+
+    def background(self, series, text, color, opacity):
+        self.fig.add_vrect(x0=series.index.min(), x1=series.index.max(),
+                           annotation_text=text, annotation_position="top left",
+                           fillcolor=color, opacity=opacity, line_width=0, layer="below")
+
+    def show(self):
+        return self.fig
 
 
-def add_thresh_vline_trace(fig, df, col, up_thresh, down_thresh):
+class PanelFigure(Figure):
+    def __init__(self):
+        # TODO: Add dynamic color changing once new traces are added
+        # TODO: Add candlestick plot
+        super().__init__()
 
-    up_df = df[df[col] > up_thresh].index
-    down_df = df[df[col] < down_thresh].index
+    def split_sets(self, panel, color="gray", opacity=1):
+        # BUG: Seems to break if using "ggplot2"
+        # ! Won't take effect until next trace is added (no axis was added)
+        # TODO: Functions could accept both dataframe or panel
 
-    print(len(down_df), len(up_df))
+        data = {'train': panel.train.as_dataframe(),
+                'val': panel.val.as_dataframe(),
+                'test': panel.test.as_dataframe()
+                }
 
-    for i in up_df:
-        fig.add_vline(x=i, line_dash="dot", line_color="green",)
+        xtrain_min = data['train'].index[0]
+        xval_min = data['val'].index[0]
+        xtest_min = data['test'].index[0]
 
-    for i in down_df:
-        fig.add_vline(x=i, line_dash="dot", line_color="red",)
+        ymax = max(data['train'].max().max(), data['val'].max().max(), data['test'].max().max())
 
+        self.fig.add_vline(x=xtrain_min, line_dash="dot", line_color=color, opacity=opacity)
+        self.fig.add_vline(x=xval_min, line_dash="dot", line_color=color, opacity=opacity)
+        self.fig.add_vline(x=xtest_min, line_dash="dot", line_color=color, opacity=opacity)
 
-def add_colored_background_trace(fig, df, text, color, opacity):
-    fig.add_vrect(x0=df.index.min(), x1=df.index.max(),
-                  annotation_text=text, annotation_position="top left",
-                  fillcolor=color, opacity=opacity, line_width=0, layer="below")
+        self.fig.add_annotation(x=xtrain_min, y=ymax, text="Train", showarrow=False, xshift=20)
+        self.fig.add_annotation(x=xval_min, y=ymax, text="Validation", showarrow=False, xshift=35)
+        self.fig.add_annotation(x=xtest_min, y=ymax, text="Test", showarrow=False, xshift=18)
 
+    def add_line(self, panel, **kwargs):
+        for col in panel.columns:
+            self.line(panel.as_dataframe()[col], **kwargs)
 
-def split_background(fig, data, col, color="gray", opacity=1):
-    # BUG: Seems to break if using "ggplot2"
+    def add_area(self, panel, **kwargs):
+        for col in panel.columns:
+            self.area(panel.as_dataframe()[col], **kwargs)
 
-    xtrain_min = data['train'].index.min()
-    xval_min = data['val'].index.min()
-    xtest_min = data['test'].index.min()
+    def add_bar(self, panel, **kwargs):
+        for col in panel.columns:
+            self.bar(panel.as_dataframe()[col], **kwargs)
 
-    ymax = max(data['train'][col].max(), data['val'][col].max(), data['test'][col].max())
+    def add_scatter(self, panel, **kwargs):
+        for col in panel.columns:
+            self.scatter(panel.as_dataframe()[col], **kwargs)
 
-    fig.add_vline(x=xtrain_min, line_dash="dot", line_color=color, opacity=opacity)
-    fig.add_vline(x=xval_min, line_dash="dot", line_color=color, opacity=opacity)
-    fig.add_vline(x=xtest_min, line_dash="dot", line_color=color, opacity=opacity)
+    def add_dotline(self, panel, color="gray", opacity=0.5):
+        # BUG: Dots and lines look displaced if zoomed in
+        for col in panel.columns:
+            self.dotline(panel.as_dataframe()[col], color=color, opacity=opacity)
 
-    fig.add_annotation(x=xtrain_min, y=ymax, text="Train", showarrow=False, xshift=20)
-    fig.add_annotation(x=xval_min, y=ymax, text="Validation", showarrow=False, xshift=35)
-    fig.add_annotation(x=xtest_min, y=ymax, text="Test", showarrow=False, xshift=18)
+    def add_threshline(self, panel, up_thresh, down_thresh, up_color="green", down_color="red", col=None):
+        col = self._colcheck(panel, col)
+        self.threshline(panel.as_dataframe()[col], up_thresh, down_thresh, up_color, down_color)
 
-    return fig
+    # def compile(self, **kwargs):
+    #     self.fig.update_layout(
+    #         showlegend=False,
+    #         **kwargs,
+    #     )
+    #     return self.fig
 
-
-def line_plot(fig, data, col, color='#c94f4f'):
-    # TODO: Add trace names for hovering
-    add_line_trace(fig, data['train'], col, color=color, opacity=1)
-    add_line_trace(fig, data['val'], col, color=color, opacity=1)
-    add_line_trace(fig, data['test'], col, color=color, opacity=1)
-
-
-def compile_plot(fig, title="Panel Plot", **kwargs):
-    fig.update_layout(
-        # plot_bgcolor="black",
-        showlegend=False,
-        title=title,
-        # xaxis=dict(title="Period", showgrid=False, zeroline=False),
-        # yaxis=dict(title="Value", showgrid=False, zeroline=False,),
-        **kwargs,
-    )
-
-
-def panel_plot(panel, col=None):
-    if col is None:
-        if len(panel.columns) == 1:
-            col = panel.columns[0]
-        else:
-            raise ValueError("Must specify column to plot")
-
-    data = {'train': panel.train.as_dataframe(),
-            'val': panel.val.as_dataframe(),
-            'test': panel.test.as_dataframe()
-            }
-
-    fig = go.Figure()
-    line_plot(fig, data, col)
-    split_background(fig, data, col)
-    compile_plot(fig)
-
-    return fig
+    def _colcheck(self, panel, col):
+        if col is None:
+            if panel.columns.size == 1:
+                return panel.columns[0]
+            else:
+                raise ValueError("Must specify column to plot")
 
 
-# def plot_many(panels, **kwargs):
+
+
+
+# def plot_dataframes(dfs, **kwargs):
 #     """
-#     Plot many panels.
+#     Plot dataframes.
 
 #     Args:
-#         panels (list): List of panels
+#         dfs (list): List of dataframes
 
 #     Returns:
-#         fig (plotly.graph_objects.Figure): Figure object
+#         ``Plot``: Plotted data
 #     """
 
-#     dfs = [panel.as_dataframe() for panel in panels]
-#     return plot_dataframes(dfs, **kwargs)
+#     return pd.concat(dfs, axis=1).plot(**kwargs)
 
 
-def plot_dataframes(dfs, **kwargs):
-    """
-    Plot dataframes.
-
-    Args:
-        dfs (list): List of dataframes
-
-    Returns:
-        ``Plot``: Plotted data
-    """
-
-    return pd.concat(dfs, axis=1).plot(**kwargs)
-
-
-def plot(panel, **kwargs):
+def plot(panel, split=False, **kwargs):
     """
     Plot a panel.
 
     Args:
         panel (Panel): Panel object
+        split (bool): If True, plot vertical lines showing train, val, and test periods
 
     Returns:
         ``Plot``: Plotted data
     """
-    return panel.as_dataframe().plot(**kwargs)
+    fig = PanelFigure()
+
+    if split:
+        fig.split_sets(panel)
+
+    fig.add_line(panel, **kwargs)
+    return fig.show()
 
 
 def plot_frame(panel, index):
@@ -246,7 +272,7 @@ def plot_slider(panel, steps=100):
     """
 
     if steps > 100:
-        raise ValueError("Number of assets cannot be bigger than 100.")
+        raise ValueError("Number of steps cannot be bigger than 100.")
 
     cmap = px.colors.qualitative.Plotly
 

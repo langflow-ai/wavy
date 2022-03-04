@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 
 
-
 def reverse_pct_change(panel, df):
     df = df.shift() * (1 + panel.as_dataframe())
     return panel.update(df)

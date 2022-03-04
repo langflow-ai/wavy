@@ -10,7 +10,7 @@ from tensorflow.keras.layers import (Conv1D, Dense, Flatten, Input,
                                      MaxPooling1D, Reshape, SeparableConv1D,
                                      concatenate)
 
-from .plot import panel_plot
+# from .plot import panel_plot
 
 
 class _ConstantKerasModel(tf.keras.Model):
@@ -110,9 +110,9 @@ class _BaseModel:
     def residuals(self):
         return self.predict() - self.y
 
-    def plot_residuals(self):
-        # TODO: use area plot
-        return panel_plot(self.residuals())
+    # def plot_residuals(self):
+    #     # TODO: use area plot
+    #     return panel_plot(self.residuals())
 
 
 class _Baseline(_BaseModel):
@@ -368,3 +368,4 @@ def compute_default_scores(x, y, model_type, metrics, epochs=10, verbose=0, **kw
 # - Optimize hyperparameters and models and lookback/horizon/gap
 
 # TODO: Reinforcement Learning
+# TODO: Panel Downsample (remove many frames for quick analysis)

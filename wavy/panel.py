@@ -551,8 +551,8 @@ class Panel:
         if self.val_size and self.train_size:
             return self[self.train_size + self.val_size :]
 
-    def plot(self, **kwargs):
-        return plot(self, **kwargs)
+    def plot(self, split=False, **kwargs):
+        return plot(self, split=split, **kwargs)
 
     def plot_frame(self, index):
         return plot_frame(self, index)
