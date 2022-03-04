@@ -162,21 +162,12 @@ class PanelFigure(Figure):
         col = self._colcheck(panel, col)
         self.threshline(panel.as_dataframe()[col], up_thresh, down_thresh, up_color, down_color)
 
-    # def compile(self, **kwargs):
-    #     self.fig.update_layout(
-    #         showlegend=False,
-    #         **kwargs,
-    #     )
-    #     return self.fig
-
     def _colcheck(self, panel, col):
         if col is None:
             if panel.columns.size == 1:
                 return panel.columns[0]
             else:
                 raise ValueError("Must specify column to plot")
-
-
 
 
 
