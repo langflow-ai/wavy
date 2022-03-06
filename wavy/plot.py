@@ -7,6 +7,8 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.io as pio
 
+from typing import List
+
 # TODO: Set plotting configs and add kwargs to functions
 # TODO: Check if kwargs would overwrite fig.add_trace if same params are used
 
@@ -74,7 +76,7 @@ class Figure:
         self.fig.add_trace(
             go.Scatter(
                 x=series.index,
-                y=series,
+                y=series.values,
                 mode="markers",
                 **kwargs,
             )
@@ -103,6 +105,9 @@ class Figure:
                            annotation_text=text, annotation_position="top left",
                            fillcolor=color, opacity=opacity, line_width=0, layer="below")
 
+    # def make_subplots(self, rows:int, cols:int, subplot_titles:List[str]):
+    #     self.fig.mak
+
     def show(self):
         return self.fig
 
@@ -112,6 +117,7 @@ class PanelFigure(Figure):
         # TODO: Add dynamic color changing once new traces are added
         # TODO: Add candlestick plot
         super().__init__()
+        self.cmap = px.colors.qualitative.Plotly
 
     def split_sets(self, panel, color="gray", opacity=1):
         # BUG: Seems to break if using "ggplot2"
@@ -169,8 +175,6 @@ class PanelFigure(Figure):
             else:
                 raise ValueError("Must specify column to plot")
 
-
-
 # def plot_dataframes(dfs, **kwargs):
 #     """
 #     Plot dataframes.
@@ -215,40 +219,31 @@ def plot_frame(panel, index):
     Returns:
         ``Plot``: Plotted data
     """
+    
+    columns_size = len(panel.columns)
     cmap = px.colors.qualitative.Plotly
 
-    columns_size = len(panel.columns)
-
-    fig = make_subplots(rows=math.ceil(columns_size / 2), cols=2, subplot_titles=[' '.join(column) for column in panel.columns])
+    fig = make_subplots(rows=columns_size, cols=1, subplot_titles=[' '.join(column) for column in panel.columns])
 
     for i, column in enumerate(panel.columns):
         c = cmap[i]
 
         x_df = panel.frames[index].loc[:, column]
-        idx = x_df.index
-        values = x_df.values.flatten()
 
-        x_trace = go.Scatter(x=idx, y=values, line=dict(width=2, color=c), showlegend=False)
+        x_trace = go.Scatter(x=x_df.index, y=x_df.values, line=dict(width=2, color=c), showlegend=False)
+        # x_trace = Figure()
+        # x_trace.scatter(x_df)
 
         row = math.floor(i / 2)
-        col = i % 2
-        fig.add_trace(x_trace, row=row + 1, col=col + 1)
-        # Remove empty dates
-        # dt_all = pd.date_range(start=index[0],end=index[-1])
-        # dt_obs = [d.strftime("%Y-%m-%d") for d in index]
-        # dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if not d in dt_obs]
-        # fig.update_xaxes(rangebreaks=[dict(values=dt_breaks)])
+        # col = i % 2
+        fig.add_trace(x_trace, row = row + 1, col = 1)
 
     fig.update_layout(
         template='simple_white',
         showlegend=True
     )
 
-    # num_assets = len(panel.assets)
-    # for i, channel in enumerate(panel.channels):
-    #     fig['layout'][f'yaxis{i*num_assets+1}'].update({'title':channel})
-
-    fig.show()
+    return fig
 
 
 def plot_slider(panel, steps=100):
@@ -269,7 +264,7 @@ def plot_slider(panel, steps=100):
 
     # Create figure
     columns_size = len(panel.columns)
-    fig = make_subplots(rows=math.ceil(columns_size / 2), cols=2, subplot_titles=[' '.join(column) for column in panel.columns])
+    fig = make_subplots(rows=columns_size, cols=1, subplot_titles=[' '.join(column) for column in panel.columns])
     # fig = make_subplots(rows=len(panel.channels), cols=len(panel.assets), subplot_titles=panel.assets)
 
     # Add traces, one for each slider step
@@ -290,7 +285,7 @@ def plot_slider(panel, steps=100):
 
             row = math.floor(i / 2)
             col = i % 2
-            fig.add_trace(x_trace, row=row + 1, col=col + 1)
+            fig.add_trace(x_trace, row = row + 1, col = 1)
 
             # dt_all = pd.date_range(start=index[0],end=index[-1])
             # dt_obs = [d.strftime("%Y-%m-%d") for d in index]
@@ -329,12 +324,14 @@ def plot_slider(panel, steps=100):
         sliders=sliders
     )
 
+    return fig
+
     # Plot y titles
     # num_assets = len(panel.assets)
     # for i, channel in enumerate(panel.channels):
     #     fig['layout'][f'yaxis{i*num_assets+1}'].update({'title':channel})
 
-    fig.show()
+    # fig.show()
 
 
 # def plot_prediction(panel, x):

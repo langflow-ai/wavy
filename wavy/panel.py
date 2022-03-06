@@ -9,7 +9,7 @@ import plotly as px
 import plotly.express as px
 import plotly.graph_objects as go
 
-from .plot import plot, plot_frame, plot_slider
+from .plot import plot, plot_slider
 
 # dunder_methods = ['__abs__', '__add__', '__aenter__', '__aexit__', '__aiter__', '__and__', '__anext__', '__await__', '__bool__', '__bytes__', '__call__', '__ceil__', '__class__', '__class_getitem__', '__cmp__', '__coerce__', '__complex__', '__contains__', '__del__', '__delattr__', '__delete__', '__delitem__', '__delslice__', '__dict__', '__dir__', '__div__', '__divmod__', '__enter__', '__eq__', '__exit__', '__float__', '__floor__', '__floordiv__', '__format__', '__fspath__', '__ge__', '__get__', '__getattr__', '__getattribute__', '__getitem__', '__getnewargs__', '__getslice__', '__gt__', '__hash__', '__hex__', '__iadd__', '__iand__', '__idiv__', '__ifloordiv__', '__ilshift__', '__imatmul__', '__imod__', '__import__', '__imul__', '__index__', '__init__', '__init_subclass__', '__instancecheck__', '__int__', '__invert__', '__ior__', '__ipow__', '__irshift__', '__isub__', '__iter__', '__itruediv__', '__ixor__', '__le__', '__len__', '__length_hint__', '__long__', '__lshift__', '__lt__', '__matmul__', '__metaclass__', '__missing__', '__mod__', '__mro__', '__mul__', '__ne__', '__neg__', '__new__', '__next__', '__nonzero__', '__oct__', '__or__', '__pos__', '__pow__', '__prepare__', '__radd__', '__rand__', '__rcmp__', '__rdiv__', '__rdivmod__', '__reduce__', '__reduce_ex__', '__repr__', '__reversed__', '__rfloordiv__', '__rlshift__', '__rmatmul__', '__rmod__', '__rmul__', '__ror__', '__round__', '__rpow__', '__rrshift__', '__rshift__', '__rsub__', '__rtruediv__', '__rxor__', '__set__', '__set_name__', '__setattr__', '__setitem__', '__setslice__', '__sizeof__', '__slots__', '__str__', '__sub__', '__subclasscheck__', '__subclasses__', '__truediv__', '__trunc__', '__unicode__', '__weakref__', '__xor__']
 
@@ -170,12 +170,6 @@ class Panel:
         {'Level 0': {'AAPL', 'MSFT'}, 'Level 1': {'Close', 'Open'}}
         """
 
-        # dict = {}
-
-        # for i in range(len(self[0].columns[0])):
-        #     dict[f'Level {i}'] = set([col[i] for col in self[0].columns])
-
-        # return dict
         return self[0].columns
 
     @property
@@ -188,10 +182,6 @@ class Panel:
         >>> panel.index
         DatetimeIndex(['2005-12-21', '2005-12-22', '2005-12-23'], dtype='datetime64[ns]', name='Date', freq=None)
         """
-
-        # df = pd.concat(self.frames)
-        # df = df[~df.index.duplicated(keep="first")]
-        # return df.index
 
         return pd.Series([frame.index[-1] for frame in self.frames])
 
@@ -208,6 +198,7 @@ class Panel:
                [[19.46054323, 19.37311363,  2.25859845,  2.26195979],
                 [19.32212198, 19.40955162,  2.26654326,  2.24148512]]])
         """
+
         return np.array([frame.values for frame in tqdm(self.frames)])
 
     @property
@@ -311,7 +302,7 @@ class Panel:
         else:
             df = self[0].copy()
             for i in self[1:]:
-                df = df.append(i[self.timesteps - 1:])
+                df = pd.concat([df, i[self.timesteps - 1:]])
             return df
 
     def shift(self, window: int = 1):
@@ -400,6 +391,7 @@ class Panel:
         2005-12-22 -0.116582 -0.102009  0.040033  0.015891
         2005-12-23 -0.138421  0.036438  0.007945 -0.020475
         """
+
         return self - self.shift(window)
 
     def pct_change(self, window: int = 1):
@@ -526,6 +518,7 @@ class Panel:
         Returns:
             ``Panel``: Panel with the pairs of the training set.
         """
+
         if self.train_size:
             return self[:self.train_size]
 
@@ -537,6 +530,7 @@ class Panel:
         Returns:
             ``Panel``: Panel with the pairs of the validation set.
         """
+
         if self.val_size and self.train_size:
             return self[self.train_size : int(self.train_size + self.val_size)]
 
@@ -548,6 +542,7 @@ class Panel:
         Returns:
             ``Panel``: Panel with the pairs of the testing set.
         """
+
         if self.val_size and self.train_size:
             return self[self.train_size + self.val_size :]
 
