@@ -13,6 +13,8 @@ from tensorflow.keras.layers import (Conv1D, Dense, Flatten, Input,
 # from .plot import panel_plot
 
 
+# ? Maybe we get rid of model_type and add e.g. DenseRegressor / DenseClassifier.
+
 class _ConstantKerasModel(tf.keras.Model):
     """ A Keras model that returns the input values as outputs. """
 
@@ -133,6 +135,7 @@ class _Baseline(_BaseModel):
 
 
 class BaselineShift(_Baseline):
+    # ! Maybe shift should be y.horizon by default, to avoid leakage
 
     def __init__(
         self,
