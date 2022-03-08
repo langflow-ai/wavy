@@ -137,7 +137,7 @@ class Panel:
         if isinstance(key, list):
             if all(isinstance(k, str) for k in key):
                 return self.loc[:, key]
-            return [self.frames[i] for i in key]
+            return Panel([self.frames[i] for i in key])
         elif isinstance(key, slice):
             return Panel(self.frames.__getitem__(key))
         return self.frames.__getitem__(key)
@@ -434,31 +434,6 @@ class Panel:
         a = self.shift(window)
         return (self - a) / a
 
-    # def update(self, other, join='left', overwrite=True, filter_func=None, errors='ignore'):
-    #     '''
-    #     Modify in place using non-NA values from another DataFrame.
-
-    #     Aligns on indices. There is no return value.
-
-    #     Args:
-    #         other (DataFrame, or object coercible into a DataFrame): Should have at least one matching index/column label with the original DataFrame. If a Series is passed, its name attribute must be set, and that will be used as the column name to align with the original DataFrame.
-    #         join ({'left'}, default 'left'): Only left join is implemented, keeping the index and columns of the original object.
-    #         overwrite (bool, default True): How to handle non-NA values for overlapping keys:
-
-    #             * True: overwrite original DataFrame's values with values from other.
-    #             * False: only update values that are NA in the original DataFrame.
-
-    #         filter_func (callable(1d-array) -> bool 1d-array, optional): Can choose to replace values other than NA. Return True for values that should be updated.
-    #         errors ({'raise', 'ignore'}, default 'ignore'): If 'raise', will raise a ValueError if the DataFrame and other both contain non-NA data in the same place.
-
-    #     Returns:
-    #         ``None``: Method directly changes calling object
-    #     '''
-    #     for i, frame in tqdm(enumerate(self.frames)):
-    #         z = pd.DataFrame(data=other[i], columns=frame.columns, index=frame.index)
-    #         frame.update(z, join=join, overwrite=overwrite, filter_func=filter_func, errors=errors)
-    #     return None
-
     def match(self, other):
         """
         Modify using values from another Panel. Aligns on indices.
@@ -510,6 +485,26 @@ class Panel:
             i.iloc[:,:] = j
         return panel
 
+    def resample(self, samples: int = 1, type: str = 'first'):
+        """
+        Resample panel returning a subset of frames.
+
+        Args:
+            samples (int): Number of samples to keep
+            type (str): Resempling type, 'first', 'last' or 'spaced'
+
+        Returns:
+            ``Panel``: Result of resample function.
+        """
+
+        if type == 'first':
+            return self[:samples]
+        elif type == 'last':
+            return self[-samples:]
+        elif type == 'spaced':
+            indexes = list(np.linspace(0, len(self.frames), samples, dtype=int, endpoint=False))
+            return self[indexes]
+
     @property
     def train(self):
         """
@@ -546,11 +541,8 @@ class Panel:
         if self.val_size and self.train_size:
             return self[self.train_size + self.val_size :]
 
-    def plot(self, split=False, **kwargs):
-        return plot(self, split=split, **kwargs)
-
-    def plot_frame(self, index):
-        return plot_frame(self, index)
+    def plot(self, split_sets=False, **kwargs):
+        return plot(self, split_sets=split_sets, **kwargs)
 
     def plot_slider(self, steps):
         return plot_slider(self, steps)

@@ -6,113 +6,16 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.io as pio
+from .logplot import Logplot
 
 from typing import List
 
 # TODO: Set plotting configs and add kwargs to functions
 # TODO: Check if kwargs would overwrite fig.add_trace if same params are used
 
-class Figure:
-    """ Higher level wrapper for plotly, especially focused on time series plots.
-
-    1. Lower level functions
-    - Given a series, create the trace
-    - e.g. add_line, add_bar, add_scatter
-    - Contain all the logic for creating the trace
-    - Don't carry **kwargs, keep simple parameters for simplicity
-
-    2. Higher level functions
-    - Group lower level functions into a single function
-
-    """
-
-    def __init__(self):
-        self.fig = go.Figure()
-        # TODO: Add fill area between 2 series
-
-    def line(self, series, dash=None, **kwargs):
-        # TODO: Add trace names for hovering
-
-        self.fig.add_trace(
-            go.Scatter(
-                x=series.index,
-                y=series,
-                mode="lines",
-                line=dict(width=1.5, dash=dash, **kwargs),
-            )
-        )
-
-    def area(self, series, **kwargs):
-        self.fig.add_trace(
-            go.Scatter(
-                x=series.index,
-                y=series,
-                mode="lines",
-                line=dict(width=1.5, **kwargs),
-                fill='tozeroy',
-            )
-        )
-
-    def bar(self, series, **kwargs):
-        self.fig.add_trace(
-            go.Bar(
-                x=series.index,
-                y=series,
-                **kwargs,
-            )
-        )
-
-    def linebar(self, series, color="gray", opacity=0.5, **kwargs):
-        self.fig.add_trace(
-            go.Bar(
-                x=series.index,
-                y=series,
-                width=1,
-                marker=dict(line=dict(width=0.6, color=color), opacity=opacity, color=color, **kwargs,),
-            )
-        )
-
-    def scatter(self, series, **kwargs):
-        self.fig.add_trace(
-            go.Scatter(
-                x=series.index,
-                y=series.values,
-                mode="markers",
-                **kwargs,
-            )
-        )
-
-    def dotline(self, series, color="gray", opacity=0.5):
-        # ? Name might be confusing
-        self.linebar(series, color=color, opacity=opacity)
-        self.scatter(series)
-
-    def threshline(self, series, up_thresh, down_thresh, up_color, down_color):
-
-        up_df = series[series > up_thresh].index
-        down_df = series[series < down_thresh].index
-
-        print(len(down_df), len(up_df))
-
-        for i in up_df:
-            self.fig.add_vline(x=i, line_dash="dot", line_color=up_color,)
-
-        for i in down_df:
-            self.fig.add_vline(x=i, line_dash="dot", line_color=down_color,)
-
-    def background(self, series, text, color, opacity):
-        self.fig.add_vrect(x0=series.index.min(), x1=series.index.max(),
-                           annotation_text=text, annotation_position="top left",
-                           fillcolor=color, opacity=opacity, line_width=0, layer="below")
-
-    # def make_subplots(self, rows:int, cols:int, subplot_titles:List[str]):
-    #     self.fig.mak
-
-    def show(self):
-        return self.fig
 
 
-class PanelFigure(Figure):
+class PanelFigure(Logplot):
     def __init__(self):
         # TODO: Add dynamic color changing once new traces are added
         # TODO: Add candlestick plot
@@ -143,9 +46,14 @@ class PanelFigure(Figure):
         self.fig.add_annotation(x=xval_min, y=ymax, text="Validation", showarrow=False, xshift=35)
         self.fig.add_annotation(x=xtest_min, y=ymax, text="Test", showarrow=False, xshift=18)
 
-    def add_line(self, panel, **kwargs):
-        for col in panel.columns:
-            self.line(panel.as_dataframe()[col], **kwargs)
+    # Add decorator for instance check and for loop
+
+    def add_line(self, data, **kwargs):
+        if not isinstance(data, pd.DataFrame):
+            data = data.as_dataframe()
+
+        for col in data.columns:
+            self.line(data[col], **kwargs)
 
     def add_area(self, panel, **kwargs):
         for col in panel.columns:
@@ -189,7 +97,7 @@ class PanelFigure(Figure):
 #     return pd.concat(dfs, axis=1).plot(**kwargs)
 
 
-def plot(panel, split=False, **kwargs):
+def plot(panel, split_sets=False, **kwargs):
     """
     Plot a panel.
 
@@ -202,51 +110,27 @@ def plot(panel, split=False, **kwargs):
     """
     fig = PanelFigure()
 
-    if split:
+    if split_sets:
         fig.split_sets(panel)
 
     fig.add_line(panel, **kwargs)
+
     return fig.show()
 
+def plot_frame(x, y, index=None):
 
-def plot_frame(panel, index):
-    """
-    Dataframe plot.
+    # TODO verification x and y
 
-    Args:
-        index (int): Panel index
+    fig = PanelFigure()
+    fig.add_line(x[index])
+    fig.add_scatter(x[index])
+    fig.add_scatter(y[index])
 
-    Returns:
-        ``Plot``: Plotted data
-    """
-    
-    columns_size = len(panel.columns)
-    cmap = px.colors.qualitative.Plotly
+    return fig.show()
 
-    fig = make_subplots(rows=columns_size, cols=1, subplot_titles=[' '.join(column) for column in panel.columns])
+# TODO add resample to panel (first, last, spaced, random)
 
-    for i, column in enumerate(panel.columns):
-        c = cmap[i]
-
-        x_df = panel.frames[index].loc[:, column]
-
-        x_trace = go.Scatter(x=x_df.index, y=x_df.values, line=dict(width=2, color=c), showlegend=False)
-        # x_trace = Figure()
-        # x_trace.scatter(x_df)
-
-        row = math.floor(i / 2)
-        # col = i % 2
-        fig.add_trace(x_trace, row = row + 1, col = 1)
-
-    fig.update_layout(
-        template='simple_white',
-        showlegend=True
-    )
-
-    return fig
-
-
-def plot_slider(panel, steps=100):
+def plot_slider(x, y, steps:List[int]=100):
     """
     Make panel plots with slider.
 
@@ -257,40 +141,44 @@ def plot_slider(panel, steps=100):
         ``Plot``: Plotted data.
     """
 
+    # TODO add possibility to select the first n dataframes
+    # TODO make sure that x and y have the same length and maximum 100
+
     if steps > 100:
         raise ValueError("Number of steps cannot be bigger than 100.")
 
-    cmap = px.colors.qualitative.Plotly
+    # cmap = px.colors.qualitative.Plotly
 
     # Create figure
-    columns_size = len(panel.columns)
-    fig = make_subplots(rows=columns_size, cols=1, subplot_titles=[' '.join(column) for column in panel.columns])
+    # columns_size = len(panel.columns)
+    # fig = make_subplots(rows=columns_size, cols=1, subplot_titles=[' '.join(column) for column in panel.columns])
     # fig = make_subplots(rows=len(panel.channels), cols=len(panel.assets), subplot_titles=panel.assets)
 
+    # fig = 
+
     # Add traces, one for each slider step
-    len_ = np.linspace(0, len(panel.frames), steps, dtype=int, endpoint=False)
+    len_ = np.linspace(0, len(x.frames), steps, dtype=int, endpoint=False)
     for step in len_:  # np.arange(len(panel_.x.frames)):
 
-        for i, column in enumerate(panel.columns):
-            c = cmap[i]
+        fig = plot_frame(x, y, step)
 
-            x_df = panel.frames[step].loc[:, column]
-            index = x_df.index
-            values = x_df.values.flatten()
+        # for i, column in enumerate(panel.columns):
+        #     # c = cmap[i]
 
-            x_trace = go.Scatter(visible=False, x=index, y=values, line=dict(width=2, color=c), showlegend=False)
+        #     x_df = panel.frames[step].loc[:, column]
+        #     index = x_df.index
+        #     values = x_df.values.flatten()
+
+        #     fig = 
+
+            # x_trace = go.Scatter(visible=False, x=index, y=values, line=dict(width=2, color=c), showlegend=False)
 
             # x_trace = go.Scatter(x=index, y=values,
             #                     line=dict(width=2, color=c), showlegend=showlegend, name=channel)
 
-            row = math.floor(i / 2)
-            col = i % 2
-            fig.add_trace(x_trace, row = row + 1, col = 1)
-
-            # dt_all = pd.date_range(start=index[0],end=index[-1])
-            # dt_obs = [d.strftime("%Y-%m-%d") for d in index]
-            # dt_breaks = [d for d in dt_all.strftime("%Y-%m-%d").tolist() if not d in dt_obs]
-            # fig.update_xaxes(rangebreaks=[dict(values=dt_breaks)])
+            # row = math.floor(i / 2)
+            # col = i % 2
+            # fig.add_trace(x_trace, row = row + 1, col = 1)
 
     # Make 10th trace visible
     for i in range(columns_size):
@@ -324,7 +212,7 @@ def plot_slider(panel, steps=100):
         sliders=sliders
     )
 
-    return fig
+    return fig.show()
 
     # Plot y titles
     # num_assets = len(panel.assets)
