@@ -6,6 +6,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.io as pio
+
+from wavy.panel import Panel
 from .logplot import Logplot
 
 from typing import List
@@ -47,31 +49,42 @@ class PanelFigure(Logplot):
         self.fig.add_annotation(x=xtest_min, y=ymax, text="Test", showarrow=False, xshift=18)
 
     # Add decorator for instance check and for loop
+    def iterator(func):
+        def inner(self, *args, **kwargs):
 
-    def add_line(self, data, **kwargs):
-        if not isinstance(data, pd.DataFrame):
-            data = data.as_dataframe()
+            args = list(args)
+            data = args.pop(0)
+    
+            if not isinstance(data, pd.DataFrame):
+                data = data.as_dataframe()
 
-        for col in data.columns:
-            self.line(data[col], **kwargs)
+            for col in data.columns:
+                func(self, data[col], *tuple(args), **kwargs)
+    
+        return inner
 
-    def add_area(self, panel, **kwargs):
-        for col in panel.columns:
-            self.area(panel.as_dataframe()[col], **kwargs)
+    @iterator
+    def add_line(self, col, *args, **kwargs):
+        self.line(col, *args, **kwargs)
 
-    def add_bar(self, panel, **kwargs):
-        for col in panel.columns:
-            self.bar(panel.as_dataframe()[col], **kwargs)
+    @iterator
+    def add_area(self, col, *args, **kwargs):
+        self.area(col, *args, **kwargs)
 
-    def add_scatter(self, panel, **kwargs):
-        for col in panel.columns:
-            self.scatter(panel.as_dataframe()[col], **kwargs)
+    @iterator
+    def add_bar(self, col, *args, **kwargs):
+        self.bar(col, *args, **kwargs)
 
-    def add_dotline(self, panel, color="gray", opacity=0.5):
+    @iterator
+    def add_scatter(self, col, *args, **kwargs):
+        self.scatter(col, **kwargs)
+
+    @iterator
+    def add_dotline(self, col, *args, **kwargs):#color="gray", opacity=0.5):
         # BUG: Dots and lines look displaced if zoomed in
-        for col in panel.columns:
-            self.dotline(panel.as_dataframe()[col], color=color, opacity=opacity)
+        self.dotline(col, *args, **kwargs)#color=color, opacity=opacity)
 
+    # TODO check this function
     def add_threshline(self, panel, up_thresh, down_thresh, up_color="green", down_color="red", col=None):
         col = self._colcheck(panel, col)
         self.threshline(panel.as_dataframe()[col], up_thresh, down_thresh, up_color, down_color)
@@ -119,18 +132,22 @@ def plot(panel, split_sets=False, **kwargs):
 
 def plot_frame(x, y, index=None):
 
-    # TODO verification x and y
+    if not((isinstance(x, Panel) and isinstance(y, Panel) and index is not None) or (isinstance(x, pd.DataFrame) and isinstance(y, pd.DataFrame))):
+        raise Exception("x and y should be either Panel or DataFrame!")
+
+    if isinstance(x, Panel):
+        x = x[index]
+        y = y[index]
 
     fig = PanelFigure()
-    fig.add_line(x[index])
-    fig.add_scatter(x[index])
-    fig.add_scatter(y[index])
+    fig.add_line(x)
+    fig.add_scatter(x)
+    fig.add_line(y)
+    fig.add_scatter(y)
 
     return fig.show()
 
-# TODO add resample to panel (first, last, spaced, random)
-
-def plot_slider(x, y, steps:List[int]=100):
+def plot_slider(x, y):
     """
     Make panel plots with slider.
 
@@ -141,11 +158,8 @@ def plot_slider(x, y, steps:List[int]=100):
         ``Plot``: Plotted data.
     """
 
-    # TODO add possibility to select the first n dataframes
-    # TODO make sure that x and y have the same length and maximum 100
-
-    if steps > 100:
-        raise ValueError("Number of steps cannot be bigger than 100.")
+    assert len(x) == len(y), "Length of frame should be equal, try using match function!"
+    assert len(x) < 100, "Number of steps cannot be bigger than 100."
 
     # cmap = px.colors.qualitative.Plotly
 
@@ -156,11 +170,20 @@ def plot_slider(x, y, steps:List[int]=100):
 
     # fig = 
 
-    # Add traces, one for each slider step
-    len_ = np.linspace(0, len(x.frames), steps, dtype=int, endpoint=False)
-    for step in len_:  # np.arange(len(panel_.x.frames)):
 
-        fig = plot_frame(x, y, step)
+    # Add traces, one for each slider step
+    # len_ = np.linspace(0, len(x.frames), steps, dtype=int, endpoint=False)
+    # for step in len_:  # np.arange(len(panel_.x.frames)):
+
+    fig = go.Figure()
+
+    len_ = list(range(len(x)))
+
+    for i in range(len(x)):
+        frame = plot_frame(x[i], y[i]).data
+
+        for f in frame:
+            fig.add_trace(f)
 
         # for i, column in enumerate(panel.columns):
         #     # c = cmap[i]
@@ -181,36 +204,66 @@ def plot_slider(x, y, steps:List[int]=100):
             # fig.add_trace(x_trace, row = row + 1, col = 1)
 
     # Make 10th trace visible
-    for i in range(columns_size):
-        fig.data[i].visible = True
+    for i in range(len(fig.data)):
+        if i < len(frame):
+            fig.data[i].visible = True
+        else:
+            fig.data[i].visible = False
 
     # Create and add slider
-    steps_ = []
-    for i in range(steps):
+    steps = []
+    for i in range(len(x)):
         step = dict(
             method="update",
-            args=[
-                {"visible": [False] * len(fig.data)},
-                {"title": f"frame {str(len_[i])}"},
+            args=[{"visible": [False] * len(fig.data)},
+                {"title": f"frame {str(i)}"},
             ],
         )
+        # step["args"][0]["visible"][i] = True  # Toggle i'th trace to "visible"
 
-        for g in range(columns_size):
-            step["args"][0]["visible"][i * columns_size + g] = True  # Toggle i'th trace to "visible"
+        for g in range(len(frame)):
+            step["args"][0]["visible"][i * len(frame) + g] = True  # Toggle i'th trace to "visible"
 
-        steps_.append(step)
+        steps.append(step)
 
     sliders = [dict(
         active=0,
-        # currentvalue={"prefix": "frame: "},
+        # currentvalue={"prefix": "Frequency: "},
         pad={"t": 50},
-        steps=steps_
+        steps=steps
     )]
 
     fig.update_layout(
-        template='simple_white',
         sliders=sliders
     )
+
+    # # Create and add slider
+    # steps_ = []
+    # for i in range(steps):
+    #     step = dict(
+    #         method="update",
+    #         args=[
+    #             {"visible": [False] * len(fig.data)},
+    #             {"title": f"frame {str(len_[i])}"},
+    #         ],
+    #     )
+
+    #     for g in range(columns_size):
+    #         step["args"][0]["visible"][i * columns_size + g] = True  # Toggle i'th trace to "visible"
+
+    #     steps_.append(step)
+
+    # sliders = [dict(
+    #     active=0,
+    #     # currentvalue={"prefix": "frame: "},
+    #     pad={"t": 50},
+    #     steps=steps_
+    # )]
+
+    # fig.update_layout(
+    #     template='simple_white',
+    #     sliders=sliders
+    # )
 
     return fig.show()
 
