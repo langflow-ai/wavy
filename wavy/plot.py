@@ -7,7 +7,6 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.io as pio
 
-from wavy.panel import Panel
 from .logplot import Logplot
 
 from typing import List
@@ -21,6 +20,7 @@ class PanelFigure(Logplot):
     def __init__(self):
         # TODO: Add dynamic color changing once new traces are added
         # TODO: Add candlestick plot
+        # TODO: Add trace names as panel cols
         super().__init__()
         self.cmap = px.colors.qualitative.Plotly
 
@@ -54,13 +54,13 @@ class PanelFigure(Logplot):
 
             args = list(args)
             data = args.pop(0)
-    
+
             if not isinstance(data, pd.DataFrame):
                 data = data.as_dataframe()
 
             for col in data.columns:
                 func(self, data[col], *tuple(args), **kwargs)
-    
+
         return inner
 
     @iterator
@@ -111,6 +111,7 @@ class PanelFigure(Logplot):
 
 
 def plot(panel, split_sets=False, **kwargs):
+    # TODO: Add "kind" parameter to chose between plot types
     """
     Plot a panel.
 
@@ -122,22 +123,22 @@ def plot(panel, split_sets=False, **kwargs):
         ``Plot``: Plotted data
     """
     fig = PanelFigure()
-
     if split_sets:
         fig.split_sets(panel)
 
     fig.add_line(panel, **kwargs)
-
     return fig.show()
 
 def plot_frame(x, y, index=None):
 
-    if not((isinstance(x, Panel) and isinstance(y, Panel) and index is not None) or (isinstance(x, pd.DataFrame) and isinstance(y, pd.DataFrame))):
-        raise Exception("x and y should be either Panel or DataFrame!")
+    # TODO: Code below is confusing
+    # TODO: split into two functions?
+    # if not(is_panel(x) and is_panel(y) and index is not None) or (is_dataframe(x) and is_dataframe(y)):
+    #     raise Exception("x and y should be either Panel or DataFrame")
 
-    if isinstance(x, Panel):
-        x = x[index]
-        y = y[index]
+    # if is_panel(x):
+    #     x = x[index]
+    #     y = y[index]
 
     fig = PanelFigure()
     fig.add_line(x)
@@ -168,7 +169,7 @@ def plot_slider(x, y):
     # fig = make_subplots(rows=columns_size, cols=1, subplot_titles=[' '.join(column) for column in panel.columns])
     # fig = make_subplots(rows=len(panel.channels), cols=len(panel.assets), subplot_titles=panel.assets)
 
-    # fig = 
+    # fig =
 
 
     # Add traces, one for each slider step
@@ -192,7 +193,7 @@ def plot_slider(x, y):
         #     index = x_df.index
         #     values = x_df.values.flatten()
 
-        #     fig = 
+        #     fig =
 
             # x_trace = go.Scatter(visible=False, x=index, y=values, line=dict(width=2, color=c), showlegend=False)
 
@@ -205,11 +206,7 @@ def plot_slider(x, y):
 
     # Make 10th trace visible
     for i in range(len(fig.data)):
-        if i < len(frame):
-            fig.data[i].visible = True
-        else:
-            fig.data[i].visible = False
-
+        fig.data[i].visible = i < len(frame)
     # Create and add slider
     steps = []
     for i in range(len(x)):

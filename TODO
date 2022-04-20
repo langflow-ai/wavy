@@ -1,0 +1,5 @@
+# TODO: Functions that run on a dataframe should not run by default on a panel. Only a subset of those should. Example: x.plot()
+
+# TODO: x['High'] should result in exactly the same output as x[['High']]
+
+# TODO: There are too many tqdms. Maybe add a verbose option?

@@ -10,8 +10,6 @@ from tensorflow.keras.layers import (Conv1D, Dense, Flatten, Input,
                                      MaxPooling1D, Reshape, SeparableConv1D,
                                      concatenate)
 
-# from .plot import panel_plot
-
 
 # ? Maybe we get rid of model_type and add e.g. DenseRegressor / DenseClassifier.
 
@@ -78,7 +76,7 @@ class _BaseModel:
 
     def fit(self, **kwargs):
         """Fit the model."""
-        self.model.fit(self.x_train, self.y_train, validation_data=(self.x_val, self.y_val), **kwargs)
+        return self.model.fit(self.x_train, self.y_train, validation_data=(self.x_val, self.y_val), **kwargs)
 
     def compile(self, **kwargs):
         self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=self.metrics, **kwargs)
