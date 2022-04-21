@@ -135,13 +135,46 @@ class Panel:
         locals()[dunder] = lambda self, other, __f=dunder: self._one_arg(other, __f)
 
     def __getitem__(self, key):
+
+        assert isinstance(key, (int, slice, list, str, tuple)), "Panel indexing must be int, slice, list, str or tuple"
         if isinstance(key, list):
-            if all(isinstance(k, str) for k in key):
-                return self.loc[:, key]
-            return Panel([self.frames[i] for i in key])
+            assert all(isinstance(k, int) for k in key) or all(isinstance(k, str) for k in key), "Panel indexing with list must be int or str"
+        if isinstance(key, tuple):
+            index = key[0]
+            columns = key[1]
+            assert isinstance(index, (int, slice, list)), "Panel indexing rows with tuple must be int, slice or list"
+            assert isinstance(columns, (str, list)), "Panel indexing columns with tuple must be str or list"
+
+            if isinstance(index, list):
+                assert all(isinstance(k, int) for k in index), "Panel indexing rows with list must be int"
+            if isinstance(columns, list):
+                assert all(isinstance(k, str) for k in columns), "Panel indexing columns with list must be str"
+
+        # Tuple
+        if isinstance(key, tuple):
+            index = key[0]
+            columns = key[1] if isinstance(key[1], list) else [key[1]]
+            
+            if isinstance(index, int):
+                return Panel([self.frames.__getitem__(index)]).loc[:, columns]
+            elif isinstance(index, slice):
+                return Panel(self.frames.__getitem__(index)).loc[:, columns]
+            elif isinstance(index, list):
+                return Panel([self.frames[i] for i in index]).loc[:, columns]
+
+        # Columns
+        if isinstance(key, list) and all(isinstance(k, str) for k in key):
+            return self.loc[:, key]
+        elif isinstance(key, str):
+            return self.loc[:, [key]]
+
+        # Index
+        if isinstance(key, int):
+            return Panel([self.frames.__getitem__(key)])
         elif isinstance(key, slice):
             return Panel(self.frames.__getitem__(key))
-        return self.frames.__getitem__(key)
+        elif isinstance(key, list) and all(isinstance(k, int) for k in key):
+            return Panel([self.frames[i] for i in key])
 
     def __len__(self):
         return len(self.frames)
@@ -187,7 +220,7 @@ class Panel:
         return pd.Series([frame.index[-1] for frame in self.frames])
 
     @property
-    def values(self):
+    def values(self, verbose=False):
         """
         3D matrix with Panel value.
 
@@ -200,7 +233,7 @@ class Panel:
                 [19.32212198, 19.40955162,  2.26654326,  2.24148512]]])
         """
 
-        return np.array([frame.values for frame in tqdm(self.frames)])
+        return np.array([frame.values for frame in tqdm(self.frames, disable=verbose)])
 
     @property
     def timesteps(self):
@@ -219,7 +252,7 @@ class Panel:
 
         return (len(self),) + self[0].shape
 
-    def countna(self):
+    def countna(self, verbose=False):
         """
         Count NaN cells for each Dataframe.
 
@@ -233,7 +266,7 @@ class Panel:
         0    2
         1    2
         """
-        values = [frame.isnull().values.sum() for frame in tqdm(self.frames)]
+        values = [frame.isnull().values.sum() for frame in tqdm(self.frames, disable=verbose)]
         return pd.DataFrame(values, index=range(len(self.frames)), columns=['nan'])
 
     def dropna(self):
@@ -435,7 +468,7 @@ class Panel:
         a = self.shift(window)
         return (self - a) / a
 
-    def match(self, other):
+    def match(self, other, verbose=False):
         """
         Modify using values from another Panel. Aligns on indices.
 
@@ -446,7 +479,7 @@ class Panel:
             ``Panel``: Result of match function.
         """
         index = [frame.frame_index for frame in other]
-        return Panel([frame for frame in tqdm(self.frames) if frame.frame_index in index])
+        return Panel([frame for frame in tqdm(self.frames, disable=verbose) if frame.frame_index in index])
 
     def set_training_split(self, val_size=0.2, test_size=0.1):
         """
