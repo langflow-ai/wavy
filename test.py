@@ -26,7 +26,14 @@ df.dropna(inplace=True)
 
 x, y = wavy.create_panels(df, lookback=10, horizon=1)
 
-frame0 = x[0]
-frame1 = x[1:3, 'High']
-frame2 = x[3:5, 'High']
-frame3 = x[[1, 2, 3, 4], 'High']
+# frame0 = x[0]
+# frame1 = x[1:3, 'High']
+# frame2 = x[3:5, 'High']
+# frame3 = x[[1, 2, 3, 4], 'High']
+
+# x.ibis(1, 2, arg1=1, arg2=2, arg3=3)
+
+a = x[0:3, 'High']
+
+for i in a:
+    print(i)
