@@ -1,0 +1,30 @@
+{
+    "version": "2.0.0",
+    "type": "shell",
+    "tasks": [
+        {
+            "label": "Generate Docs",
+            "command": "cd docs && make doc",
+        },
+        {
+            "label": "Create Environment",
+            "command": "poetry install",
+        },
+        {
+            "label": "Build Library",
+            "command": "poetry build",
+        },
+        {
+            "label": "Publish Library",
+            "command": "poetry publish",
+        },
+        {
+            "label": "Run Tests",
+            "command": "poetry run pytest",
+        },
+        {
+            "label": "Generate requirements.txt",
+            "command": "poetry export --output requirements.txt",
+        }
+    ]
+}
