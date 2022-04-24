@@ -24,6 +24,7 @@ plotly = "^5.7.0"
 tensorflow = "^2.8.0"
 numpy = "^1.22.3"
 tqdm = "^4.64.0"
+plotlab = "^0.1.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
