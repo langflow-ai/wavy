@@ -134,10 +134,9 @@ class Panel:
         try:
 
             def wrapper(*args, **kwargs):
-                return Panel(
-                    [getattr(frame, name)(*args, **kwargs) for frame in self.frames]
-                )
-
+                # TODO: Only certain functions should happen here
+                # Either blacklist or whitelist
+                return Panel([getattr(frame, name)(*args, **kwargs) for frame in self.frames])
             return wrapper
         except AttributeError:
             raise AttributeError(f"'Panel' object has no attribute '{name}'")
@@ -196,9 +195,9 @@ class Panel:
             columns = key[1] if isinstance(key[1], list) else [key[1]]
 
             if isinstance(index, int):
-                return Panel([self.frames.__getitem__(index)]).loc[:, columns]
+                return Panel([self.frames[index]]).loc[:, columns]
             elif isinstance(index, slice):
-                return Panel(self.frames.__getitem__(index)).loc[:, columns]
+                return Panel(self.frames[index]).loc[:, columns]
             elif isinstance(index, list):
                 return Panel([self.frames[i] for i in index]).loc[:, columns]
 
@@ -210,9 +209,9 @@ class Panel:
 
         # Index
         if isinstance(key, int):
-            return Panel([self.frames.__getitem__(key)])
+            return self.frames[key]
         elif isinstance(key, slice):
-            return Panel(self.frames.__getitem__(key))
+            return Panel(self.frames[key])
         elif isinstance(key, list) and all(isinstance(k, int) for k in key):
             return Panel([self.frames[i] for i in key])
 
@@ -273,7 +272,7 @@ class Panel:
                 [19.32212198, 19.40955162,  2.26654326,  2.24148512]]])
         """
 
-        return np.array([frame.values for frame in tqdm(self.frames, disable=verbose)])
+        return np.array([frame.values for frame in tqdm(self.frames, disable=not verbose)])
 
     @property
     def timesteps(self):
@@ -307,7 +306,7 @@ class Panel:
         1    2
         """
         values = [
-            frame.isnull().values.sum() for frame in tqdm(self.frames, disable=verbose)
+            frame.isnull().values.sum() for frame in tqdm(self.frames, disable=not verbose)
         ]
         return pd.DataFrame(values, index=range(len(self.frames)), columns=["nan"])
 
@@ -532,7 +531,7 @@ class Panel:
         return Panel(
             [
                 frame
-                for frame in tqdm(self.frames, disable=verbose)
+                for frame in tqdm(self.frames, disable=not verbose)
                 if frame.frame_index in index
             ]
         )

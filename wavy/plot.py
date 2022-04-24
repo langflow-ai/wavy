@@ -1,28 +1,19 @@
-import math
-from turtle import filling
-import numpy as np
-import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import plotly.io as pio
-
-from .logplot import Logplot
-
 from typing import List
+
+import pandas as pd
+import plotly.graph_objects as go
+from plotlab import Figure
 
 # TODO: Set plotting configs and add kwargs to functions
 # TODO: Check if kwargs would overwrite fig.add_trace if same params are used
 
 
-
-class PanelFigure(Logplot):
+class PanelFigure(Figure):
     def __init__(self):
         # TODO: Add dynamic color changing once new traces are added
         # TODO: Add candlestick plot
         # TODO: Add trace names as panel cols
         super().__init__()
-        self.cmap = px.colors.qualitative.Plotly
 
     def split_sets(self, panel, color="gray", opacity=1):
         # BUG: Seems to break if using "ggplot2"
@@ -127,7 +118,7 @@ def plot(panel, split_sets=False, **kwargs):
         fig.split_sets(panel)
 
     fig.add_line(panel, **kwargs)
-    return fig.show()
+    return fig()
 
 def plot_frame(x, y, index=None):
 
@@ -146,7 +137,7 @@ def plot_frame(x, y, index=None):
     fig.add_line(y)
     fig.add_scatter(y)
 
-    return fig.show()
+    return fig()
 
 def plot_slider(x, y):
     """

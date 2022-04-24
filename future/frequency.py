@@ -1,4 +1,5 @@
 # import exchange_calendars as ecals
+from optparse import AmbiguousOptionError
 import numpy as np
 import pandas as pd
 
@@ -187,7 +188,6 @@ def inspect(data, verbose=1):
     Parameters
     ----------
     data : dataframe
-
     """
 
     if verbose > 0:
