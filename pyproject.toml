@@ -1,8 +1,20 @@
 [tool.poetry]
-name = "wavy"
-version = "0.1.0"
+name = "wavyts"
+version = "0.1.4"
 description = "Wavy is a library to facilitate time series analysis"
-authors = ["Logspace <contact@logspace.ai>"]
+authors = ["Ibis Prevedello <ibiscp@gmail.com>",
+"Rodrigo Nader <rodrigosilvanader@gmail.com>",
+"Gabriel Almeida <gabrielf.almeida90@gmail.com>"]
+readme = "README.md"
+license = "MIT"
+homepage = "https://github.com/logspace-ai/wavy"
+repository = "https://github.com/logspace-ai/wavy"
+include = [
+    "LICENSE",
+]
+packages = [
+    {include = "wavy"}
+]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.11"
@@ -11,6 +23,7 @@ sklearn = "^0.0"
 plotly = "^5.7.0"
 tensorflow = "^2.8.0"
 numpy = "^1.22.3"
+tqdm = "^4.64.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"

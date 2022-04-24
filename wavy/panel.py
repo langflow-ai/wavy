@@ -1,30 +1,46 @@
 import warnings
-from plotly.subplots import make_subplots
-from tqdm.auto import tqdm
+from copy import deepcopy
 
-import math
 import numpy as np
 import pandas as pd
-import plotly as px
-import plotly.express as px
-import plotly.graph_objects as go
+from tqdm.auto import tqdm
 
 from .plot import plot, plot_slider
 
-ARG_0_METHODS = ['__abs__', '__pos__', '__neg__', '__invert__']
-ARG_1_METHODS = ['__add__', '__sub__', '__mul__', '__rmul__', '__truediv__', '__ge__', '__gt__', '__le__', '__lt__', '__pow__', '__eq__', '__ne__', '__bool__', '__floordiv__', '__rfloordiv__', '__matmul__', '__rmatmul__', '__rmod__', '__mod__']
+ARG_0_METHODS = [
+    "__abs__",
+    "__pos__",
+    "__neg__",
+    "__invert__",
+]
+ARG_1_METHODS = [
+    "__add__",
+    "__sub__",
+    "__mul__",
+    "__rmul__",
+    "__truediv__",
+    "__ge__",
+    "__gt__",
+    "__le__",
+    "__lt__",
+    "__pow__",
+    "__eq__",
+    "__ne__",
+    "__bool__",
+    "__floordiv__",
+    "__rfloordiv__",
+    "__matmul__",
+    "__rmatmul__",
+    "__rmod__",
+    "__mod__",
+]
 
 # Plot
 pd.set_option("multi_sparse", True)  # To see multilevel indexes
 pd.options.plotting.backend = "plotly"
 
-from copy import deepcopy
 
-
-def create_panels(df,
-                  lookback: int,
-                  horizon: int,
-                  gap: int = 0):
+def create_panels(df, lookback: int, horizon: int, gap: int = 0):
     """
     Create a panel from a dataframe.
 
@@ -116,48 +132,69 @@ class Panel:
 
     def __getattr__(self, name):
         try:
+
             def wrapper(*args, **kwargs):
-                return Panel([getattr(frame, name)(*args, **kwargs) for frame in self.frames])
+                return Panel(
+                    [getattr(frame, name)(*args, **kwargs) for frame in self.frames]
+                )
+
             return wrapper
         except AttributeError:
             raise AttributeError(f"'Panel' object has no attribute '{name}'")
 
-
     # Function to map all dunder functions
     def _1_arg(self, other, __f):
         if isinstance(other, Panel):
-            return Panel([getattr(frame, __f)(other_frame) for frame, other_frame in zip(self.frames, other.frames)])
+            return Panel(
+                [
+                    getattr(frame, __f)(other_frame)
+                    for frame, other_frame in zip(self.frames, other.frames)
+                ]
+            )
         return Panel([getattr(frame, __f)(other) for frame in self.frames])
+
     for dunder in ARG_1_METHODS:
         locals()[dunder] = lambda self, other, __f=dunder: self._1_arg(other, __f)
 
     def _0_arg(self, __f):
         return Panel([getattr(frame, __f)() for frame in self.frames])
+
     for dunder in ARG_0_METHODS:
         locals()[dunder] = lambda self, __f=dunder: self._0_arg(__f)
 
-
     def __getitem__(self, key):
 
-        assert isinstance(key, (int, slice, list, str, tuple)), "Panel indexing must be int, slice, list, str or tuple"
+        assert isinstance(
+            key, (int, slice, list, str, tuple)
+        ), "Panel indexing must be int, slice, list, str or tuple"
         if isinstance(key, list):
-            assert all(isinstance(k, int) for k in key) or all(isinstance(k, str) for k in key), "Panel indexing with list must be int or str"
+            assert all(isinstance(k, int) for k in key) or all(
+                isinstance(k, str) for k in key
+            ), "Panel indexing with list must be int or str"
         if isinstance(key, tuple):
             index = key[0]
             columns = key[1]
-            assert isinstance(index, (int, slice, list)), "Panel indexing rows with tuple must be int, slice or list"
-            assert isinstance(columns, (str, list)), "Panel indexing columns with tuple must be str or list"
+            assert isinstance(
+                index, (int, slice, list)
+            ), "Panel indexing rows with tuple must be int, slice or list"
+            assert isinstance(
+                columns, (str, list)
+            ), "Panel indexing columns with tuple must be str or list"
 
             if isinstance(index, list):
-                assert all(isinstance(k, int) for k in index), "Panel indexing rows with list must be int"
+                assert all(
+                    isinstance(k, int) for k in index
+                ), "Panel indexing rows with list must be int"
             if isinstance(columns, list):
-                assert all(isinstance(k, str) for k in columns), "Panel indexing columns with list must be str"
+                assert all(
+                    isinstance(k, str) for k in columns
+                ), "Panel indexing columns with list must be str"
 
         # Tuple
         if isinstance(key, tuple):
             index = key[0]
             columns = key[1] if isinstance(key[1], list) else [key[1]]
-            
+
             if isinstance(index, int):
                 return Panel([self.frames.__getitem__(index)]).loc[:, columns]
             elif isinstance(index, slice):
@@ -182,13 +219,13 @@ class Panel:
     def __len__(self):
         return len(self.frames)
 
-    def __repr__(self):
+    def __str__(self):
         summary = pd.Series(
             {
                 "size": len(self),
                 "timesteps": self.timesteps,
                 "start": self.index.iloc[0],
-                "end": self.index.iloc[-1]
+                "end": self.index.iloc[-1],
             },
             name="Panel",
         )
@@ -269,8 +306,10 @@ class Panel:
         0    2
         1    2
         """
-        values = [frame.isnull().values.sum() for frame in tqdm(self.frames, disable=verbose)]
-        return pd.DataFrame(values, index=range(len(self.frames)), columns=['nan'])
+        values = [
+            frame.isnull().values.sum() for frame in tqdm(self.frames, disable=verbose)
+        ]
+        return pd.DataFrame(values, index=range(len(self.frames)), columns=["nan"])
 
     def dropna(self):
         """
@@ -339,7 +378,7 @@ class Panel:
         else:
             df = self[0].copy()
             for i in self[1:]:
-                df = pd.concat([df, i[self.timesteps - 1:]])
+                df = pd.concat([df, i[self.timesteps - 1 :]])
             return df
 
     def shift(self, window: int = 1):
@@ -384,9 +423,17 @@ class Panel:
 
         for i, frame in enumerate(self.frames):
             new_index = i - window
-            new_index = new_index if new_index >= 0 and new_index < len(self.frames) else None
-            new_values = self.frames[new_index].values if new_index is not None else np.ones(self.frames[0].shape) * np.nan
-            new_frame = pd.DataFrame(data=new_values, index=frame.index, columns=frame.columns)
+            new_index = (
+                new_index if new_index >= 0 and new_index < len(self.frames) else None
+            )
+            new_values = (
+                self.frames[new_index].values
+                if new_index is not None
+                else np.ones(self.frames[0].shape) * np.nan
+            )
+            new_frame = pd.DataFrame(
+                data=new_values, index=frame.index, columns=frame.columns
+            )
             new_panel.append(new_frame)
 
         return Panel(new_panel)
@@ -482,7 +529,13 @@ class Panel:
             ``Panel``: Result of match function.
         """
         index = [frame.frame_index for frame in other]
-        return Panel([frame for frame in tqdm(self.frames, disable=verbose) if frame.frame_index in index])
+        return Panel(
+            [
+                frame
+                for frame in tqdm(self.frames, disable=verbose)
+                if frame.frame_index in index
+            ]
+        )
 
     def set_training_split(self, val_size=0.2, test_size=0.1):
         """
@@ -515,14 +568,16 @@ class Panel:
                 raise ValueError("If using different sizes, other must be a DataFrame")
 
             assert not all(other.index.duplicated())
-            warnings.warn("Sizes don't match. Using dataframe indexes and columns to update.")
+            warnings.warn(
+                "Sizes don't match. Using dataframe indexes and columns to update."
+            )
             other = other.loc[df.index, df.columns].values
 
         for i, j in zip(panel, other):
-            i.iloc[:,:] = j
+            i.iloc[:, :] = j
         return panel
 
-    def resample(self, samples: int = 1, type: str = 'first'):
+    def resample(self, samples: int = 1, type: str = "first"):
         # TODO: Naming is confusing. This is closer to the panel level of pandas sample(), not resample().
         """
         Resample panel returning a subset of frames.
@@ -535,12 +590,14 @@ class Panel:
             ``Panel``: Result of resample function.
         """
 
-        if type == 'first':
+        if type == "first":
             return self[:samples]
-        elif type == 'last':
+        elif type == "last":
             return self[-samples:]
-        elif type == 'spaced':
-            indexes = list(np.linspace(0, len(self.frames), samples, dtype=int, endpoint=False))
+        elif type == "spaced":
+            indexes = list(
+                np.linspace(0, len(self.frames), samples, dtype=int, endpoint=False)
+            )
             return self[indexes]
 
     @property
@@ -553,7 +610,7 @@ class Panel:
         """
 
         if self.train_size:
-            return self[:self.train_size]
+            return self[: self.train_size]
 
     @property
     def val(self):
