@@ -1,7 +1,7 @@
 # Test
 pytest==6.2.3
 numpy==1.20.3
-Pillow==8.2.0
+Pillow==9.0.1
 
 # Docs
 Sphinx==3.2.1
