@@ -1,6 +1,6 @@
 # Test
 pytest==6.2.3
-numpy==1.20.3
+numpy==1.21.0
 Pillow==9.0.1
 
 # Docs
