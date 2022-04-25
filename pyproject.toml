@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "wavyts"
-version = "0.1.4"
+version = "0.1.9"
 description = "Wavy is a library to facilitate time series analysis"
 authors = ["Ibis Prevedello <ibiscp@gmail.com>",
 "Rodrigo Nader <rodrigosilvanader@gmail.com>",
@@ -25,6 +25,7 @@ tensorflow = "^2.8.0"
 numpy = "^1.22.3"
 tqdm = "^4.64.0"
 plotlab = "^0.1.0"
+toml = "^0.10.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"

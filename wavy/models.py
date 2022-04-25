@@ -6,15 +6,22 @@ import pandas as pd
 import tensorflow as tf
 from sklearn.metrics import mean_squared_error
 from tensorflow.keras import Input, Model, Sequential
-from tensorflow.keras.layers import (Conv1D, Dense, Flatten, Input,
-                                     MaxPooling1D, Reshape, SeparableConv1D,
-                                     concatenate)
-
+from tensorflow.keras.layers import (
+    Conv1D,
+    Dense,
+    Flatten,
+    Input,
+    MaxPooling1D,
+    Reshape,
+    SeparableConv1D,
+    concatenate,
+)
 
 # ? Maybe we get rid of model_type and add e.g. DenseRegressor / DenseClassifier.
 
+
 class _ConstantKerasModel(tf.keras.Model):
-    """ A Keras model that returns the input values as outputs. """
+    """A Keras model that returns the input values as outputs."""
 
     def __init__(self):
         super().__init__()
@@ -29,36 +36,45 @@ class _BaseModel:
     # TODO: Add warning when panel has nan values
     # TODO: Auto convert boolean to int
 
-    def __init__(self, x, y, model_type: str = None, loss: str = None, optimizer: str = None, metrics: List[str] = None, last_activation: str = None):
+    def __init__(
+        self,
+        x,
+        y,
+        model_type: str = None,
+        loss: str = None,
+        optimizer: str = None,
+        metrics: List[str] = None,
+        last_activation: str = None,
+    ):
 
         PARAMS = {
-            'regression': {
-                'loss': 'MSE',
-                'optimizer': 'adam',
-                'metrics': ['MAE'],
-                'last_activation': 'linear'
+            "regression": {
+                "loss": "MSE",
+                "optimizer": "adam",
+                "metrics": ["MAE"],
+                "last_activation": "linear",
             },
-            'classification': {
-                'loss': 'binary_crossentropy',
-                'optimizer': 'adam',
-                'metrics': ['AUC', 'accuracy'],
-                'last_activation': 'sigmoid'
+            "classification": {
+                "loss": "binary_crossentropy",
+                "optimizer": "adam",
+                "metrics": ["AUC", "accuracy"],
+                "last_activation": "sigmoid",
             },
-            'multi_classification': {
-                'loss': 'categorical_crossentropy',
-                'optimizer': 'adam',
-                'metrics': ['AUC', 'accuracy'],
-                'last_activation': 'softmax'
-            }
+            "multi_classification": {
+                "loss": "categorical_crossentropy",
+                "optimizer": "adam",
+                "metrics": ["AUC", "accuracy"],
+                "last_activation": "softmax",
+            },
         }
 
         self.x = x
         self.y = y
 
-        self.loss = loss or PARAMS[model_type]['loss']
-        self.optimizer = optimizer or PARAMS[model_type]['optimizer']
-        self.metrics = metrics or PARAMS[model_type]['metrics']
-        self.last_activation = last_activation or PARAMS[model_type]['last_activation']
+        self.loss = loss or PARAMS[model_type]["loss"]
+        self.optimizer = optimizer or PARAMS[model_type]["optimizer"]
+        self.metrics = metrics or PARAMS[model_type]["metrics"]
+        self.last_activation = last_activation or PARAMS[model_type]["last_activation"]
 
         self.set_arrays()
         self.build()
@@ -76,10 +92,17 @@ class _BaseModel:
 
     def fit(self, **kwargs):
         """Fit the model."""
-        return self.model.fit(self.x_train, self.y_train, validation_data=(self.x_val, self.y_val), **kwargs)
+        return self.model.fit(
+            self.x_train,
+            self.y_train,
+            validation_data=(self.x_val, self.y_val),
+            **kwargs,
+        )
 
     def compile(self, **kwargs):
-        self.model.compile(loss=self.loss, optimizer=self.optimizer, metrics=self.metrics, **kwargs)
+        self.model.compile(
+            loss=self.loss, optimizer=self.optimizer, metrics=self.metrics, **kwargs
+        )
 
     def build(self):
         pass
@@ -94,18 +117,25 @@ class _BaseModel:
         # TODO: Improve conditions to run faster
         metrics_names = self.model.metrics_names
 
-        train_metrics = self.model.evaluate(self.x_train, self.y_train, verbose=0, **kwargs)
+        train_metrics = self.model.evaluate(
+            self.x_train, self.y_train, verbose=0, **kwargs
+        )
         val_metrics = self.model.evaluate(self.x_val, self.y_val, verbose=0, **kwargs)
-        test_metrics = self.model.evaluate(self.x_test, self.y_test, verbose=0, **kwargs)
+        test_metrics = self.model.evaluate(
+            self.x_test, self.y_test, verbose=0, **kwargs
+        )
 
-        if on == 'train':
+        if on == "train":
             return pd.Series(train_metrics, index=metrics_names)
-        if on == 'val':
+        if on == "val":
             return pd.Series(val_metrics, index=metrics_names)
-        if on == 'test':
+        if on == "test":
             return pd.Series(test_metrics, index=metrics_names)
 
-        return pd.DataFrame({'train': train_metrics, 'val': val_metrics, 'test': test_metrics}, index=metrics_names)
+        return pd.DataFrame(
+            {"train": train_metrics, "val": val_metrics, "test": test_metrics},
+            index=metrics_names,
+        )
 
     def residuals(self):
         return self.predict() - self.y
@@ -116,7 +146,6 @@ class _BaseModel:
 
 
 class _Baseline(_BaseModel):
-
     def __init__(
         self,
         x,
@@ -152,11 +181,17 @@ class BaselineShift(_Baseline):
 
     def set_arrays(self):
 
-        warnings.warn(f'Filling nan values with {self.fillna}')
+        warnings.warn(f"Filling nan values with {self.fillna}")
 
-        self.x_train = self.y.train.as_dataframe().shift(self.shift).fillna(self.fillna).values
-        self.x_val = self.y.val.as_dataframe().shift(self.shift).fillna(self.fillna).values
-        self.x_test = self.y.test.as_dataframe().shift(self.shift).fillna(self.fillna).values
+        self.x_train = (
+            self.y.train.as_dataframe().shift(self.shift).fillna(self.fillna).values
+        )
+        self.x_val = (
+            self.y.val.as_dataframe().shift(self.shift).fillna(self.fillna).values
+        )
+        self.x_test = (
+            self.y.test.as_dataframe().shift(self.shift).fillna(self.fillna).values
+        )
 
         self.y_train = self.y.train.as_dataframe().values
         self.y_val = self.y.val.as_dataframe().values
@@ -199,11 +234,11 @@ class DenseModel(_BaseModel):
         model_type: str,
         dense_layers: int = 1,
         dense_units: int = 32,
-        activation: str = 'relu',
+        activation: str = "relu",
         loss: str = None,
         optimizer: str = None,
         metrics: List[str] = None,
-        last_activation: str = None
+        last_activation: str = None,
     ):
         """
         Dense Model.
@@ -225,13 +260,27 @@ class DenseModel(_BaseModel):
         self.dense_units = dense_units
         self.activation = activation
 
-        super().__init__(x=x, y=y, model_type=model_type, loss=loss, optimizer=optimizer, metrics=metrics, last_activation=last_activation)
+        super().__init__(
+            x=x,
+            y=y,
+            model_type=model_type,
+            loss=loss,
+            optimizer=optimizer,
+            metrics=metrics,
+            last_activation=last_activation,
+        )
 
     def build(self):
         dense = Dense(units=self.dense_units, activation=self.activation)
         layers = [Flatten()]  # (time, features) => (time*features)
         layers += [dense for _ in range(self.dense_layers)]
-        layers += [Dense(units=self.y.timesteps * len(self.y.columns), activation=self.last_activation), Reshape(self.y_train.shape[1:])]
+        layers += [
+            Dense(
+                units=self.y.timesteps * len(self.y.columns),
+                activation=self.last_activation,
+            ),
+            Reshape(self.y_train.shape[1:]),
+        ]
 
         self.model = Sequential(layers)
 
@@ -247,11 +296,11 @@ class ConvModel(_BaseModel):
         kernel_size: int = 3,
         dense_layers: int = 1,
         dense_units: int = 32,
-        activation: str = 'relu',
+        activation: str = "relu",
         loss: str = None,
         optimizer: str = None,
         metrics: List[str] = None,
-        last_activation: str = None
+        last_activation: str = None,
     ):
         """
         Convolution Model.
@@ -279,13 +328,25 @@ class ConvModel(_BaseModel):
         self.dense_units = dense_units
         self.activation = activation
 
-        super().__init__(x=x, y=y, model_type=model_type, loss=loss, optimizer=optimizer, metrics=metrics, last_activation=last_activation)
+        super().__init__(
+            x=x,
+            y=y,
+            model_type=model_type,
+            loss=loss,
+            optimizer=optimizer,
+            metrics=metrics,
+            last_activation=last_activation,
+        )
 
     def build(self):
         if self.x.timesteps % self.kernel_size != 0:
             warnings.warn("Kernel size is not a divisor of lookback.")
 
-        conv = Conv1D(filters=self.conv_filters, kernel_size=self.kernel_size, activation=self.activation)
+        conv = Conv1D(
+            filters=self.conv_filters,
+            kernel_size=self.kernel_size,
+            activation=self.activation,
+        )
 
         dense = Dense(units=self.dense_units, activation=self.activation)
 
@@ -293,7 +354,13 @@ class ConvModel(_BaseModel):
         layers += [Flatten()]
         layers += [conv for _ in range(self.conv_layers)]
         layers += [dense for _ in range(self.dense_layers)]
-        layers += [Dense(units=self.y.timesteps * len(self.y.columns), activation=self.last_activation), Reshape(self.y_train.shape[1:])]
+        layers += [
+            Dense(
+                units=self.y.timesteps * len(self.y.columns),
+                activation=self.last_activation,
+            ),
+            Reshape(self.y_train.shape[1:]),
+        ]
 
         self.model = Sequential(layers)
 
@@ -305,15 +372,17 @@ class LinearRegression(DenseModel):
 
 class LogisticRegression(DenseModel):
     def __init__(self, x, y, **kwargs):
-        super().__init__(x=x, y=y, model_type="classification", dense_layers=0, **kwargs)
+        super().__init__(
+            x=x, y=y, model_type="classification", dense_layers=0, **kwargs
+        )
 
 
 class ShallowModel:
     def __init__(self, x, y, model, metrics, **kwargs):
         # TODO: Add remaining functions (predict, score, etc.)
         # TODO: Include model_type and metrics for scoring
-        """ model: Scikit-learn model
-            metrics: List of sklearn metrics to use for scoring
+        """model: Scikit-learn model
+        metrics: List of sklearn metrics to use for scoring
         """
 
         self.x = x
@@ -340,17 +409,25 @@ class ShallowModel:
     def fit(self, **kwargs):
         """Fit the model."""
         self.model.fit(X=self.x_train, y=self.y_train, **kwargs)
-        scores = [scorer(self.model.predict(self.x_val), self.y_val) for scorer in self.metrics]
+        scores = [
+            scorer(self.model.predict(self.x_val), self.y_val)
+            for scorer in self.metrics
+        ]
         return f"Model Trained. Validation Scores: {[round(i, 5) for i in scores]}"
 
 
-def compute_score_per_model(*models, on='val'):
-    return pd.DataFrame([model.score(on=on) for model in models], index=[model.model.name for model in models])
+def compute_score_per_model(*models, on="val"):
+    return pd.DataFrame(
+        [model.score(on=on) for model in models],
+        index=[model.model.name for model in models],
+    )
 
 
 def compute_default_scores(x, y, model_type, metrics, epochs=10, verbose=0, **kwargs):
     models = [BaselineConstant, BaselineShift, DenseModel, ConvModel]
-    models = [model(x=x, y=y, model_type=model_type, metrics=metrics) for model in models]
+    models = [
+        model(x=x, y=y, model_type=model_type, metrics=metrics) for model in models
+    ]
     for model in models:
         model.fit(epochs=epochs, verbose=verbose, **kwargs)
     return compute_score_per_model(*models)

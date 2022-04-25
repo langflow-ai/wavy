@@ -1,5 +1,3 @@
-from typing import List
-
 import pandas as pd
 import plotly.graph_objects as go
 from plotlab import Figure
@@ -20,24 +18,39 @@ class PanelFigure(Figure):
         # ! Won't take effect until next trace is added (no axis was added)
         # TODO: Functions could accept both dataframe or panel
 
-        data = {'train': panel.train.as_dataframe(),
-                'val': panel.val.as_dataframe(),
-                'test': panel.test.as_dataframe()
-                }
+        data = {
+            "train": panel.train.as_dataframe(),
+            "val": panel.val.as_dataframe(),
+            "test": panel.test.as_dataframe(),
+        }
 
-        xtrain_min = data['train'].index[0]
-        xval_min = data['val'].index[0]
-        xtest_min = data['test'].index[0]
+        xtrain_min = data["train"].index[0]
+        xval_min = data["val"].index[0]
+        xtest_min = data["test"].index[0]
 
-        ymax = max(data['train'].max().max(), data['val'].max().max(), data['test'].max().max())
+        ymax = max(
+            data["train"].max().max(), data["val"].max().max(), data["test"].max().max()
+        )
 
-        self.fig.add_vline(x=xtrain_min, line_dash="dot", line_color=color, opacity=opacity)
-        self.fig.add_vline(x=xval_min, line_dash="dot", line_color=color, opacity=opacity)
-        self.fig.add_vline(x=xtest_min, line_dash="dot", line_color=color, opacity=opacity)
+        self.fig.add_vline(
+            x=xtrain_min, line_dash="dot", line_color=color, opacity=opacity
+        )
+        self.fig.add_vline(
+            x=xval_min, line_dash="dot", line_color=color, opacity=opacity
+        )
+        self.fig.add_vline(
+            x=xtest_min, line_dash="dot", line_color=color, opacity=opacity
+        )
 
-        self.fig.add_annotation(x=xtrain_min, y=ymax, text="Train", showarrow=False, xshift=20)
-        self.fig.add_annotation(x=xval_min, y=ymax, text="Validation", showarrow=False, xshift=35)
-        self.fig.add_annotation(x=xtest_min, y=ymax, text="Test", showarrow=False, xshift=18)
+        self.fig.add_annotation(
+            x=xtrain_min, y=ymax, text="Train", showarrow=False, xshift=20
+        )
+        self.fig.add_annotation(
+            x=xval_min, y=ymax, text="Validation", showarrow=False, xshift=35
+        )
+        self.fig.add_annotation(
+            x=xtest_min, y=ymax, text="Test", showarrow=False, xshift=18
+        )
 
     # Add decorator for instance check and for loop
     def iterator(func):
@@ -71,14 +84,24 @@ class PanelFigure(Figure):
         self.scatter(col, **kwargs)
 
     @iterator
-    def add_dotline(self, col, *args, **kwargs):#color="gray", opacity=0.5):
+    def add_dotline(self, col, *args, **kwargs):  # color="gray", opacity=0.5):
         # BUG: Dots and lines look displaced if zoomed in
-        self.dotline(col, *args, **kwargs)#color=color, opacity=opacity)
+        self.dotline(col, *args, **kwargs)  # color=color, opacity=opacity)
 
     # TODO check this function
-    def add_threshline(self, panel, up_thresh, down_thresh, up_color="green", down_color="red", col=None):
+    def add_threshline(
+        self,
+        panel,
+        up_thresh,
+        down_thresh,
+        up_color="green",
+        down_color="red",
+        col=None,
+    ):
         col = self._colcheck(panel, col)
-        self.threshline(panel.as_dataframe()[col], up_thresh, down_thresh, up_color, down_color)
+        self.threshline(
+            panel.as_dataframe()[col], up_thresh, down_thresh, up_color, down_color
+        )
 
     def _colcheck(self, panel, col):
         if col is None:
@@ -86,6 +109,7 @@ class PanelFigure(Figure):
                 return panel.columns[0]
             else:
                 raise ValueError("Must specify column to plot")
+
 
 # def plot_dataframes(dfs, **kwargs):
 #     """
@@ -120,6 +144,7 @@ def plot(panel, split_sets=False, **kwargs):
     fig.add_line(panel, **kwargs)
     return fig()
 
+
 def plot_frame(x, y, index=None):
 
     # TODO: Code below is confusing
@@ -139,6 +164,7 @@ def plot_frame(x, y, index=None):
 
     return fig()
 
+
 def plot_slider(x, y):
     """
     Make panel plots with slider.
@@ -150,7 +176,9 @@ def plot_slider(x, y):
         ``Plot``: Plotted data.
     """
 
-    assert len(x) == len(y), "Length of frame should be equal, try using match function!"
+    assert len(x) == len(
+        y
+    ), "Length of frame should be equal, try using match function!"
     assert len(x) < 100, "Number of steps cannot be bigger than 100."
 
     # cmap = px.colors.qualitative.Plotly
@@ -161,7 +189,6 @@ def plot_slider(x, y):
     # fig = make_subplots(rows=len(panel.channels), cols=len(panel.assets), subplot_titles=panel.assets)
 
     # fig =
-
 
     # Add traces, one for each slider step
     # len_ = np.linspace(0, len(x.frames), steps, dtype=int, endpoint=False)
@@ -186,14 +213,14 @@ def plot_slider(x, y):
 
         #     fig =
 
-            # x_trace = go.Scatter(visible=False, x=index, y=values, line=dict(width=2, color=c), showlegend=False)
+        # x_trace = go.Scatter(visible=False, x=index, y=values, line=dict(width=2, color=c), showlegend=False)
 
-            # x_trace = go.Scatter(x=index, y=values,
-            #                     line=dict(width=2, color=c), showlegend=showlegend, name=channel)
+        # x_trace = go.Scatter(x=index, y=values,
+        #                     line=dict(width=2, color=c), showlegend=showlegend, name=channel)
 
-            # row = math.floor(i / 2)
-            # col = i % 2
-            # fig.add_trace(x_trace, row = row + 1, col = 1)
+        # row = math.floor(i / 2)
+        # col = i % 2
+        # fig.add_trace(x_trace, row = row + 1, col = 1)
 
     # Make 10th trace visible
     for i in range(len(fig.data)):
@@ -203,27 +230,30 @@ def plot_slider(x, y):
     for i in range(len(x)):
         step = dict(
             method="update",
-            args=[{"visible": [False] * len(fig.data)},
+            args=[
+                {"visible": [False] * len(fig.data)},
                 {"title": f"frame {str(i)}"},
             ],
         )
         # step["args"][0]["visible"][i] = True  # Toggle i'th trace to "visible"
 
         for g in range(len(frame)):
-            step["args"][0]["visible"][i * len(frame) + g] = True  # Toggle i'th trace to "visible"
+            step["args"][0]["visible"][
+                i * len(frame) + g
+            ] = True  # Toggle i'th trace to "visible"
 
         steps.append(step)
 
-    sliders = [dict(
-        active=0,
-        # currentvalue={"prefix": "Frequency: "},
-        pad={"t": 50},
-        steps=steps
-    )]
+    sliders = [
+        dict(
+            active=0,
+            # currentvalue={"prefix": "Frequency: "},
+            pad={"t": 50},
+            steps=steps,
+        )
+    ]
 
-    fig.update_layout(
-        sliders=sliders
-    )
+    fig.update_layout(sliders=sliders)
 
     # # Create and add slider
     # steps_ = []

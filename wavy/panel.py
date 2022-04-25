@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm
 
-from .plot import plot, plot_slider
+from wavy.plot import plot, plot_slider
 
 ARG_0_METHODS = [
     "__abs__",
@@ -136,7 +136,10 @@ class Panel:
             def wrapper(*args, **kwargs):
                 # TODO: Only certain functions should happen here
                 # Either blacklist or whitelist
-                return Panel([getattr(frame, name)(*args, **kwargs) for frame in self.frames])
+                return Panel(
+                    [getattr(frame, name)(*args, **kwargs) for frame in self.frames]
+                )
+
             return wrapper
         except AttributeError:
             raise AttributeError(f"'Panel' object has no attribute '{name}'")
@@ -272,7 +275,9 @@ class Panel:
                 [19.32212198, 19.40955162,  2.26654326,  2.24148512]]])
         """
 
-        return np.array([frame.values for frame in tqdm(self.frames, disable=not verbose)])
+        return np.array(
+            [frame.values for frame in tqdm(self.frames, disable=not verbose)]
+        )
 
     @property
     def timesteps(self):
@@ -306,7 +311,8 @@ class Panel:
         1    2
         """
         values = [
-            frame.isnull().values.sum() for frame in tqdm(self.frames, disable=not verbose)
+            frame.isnull().values.sum()
+            for frame in tqdm(self.frames, disable=not verbose)
         ]
         return pd.DataFrame(values, index=range(len(self.frames)), columns=["nan"])
 

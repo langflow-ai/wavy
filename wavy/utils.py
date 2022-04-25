@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 def reverse_pct_change(panel, df):
     df = df.shift() * (1 + panel.as_dataframe())
     return panel.update(df)
@@ -7,6 +8,7 @@ def reverse_pct_change(panel, df):
 
 def is_dataframe(x):
     return isinstance(x, pd.DataFrame)
+
 
 # def last_max(x):
 #     """
