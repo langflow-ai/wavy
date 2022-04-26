@@ -12,17 +12,18 @@
 #
 # import os
 import sys
-sys.path.append('../')
+
+sys.path.append("../")
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'Wavy'
-copyright = '2021, Logspace'
-author = 'Logspace'
+project = "Wavy"
+copyright = "2022, Logspace"
+author = "Logspace"
 
 # The full version, including alpha/beta/rc tags
-release = '0.1.0'
+# release = "0.0.1"
 
 
 # -- General configuration ---------------------------------------------------
@@ -31,20 +32,21 @@ release = '0.1.0'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.todo',
-    'sphinxcontrib.napoleon',
-    'sphinx.ext.autosectionlabel'
+    "sphinx.ext.autodoc",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.todo",
+    "sphinxcontrib.napoleon",
+    "sphinx.ext.autosectionlabel",
+    "sphinx.ext.autosummary",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '__init__.py' ]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "__init__.py", ".env"]
 
 # cmd_line_template = "sphinx-apidoc --module-first -f -o {outputdir} {moduledir}"
 # -- Options for HTML output -------------------------------------------------
@@ -52,12 +54,12 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '__init__.py' ]
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
+html_theme = "sphinx_rtd_theme"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
 # -- Options for todo extension ----------------------------------------------
 
@@ -65,4 +67,15 @@ html_static_path = ['_static']
 todo_include_todos = True
 
 add_module_names = False
-autodoc_member_order = 'bysource'
+autodoc_member_order = "bysource"
+
+autodoc_mock_imports = [
+    "toml",
+    "numpy",
+    "pandas",
+    "tqdm",
+    "plotly",
+    "plotlab",
+    "tensorflow",
+    "sklearn",
+]

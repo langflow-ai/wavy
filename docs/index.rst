@@ -15,10 +15,10 @@ Welcome to Wavy's documentation!
    :maxdepth: 5
    :caption: Code
 
-   wavy/wavy.block.rst
-   wavy/wavy.side.rst
    wavy/wavy.panel.rst
-   wavy/wavy.model.rst
+   wavy/wavy.models.rst
+   wavy/wavy.plot.rst
+   wavy/wavy.utils.rst
 
 .. only:: html
 

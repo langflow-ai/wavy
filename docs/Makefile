@@ -7,7 +7,9 @@ SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = .
 FILESDIR      = wavy
+DESTDIR       = wavy
 BUILDDIR      = _build
+TEMPLATEDIR   = _templates
 
 # Put it first so that "make" without argument is like "make help".
 help:
@@ -22,5 +24,5 @@ help:
 
 doc:
 	$(MAKE) clean
-	sphinx-apidoc -M -e -f -o "$(FILESDIR)/" ../$(FILESDIR)/
+	sphinx-apidoc -e -f -t "$(TEMPLATEDIR)/" -o "$(DESTDIR)/" ../$(FILESDIR)/
 	$(MAKE) html

@@ -1,5 +1,5 @@
-wavy.utils module
-=================
+utils
+=====
 
 .. automodule:: wavy.utils
    :members:

@@ -1,0 +1,31 @@
+{%- macro automodule(modname, options) -%}
+.. automodule:: {{ modname }}
+{%- for option in options %}
+   :{{ option }}:
+{%- endfor %}
+{%- endmacro %}
+
+{%- macro toctree(docnames, section_name) -%}
+.. rubric:: {{ section_name }}
+   :class: package-sub
+
+.. toctree::
+{% for docname in docnames %}
+   {{ docname.split('.')[-1] }} <{{ docname }}>
+{%- endfor %}
+{%- endmacro %}
+
+{{ pkgname.split('.')[-1] | e | heading }}
+
+
+{%- if subpackages %}
+{{ toctree(subpackages, "Subpackages") }}
+{% endif %}
+
+{%- if submodules %}
+{{ toctree(submodules, "Submodules") }}
+{% endif %}
+
+{%- if not is_namespace %}
+{{ automodule(pkgname, automodule_options) }}
+{% endif %}

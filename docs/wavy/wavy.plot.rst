@@ -1,5 +1,5 @@
-wavy.plot module
-================
+plot
+====
 
 .. automodule:: wavy.plot
    :members:
