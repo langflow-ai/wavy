@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wavy.plot &mdash; Wavy  documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<script type="text/javascript">
+  window.onload = function() {
+    document.body.innerHTML = document.body.innerHTML.replace(/ module/g, '');
+  }
+</script>
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> Wavy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Code</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../wavy/wavy.panel.html">panel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../wavy/wavy.models.html">models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../wavy/wavy.plot.html">plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../wavy/wavy.utils.html">utils</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Wavy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+          <li><a href="../wavy.html">wavy</a> &raquo;</li>
+      <li>wavy.plot</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wavy.plot</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span>
+<span class="kn">from</span> <span class="nn">plotlab</span> <span class="kn">import</span> <span class="n">Figure</span>
+
+<span class="c1"># TODO: Set plotting configs and add kwargs to functions</span>
+<span class="c1"># TODO: Check if kwargs would overwrite fig.add_trace if same params are used</span>
+
+
+<div class="viewcode-block" id="PanelFigure"><a class="viewcode-back" href="../../wavy/wavy.plot.html#wavy.plot.PanelFigure">[docs]</a><span class="k">class</span> <span class="nc">PanelFigure</span><span class="p">(</span><span class="n">Figure</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># TODO: Add dynamic color changing once new traces are added</span>
+        <span class="c1"># TODO: Add candlestick plot</span>
+        <span class="c1"># TODO: Add trace names as panel cols</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+<div class="viewcode-block" id="PanelFigure.split_sets"><a class="viewcode-back" href="../../wavy/wavy.plot.html#wavy.plot.PanelFigure.split_sets">[docs]</a>    <span class="k">def</span> <span class="nf">split_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">panel</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="c1"># BUG: Seems to break if using &quot;ggplot2&quot;</span>
+        <span class="c1"># ! Won&#39;t take effect until next trace is added (no axis was added)</span>
+        <span class="c1"># TODO: Functions could accept both dataframe or panel</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;train&quot;</span><span class="p">:</span> <span class="n">panel</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">as_dataframe</span><span class="p">(),</span>
+            <span class="s2">&quot;val&quot;</span><span class="p">:</span> <span class="n">panel</span><span class="o">.</span><span class="n">val</span><span class="o">.</span><span class="n">as_dataframe</span><span class="p">(),</span>
+            <span class="s2">&quot;test&quot;</span><span class="p">:</span> <span class="n">panel</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">as_dataframe</span><span class="p">(),</span>
+        <span class="p">}</span>
+
+        <span class="n">xtrain_min</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">xval_min</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;val&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">xtest_min</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;test&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">ymax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;val&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;test&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">add_vline</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">xtrain_min</span><span class="p">,</span> <span class="n">line_dash</span><span class="o">=</span><span class="s2">&quot;dot&quot;</span><span class="p">,</span> <span class="n">line_color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="n">opacity</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">add_vline</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">xval_min</span><span class="p">,</span> <span class="n">line_dash</span><span class="o">=</span><span class="s2">&quot;dot&quot;</span><span class="p">,</span> <span class="n">line_color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="n">opacity</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">add_vline</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">xtest_min</span><span class="p">,</span> <span class="n">line_dash</span><span class="o">=</span><span class="s2">&quot;dot&quot;</span><span class="p">,</span> <span class="n">line_color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="n">opacity</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">add_annotation</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">xtrain_min</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">ymax</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Train&quot;</span><span class="p">,</span> <span class="n">showarrow</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">xshift</span><span class="o">=</span><span class="mi">20</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">add_annotation</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">xval_min</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">ymax</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Validation&quot;</span><span class="p">,</span> <span class="n">showarrow</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">xshift</span><span class="o">=</span><span class="mi">35</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">add_annotation</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">xtest_min</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">ymax</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Test&quot;</span><span class="p">,</span> <span class="n">showarrow</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">xshift</span><span class="o">=</span><span class="mi">18</span>
+        <span class="p">)</span></div>
+
+    <span class="c1"># Add decorator for instance check and for loop</span>
+<div class="viewcode-block" id="PanelFigure.iterator"><a class="viewcode-back" href="../../wavy/wavy.plot.html#wavy.plot.PanelFigure.iterator">[docs]</a>    <span class="k">def</span> <span class="nf">iterator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">inner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+            <span class="n">args</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">as_dataframe</span><span class="p">()</span>
+
+            <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">col</span><span class="p">],</span> <span class="o">*</span><span class="nb">tuple</span><span class="p">(</span><span class="n">args</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">inner</span></div>
+
+<div class="viewcode-block" id="PanelFigure.add_line"><a class="viewcode-back" href="../../wavy/wavy.plot.html#wavy.plot.PanelFigure.add_line">[docs]</a>    <span class="nd">@iterator</span>
+    <span class="k">def</span> <span class="nf">add_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PanelFigure.add_area"><a class="viewcode-back" href="../../wavy/wavy.plot.html#wavy.plot.PanelFigure.add_area">[docs]</a>    <span class="nd">@iterator</span>
+    <span class="k">def</span> <span class="nf">add_area</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">area</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PanelFigure.add_bar"><a class="viewcode-back" href="../../wavy/wavy.plot.html#wavy.plot.PanelFigure.add_bar">[docs]</a>    <span class="nd">@iterator</span>
+    <span class="k">def</span> <span class="nf">add_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PanelFigure.add_scatter"><a class="viewcode-back" href="../../wavy/wavy.plot.html#wavy.plot.PanelFigure.add_scatter">[docs]</a>    <span class="nd">@iterator</span>
+    <span class="k">def</span> <span class="nf">add_scatter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PanelFigure.add_dotline"><a class="viewcode-back" href="../../wavy/wavy.plot.html#wavy.plot.PanelFigure.add_dotline">[docs]</a>    <span class="nd">@iterator</span>
+    <span class="k">def</span> <span class="nf">add_dotline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># color=&quot;gray&quot;, opacity=0.5):</span>
+        <span class="c1"># BUG: Dots and lines look displaced if zoomed in</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dotline</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># color=color, opacity=opacity)</span></div>
+
+    <span class="c1"># TODO check this function</span>
+<div class="viewcode-block" id="PanelFigure.add_threshline"><a class="viewcode-back" href="../../wavy/wavy.plot.html#wavy.plot.PanelFigure.add_threshline">[docs]</a>    <span class="k">def</span> <span class="nf">add_threshline</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">panel</span><span class="p">,</span>
+        <span class="n">up_thresh</span><span class="p">,</span>
+        <span class="n">down_thresh</span><span class="p">,</span>
+        <span class="n">up_color</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">,</span>
+        <span class="n">down_color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span>
+        <span class="n">col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">col</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_colcheck</span><span class="p">(</span><span class="n">panel</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshline</span><span class="p">(</span>
+            <span class="n">panel</span><span class="o">.</span><span class="n">as_dataframe</span><span class="p">()[</span><span class="n">col</span><span class="p">],</span> <span class="n">up_thresh</span><span class="p">,</span> <span class="n">down_thresh</span><span class="p">,</span> <span class="n">up_color</span><span class="p">,</span> <span class="n">down_color</span>
+        <span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_colcheck</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">panel</span><span class="p">,</span> <span class="n">col</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">col</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">panel</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">panel</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Must specify column to plot&quot;</span><span class="p">)</span></div>
+
+
+<span class="c1"># def plot_dataframes(dfs, **kwargs):</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     Plot dataframes.</span>
+
+<span class="c1">#     Args:</span>
+<span class="c1">#         dfs (list): List of dataframes</span>
+
+<span class="c1">#     Returns:</span>
+<span class="c1">#         ``Plot``: Plotted data</span>
+<span class="c1">#     &quot;&quot;&quot;</span>
+
+<span class="c1">#     return pd.concat(dfs, axis=1).plot(**kwargs)</span>
+
+
+<div class="viewcode-block" id="plot"><a class="viewcode-back" href="../../wavy/wavy.plot.html#wavy.plot.plot">[docs]</a><span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="n">panel</span><span class="p">,</span> <span class="n">split_sets</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="c1"># TODO: Add &quot;kind&quot; parameter to chose between plot types</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot a panel.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        panel (Panel): Panel object</span>
+<span class="sd">        split (bool): If True, plot vertical lines showing train, val, and test periods</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ``Plot``: Plotted data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">PanelFigure</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">split_sets</span><span class="p">:</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">split_sets</span><span class="p">(</span><span class="n">panel</span><span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_line</span><span class="p">(</span><span class="n">panel</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fig</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="plot_frame"><a class="viewcode-back" href="../../wavy/wavy.plot.html#wavy.plot.plot_frame">[docs]</a><span class="k">def</span> <span class="nf">plot_frame</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+    <span class="c1"># TODO: Code below is confusing</span>
+    <span class="c1"># TODO: split into two functions?</span>
+    <span class="c1"># if not(is_panel(x) and is_panel(y) and index is not None) or (is_dataframe(x) and is_dataframe(y)):</span>
+    <span class="c1">#     raise Exception(&quot;x and y should be either Panel or DataFrame&quot;)</span>
+
+    <span class="c1"># if is_panel(x):</span>
+    <span class="c1">#     x = x[index]</span>
+    <span class="c1">#     y = y[index]</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">PanelFigure</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_line</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_scatter</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_line</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">add_scatter</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">fig</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="plot_slider"><a class="viewcode-back" href="../../wavy/wavy.plot.html#wavy.plot.plot_slider">[docs]</a><span class="k">def</span> <span class="nf">plot_slider</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Make panel plots with slider.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        steps (int): Number of equally spaced frames to plot</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ``Plot``: Plotted data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span>
+        <span class="n">y</span>
+    <span class="p">),</span> <span class="s2">&quot;Length of frame should be equal, try using match function!&quot;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">,</span> <span class="s2">&quot;Number of steps cannot be bigger than 100.&quot;</span>
+
+    <span class="c1"># cmap = px.colors.qualitative.Plotly</span>
+
+    <span class="c1"># Create figure</span>
+    <span class="c1"># columns_size = len(panel.columns)</span>
+    <span class="c1"># fig = make_subplots(rows=columns_size, cols=1, subplot_titles=[&#39; &#39;.join(column) for column in panel.columns])</span>
+    <span class="c1"># fig = make_subplots(rows=len(panel.channels), cols=len(panel.assets), subplot_titles=panel.assets)</span>
+
+    <span class="c1"># fig =</span>
+
+    <span class="c1"># Add traces, one for each slider step</span>
+    <span class="c1"># len_ = np.linspace(0, len(x.frames), steps, dtype=int, endpoint=False)</span>
+    <span class="c1"># for step in len_:  # np.arange(len(panel_.x.frames)):</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">()</span>
+
+    <span class="n">len_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)):</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">plot_frame</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">data</span>
+
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">frame</span><span class="p">:</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="c1"># for i, column in enumerate(panel.columns):</span>
+        <span class="c1">#     # c = cmap[i]</span>
+
+        <span class="c1">#     x_df = panel.frames[step].loc[:, column]</span>
+        <span class="c1">#     index = x_df.index</span>
+        <span class="c1">#     values = x_df.values.flatten()</span>
+
+        <span class="c1">#     fig =</span>
+
+        <span class="c1"># x_trace = go.Scatter(visible=False, x=index, y=values, line=dict(width=2, color=c), showlegend=False)</span>
+
+        <span class="c1"># x_trace = go.Scatter(x=index, y=values,</span>
+        <span class="c1">#                     line=dict(width=2, color=c), showlegend=showlegend, name=channel)</span>
+
+        <span class="c1"># row = math.floor(i / 2)</span>
+        <span class="c1"># col = i % 2</span>
+        <span class="c1"># fig.add_trace(x_trace, row = row + 1, col = 1)</span>
+
+    <span class="c1"># Make 10th trace visible</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fig</span><span class="o">.</span><span class="n">data</span><span class="p">)):</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">visible</span> <span class="o">=</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+    <span class="c1"># Create and add slider</span>
+    <span class="n">steps</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)):</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">method</span><span class="o">=</span><span class="s2">&quot;update&quot;</span><span class="p">,</span>
+            <span class="n">args</span><span class="o">=</span><span class="p">[</span>
+                <span class="p">{</span><span class="s2">&quot;visible&quot;</span><span class="p">:</span> <span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">fig</span><span class="o">.</span><span class="n">data</span><span class="p">)},</span>
+                <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;frame </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">},</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
+        <span class="c1"># step[&quot;args&quot;][0][&quot;visible&quot;][i] = True  # Toggle i&#39;th trace to &quot;visible&quot;</span>
+
+        <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">frame</span><span class="p">)):</span>
+            <span class="n">step</span><span class="p">[</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;visible&quot;</span><span class="p">][</span>
+                <span class="n">i</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span> <span class="o">+</span> <span class="n">g</span>
+            <span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Toggle i&#39;th trace to &quot;visible&quot;</span>
+
+        <span class="n">steps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
+
+    <span class="n">sliders</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">active</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="c1"># currentvalue={&quot;prefix&quot;: &quot;Frequency: &quot;},</span>
+            <span class="n">pad</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;t&quot;</span><span class="p">:</span> <span class="mi">50</span><span class="p">},</span>
+            <span class="n">steps</span><span class="o">=</span><span class="n">steps</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="n">sliders</span><span class="o">=</span><span class="n">sliders</span><span class="p">)</span>
+
+    <span class="c1"># # Create and add slider</span>
+    <span class="c1"># steps_ = []</span>
+    <span class="c1"># for i in range(steps):</span>
+    <span class="c1">#     step = dict(</span>
+    <span class="c1">#         method=&quot;update&quot;,</span>
+    <span class="c1">#         args=[</span>
+    <span class="c1">#             {&quot;visible&quot;: [False] * len(fig.data)},</span>
+    <span class="c1">#             {&quot;title&quot;: f&quot;frame {str(len_[i])}&quot;},</span>
+    <span class="c1">#         ],</span>
+    <span class="c1">#     )</span>
+
+    <span class="c1">#     for g in range(columns_size):</span>
+    <span class="c1">#         step[&quot;args&quot;][0][&quot;visible&quot;][i * columns_size + g] = True  # Toggle i&#39;th trace to &quot;visible&quot;</span>
+
+    <span class="c1">#     steps_.append(step)</span>
+
+    <span class="c1"># sliders = [dict(</span>
+    <span class="c1">#     active=0,</span>
+    <span class="c1">#     # currentvalue={&quot;prefix&quot;: &quot;frame: &quot;},</span>
+    <span class="c1">#     pad={&quot;t&quot;: 50},</span>
+    <span class="c1">#     steps=steps_</span>
+    <span class="c1"># )]</span>
+
+    <span class="c1"># fig.update_layout(</span>
+    <span class="c1">#     template=&#39;simple_white&#39;,</span>
+    <span class="c1">#     sliders=sliders</span>
+    <span class="c1"># )</span>
+
+    <span class="k">return</span> <span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+    <span class="c1"># Plot y titles</span>
+    <span class="c1"># num_assets = len(panel.assets)</span>
+    <span class="c1"># for i, channel in enumerate(panel.channels):</span>
+    <span class="c1">#     fig[&#39;layout&#39;][f&#39;yaxis{i*num_assets+1}&#39;].update({&#39;title&#39;:channel})</span>
+
+    <span class="c1"># fig.show()</span>
+
+
+<span class="c1"># def plot_prediction(panel, x):</span>
+<span class="c1">#     cmap = px.colors.qualitative.Plotly</span>
+
+<span class="c1">#     columns_size = len(panel.columns)</span>
+
+<span class="c1">#     fig = px.line(x)</span>
+
+<span class="c1">#     # fig = make_subplots(rows=math.ceil(columns_size / 2), cols=2, subplot_titles=[&#39; &#39;.join(column) for column in panel.columns])</span>
+
+<span class="c1">#     # for i, column in enumerate(panel.columns):</span>
+<span class="c1">#     #     c = cmap[i]</span>
+
+<span class="c1">#     #     x_df = panel.frames[index].loc[:, column]</span>
+<span class="c1">#     #     idx = x_df.index</span>
+<span class="c1">#     #     values = x_df.values.flatten()</span>
+
+<span class="c1">#     #     x_trace = go.Scatter(x=idx, y=values, line=dict(width=2, color=c), showlegend=False)</span>
+
+<span class="c1">#     #     row = math.floor(i / 2)</span>
+<span class="c1">#     #     col = i % 2</span>
+<span class="c1">#     #     fig.add_trace(x_trace, row=row + 1, col=col + 1)</span>
+<span class="c1">#     #     # Remove empty dates</span>
+<span class="c1">#     #     # dt_all = pd.date_range(start=index[0],end=index[-1])</span>
+<span class="c1">#     #     # dt_obs = [d.strftime(&quot;%Y-%m-%d&quot;) for d in index]</span>
+<span class="c1">#     #     # dt_breaks = [d for d in dt_all.strftime(&quot;%Y-%m-%d&quot;).tolist() if not d in dt_obs]</span>
+<span class="c1">#     #     # fig.update_xaxes(rangebreaks=[dict(values=dt_breaks)])</span>
+
+<span class="c1">#     fig.update_layout(</span>
+<span class="c1">#         template=&#39;simple_white&#39;,</span>
+<span class="c1">#         showlegend=True</span>
+<span class="c1">#     )</span>
+
+<span class="c1">#     # num_assets = len(panel.assets)</span>
+<span class="c1">#     # for i, channel in enumerate(panel.channels):</span>
+<span class="c1">#     #     fig[&#39;layout&#39;][f&#39;yaxis{i*num_assets+1}&#39;].update({&#39;title&#39;:channel})</span>
+
+<span class="c1">#     fig.show()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Logspace.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

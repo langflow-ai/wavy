@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wavy.panel &mdash; Wavy  documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<script type="text/javascript">
+  window.onload = function() {
+    document.body.innerHTML = document.body.innerHTML.replace(/ module/g, '');
+  }
+</script>
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> Wavy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Code</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../wavy/wavy.panel.html">panel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../wavy/wavy.models.html">models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../wavy/wavy.plot.html">plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../wavy/wavy.utils.html">utils</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Wavy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+          <li><a href="../wavy.html">wavy</a> &raquo;</li>
+      <li>wavy.panel</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wavy.panel</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">tqdm.auto</span> <span class="kn">import</span> <span class="n">tqdm</span>
+
+<span class="kn">from</span> <span class="nn">wavy.plot</span> <span class="kn">import</span> <span class="n">plot</span><span class="p">,</span> <span class="n">plot_slider</span>
+
+<span class="n">ARG_0_METHODS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;__abs__&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;__pos__&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;__neg__&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;__invert__&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+<span class="n">ARG_1_METHODS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;__add__&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;__sub__&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;__mul__&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;__rmul__&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;__truediv__&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;__ge__&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;__gt__&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;__le__&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;__lt__&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;__pow__&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;__eq__&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;__ne__&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;__bool__&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;__floordiv__&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;__rfloordiv__&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;__matmul__&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;__rmatmul__&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;__rmod__&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;__mod__&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1"># Plot</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">&quot;multi_sparse&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>  <span class="c1"># To see multilevel indexes</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">plotting</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="s2">&quot;plotly&quot;</span>
+
+
+<div class="viewcode-block" id="create_panels"><a class="viewcode-back" href="../../wavy/wavy.panel.html#wavy.panel.create_panels">[docs]</a><span class="k">def</span> <span class="nf">create_panels</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">lookback</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">horizon</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">gap</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a panel from a dataframe.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        df (DataFrame): Values DataFrame</span>
+<span class="sd">        lookback (int): lookback size</span>
+<span class="sd">        horizon (int): horizon size</span>
+<span class="sd">        gap (int): gap between x and y</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ``Panel``: Data Panel</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from_data(df, 5, 5, 0)</span>
+<span class="sd">    size                               1</span>
+<span class="sd">    lookback                           2</span>
+<span class="sd">    horizon                            2</span>
+<span class="sd">    num_xassets                        2</span>
+<span class="sd">    num_yassets                        2</span>
+<span class="sd">    num_xchannels                      2</span>
+<span class="sd">    num_ychannels                      2</span>
+<span class="sd">    start            2005-12-27 00:00:00</span>
+<span class="sd">    end              2005-12-30 00:00:00</span>
+<span class="sd">    Name: Panel, dtype: object</span>
+<span class="sd">    &lt;Panel, size 1&gt;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">x_timesteps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">x_timesteps</span> <span class="o">-</span> <span class="n">lookback</span> <span class="o">-</span> <span class="n">horizon</span> <span class="o">-</span> <span class="n">gap</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Not enough timesteps to build&quot;</span><span class="p">)</span>
+
+    <span class="n">end</span> <span class="o">=</span> <span class="n">x_timesteps</span> <span class="o">-</span> <span class="n">horizon</span> <span class="o">-</span> <span class="n">gap</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="c1"># Convert to frames</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">df</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">df</span>
+
+    <span class="n">indexes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">lookback</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+    <span class="n">xframes</span><span class="p">,</span> <span class="n">yframes</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indexes</span><span class="p">:</span>
+        <span class="c1"># ? functions that create a new panel might keep old frame indexes</span>
+        <span class="n">x_frame</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="n">lookback</span> <span class="p">:</span> <span class="n">i</span><span class="p">]</span>
+        <span class="n">x_frame</span><span class="o">.</span><span class="n">frame_index</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="n">xframes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_frame</span><span class="p">)</span>
+
+        <span class="n">y_frame</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">gap</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">gap</span> <span class="o">+</span> <span class="n">horizon</span><span class="p">]</span>
+        <span class="n">y_frame</span><span class="o">.</span><span class="n">frame_index</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="n">yframes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y_frame</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">Panel</span><span class="p">(</span><span class="n">xframes</span><span class="p">),</span> <span class="n">Panel</span><span class="p">(</span><span class="n">yframes</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Panel"><a class="viewcode-back" href="../../wavy/wavy.panel.html#wavy.panel.Panel">[docs]</a><span class="k">class</span> <span class="nc">Panel</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frames</span><span class="p">):</span>
+        <span class="c1"># ? Should frames always have increasing indexes? Maybe add warning and reindex</span>
+        <span class="c1"># ? What about duplicated indices?</span>
+
+        <span class="k">class</span> <span class="nc">_IXIndexer</span><span class="p">:</span>
+            <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">Panel</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">frames</span><span class="p">])</span>
+
+        <span class="k">class</span> <span class="nc">_iLocIndexer</span><span class="p">:</span>
+            <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">Panel</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">frames</span><span class="p">])</span>
+
+        <span class="k">class</span> <span class="nc">_LocIndexer</span><span class="p">:</span>
+            <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">Panel</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">frames</span><span class="p">])</span>
+
+        <span class="k">class</span> <span class="nc">_AtIndexer</span><span class="p">:</span>
+            <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">Panel</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">frames</span><span class="p">])</span>
+
+        <span class="k">class</span> <span class="nc">_iAtIndexer</span><span class="p">:</span>
+            <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">Panel</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">iat</span><span class="p">[</span><span class="n">item</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">frames</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">frames</span> <span class="o">=</span> <span class="n">frames</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ix</span> <span class="o">=</span> <span class="n">_IXIndexer</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iloc</span> <span class="o">=</span> <span class="n">_iLocIndexer</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loc</span> <span class="o">=</span> <span class="n">_LocIndexer</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">at</span> <span class="o">=</span> <span class="n">_AtIndexer</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iat</span> <span class="o">=</span> <span class="n">_iAtIndexer</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_training_split</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+
+            <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                <span class="c1"># TODO: Only certain functions should happen here</span>
+                <span class="c1"># Either blacklist or whitelist</span>
+                <span class="k">return</span> <span class="n">Panel</span><span class="p">(</span>
+                    <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">name</span><span class="p">)(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">]</span>
+                <span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">wrapper</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;Panel&#39; object has no attribute &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Function to map all dunder functions</span>
+    <span class="k">def</span> <span class="nf">_1_arg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">__f</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Panel</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">Panel</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="nb">getattr</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">__f</span><span class="p">)(</span><span class="n">other_frame</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">frame</span><span class="p">,</span> <span class="n">other_frame</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">frames</span><span class="p">)</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">Panel</span><span class="p">([</span><span class="nb">getattr</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">__f</span><span class="p">)(</span><span class="n">other</span><span class="p">)</span> <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">dunder</span> <span class="ow">in</span> <span class="n">ARG_1_METHODS</span><span class="p">:</span>
+        <span class="nb">locals</span><span class="p">()[</span><span class="n">dunder</span><span class="p">]</span> <span class="o">=</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">__f</span><span class="o">=</span><span class="n">dunder</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_1_arg</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">__f</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_0_arg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">__f</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Panel</span><span class="p">([</span><span class="nb">getattr</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">__f</span><span class="p">)()</span> <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">dunder</span> <span class="ow">in</span> <span class="n">ARG_0_METHODS</span><span class="p">:</span>
+        <span class="nb">locals</span><span class="p">()[</span><span class="n">dunder</span><span class="p">]</span> <span class="o">=</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">,</span> <span class="n">__f</span><span class="o">=</span><span class="n">dunder</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_0_arg</span><span class="p">(</span><span class="n">__f</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">slice</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span>
+        <span class="p">),</span> <span class="s2">&quot;Panel indexing must be int, slice, list, str or tuple&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">key</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">all</span><span class="p">(</span>
+                <span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">key</span>
+            <span class="p">),</span> <span class="s2">&quot;Panel indexing with list must be int or str&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">columns</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
+                <span class="n">index</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">slice</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+            <span class="p">),</span> <span class="s2">&quot;Panel indexing rows with tuple must be int, slice or list&quot;</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
+                <span class="n">columns</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+            <span class="p">),</span> <span class="s2">&quot;Panel indexing columns with tuple must be str or list&quot;</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span>
+                    <span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">index</span>
+                <span class="p">),</span> <span class="s2">&quot;Panel indexing rows with list must be int&quot;</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span>
+                    <span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">columns</span>
+                <span class="p">),</span> <span class="s2">&quot;Panel indexing columns with list must be str&quot;</span>
+
+        <span class="c1"># Tuple</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">columns</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">Panel</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="n">index</span><span class="p">]])</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">columns</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="n">index</span><span class="p">])</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">columns</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">Panel</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">index</span><span class="p">])</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">columns</span><span class="p">]</span>
+
+        <span class="c1"># Columns</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">key</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">key</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="p">[</span><span class="n">key</span><span class="p">]]</span>
+
+        <span class="c1"># Index</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">Panel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">key</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">Panel</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">key</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">summary</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span>
+                <span class="s2">&quot;timesteps&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">timesteps</span><span class="p">,</span>
+                <span class="s2">&quot;start&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s2">&quot;end&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+            <span class="p">},</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Panel&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="n">summary</span><span class="p">)</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;Panel, size </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="fm">__len__</span><span class="p">()</span><span class="si">}</span><span class="s2">&gt;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">columns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Panel columns.</span>
+
+<span class="sd">        Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; panel.columns</span>
+<span class="sd">        {&#39;Level 0&#39;: {&#39;AAPL&#39;, &#39;MSFT&#39;}, &#39;Level 1&#39;: {&#39;Close&#39;, &#39;Open&#39;}}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the last index of each frame in the panel.</span>
+
+<span class="sd">        Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; panel.index</span>
+<span class="sd">        DatetimeIndex([&#39;2005-12-21&#39;, &#39;2005-12-22&#39;, &#39;2005-12-23&#39;], dtype=&#39;datetime64[ns]&#39;, name=&#39;Date&#39;, freq=None)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="n">frame</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        3D matrix with Panel value.</span>
+
+<span class="sd">        Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; panel.values</span>
+<span class="sd">        array([[[19.57712554, 19.47512245,  2.21856582,  2.24606872],</span>
+<span class="sd">                [19.46054323, 19.37311363,  2.25859845,  2.26195979]],</span>
+<span class="sd">               [[19.46054323, 19.37311363,  2.25859845,  2.26195979],</span>
+<span class="sd">                [19.32212198, 19.40955162,  2.26654326,  2.24148512]]])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">frame</span><span class="o">.</span><span class="n">values</span> <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">,</span> <span class="n">disable</span><span class="o">=</span><span class="ow">not</span> <span class="n">verbose</span><span class="p">)]</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">timesteps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Panel shape.</span>
+
+<span class="sd">        Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; panel.shape</span>
+<span class="sd">        (2, 2, 4)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">),)</span> <span class="o">+</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+
+<div class="viewcode-block" id="Panel.countna"><a class="viewcode-back" href="../../wavy/wavy.panel.html#wavy.panel.Panel.countna">[docs]</a>    <span class="k">def</span> <span class="nf">countna</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Count NaN cells for each Dataframe.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ``DataFrame``: NaN count for each frame.</span>
+
+<span class="sd">        Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; panel.countna()</span>
+<span class="sd">           nan</span>
+<span class="sd">        0    2</span>
+<span class="sd">        1    2</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">frame</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">,</span> <span class="n">disable</span><span class="o">=</span><span class="ow">not</span> <span class="n">verbose</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">)),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;nan&quot;</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="Panel.dropna"><a class="viewcode-back" href="../../wavy/wavy.panel.html#wavy.panel.Panel.dropna">[docs]</a>    <span class="k">def</span> <span class="nf">dropna</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Drop pairs with missing values from the panel.</span>
+
+<span class="sd">        Similar to `Pandas dropna &lt;https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop.html&gt;`__</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ``Panel``: Panel with missing values dropped.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nan_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">findna</span><span class="p">()</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">nan_values</span><span class="p">}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">idx</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;dropna&#39; would create empty Panel&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Panel.findna"><a class="viewcode-back" href="../../wavy/wavy.panel.html#wavy.panel.Panel.findna">[docs]</a>    <span class="k">def</span> <span class="nf">findna</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find NaN values index.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ``List``: List with index of NaN values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">values</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="n">frame</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">])</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">values</span><span class="p">[</span><span class="n">values</span> <span class="o">==</span> <span class="kc">True</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Panel.findinf"><a class="viewcode-back" href="../../wavy/wavy.panel.html#wavy.panel.Panel.findinf">[docs]</a>    <span class="k">def</span> <span class="nf">findinf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find Inf values index.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ``List``: List with index of Inf values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="n">frame</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">values</span><span class="p">[</span><span class="n">values</span> <span class="o">==</span> <span class="kc">True</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Panel.as_dataframe"><a class="viewcode-back" href="../../wavy/wavy.panel.html#wavy.panel.Panel.as_dataframe">[docs]</a>    <span class="k">def</span> <span class="nf">as_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flatten</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="c1"># TODO: Add column names instead of only index</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        flatten=True will return one panel frame per row</span>
+
+<span class="sd">        Example:</span>
+
+<span class="sd">        Panel containing two frames will present the following result:</span>
+
+<span class="sd">        &gt;&gt;&gt; panel[0]</span>
+<span class="sd">                        MSFT                 AAPL</span>
+<span class="sd">                        Open      Close      Open     Close</span>
+<span class="sd">        Date</span>
+<span class="sd">        2005-12-21  19.577126  19.475122  2.218566  2.246069</span>
+<span class="sd">        2005-12-22  19.460543  19.373114  2.258598  2.261960</span>
+
+<span class="sd">        &gt;&gt;&gt; panel.as_dataframe(flatten=True)</span>
+<span class="sd">                           0         1        2        3         4         5        6        7</span>
+<span class="sd">        2005-12-22 19.577126 19.475122 2.218566 2.246069 19.460543 19.373114 2.258598 2.261960</span>
+<span class="sd">        2005-12-23 19.460543 19.373114 2.258598 2.261960 19.322122 19.409552 2.266543 2.241485</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">flatten</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">])</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df</span><span class="p">,</span> <span class="n">i</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">timesteps</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">:]])</span>
+            <span class="k">return</span> <span class="n">df</span></div>
+
+<div class="viewcode-block" id="Panel.shift"><a class="viewcode-back" href="../../wavy/wavy.panel.html#wavy.panel.Panel.shift">[docs]</a>    <span class="k">def</span> <span class="nf">shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Shift panel by desired number of frames.</span>
+
+<span class="sd">        Similar to `Pandas shift &lt;https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.shift.html&gt;`__</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            window (int): Number of frames to shift</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ``Panel``: Result of shift function.</span>
+
+<span class="sd">        Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; panel[0]</span>
+<span class="sd">                        MSFT                 AAPL</span>
+<span class="sd">                        Open      Close      Open     Close</span>
+<span class="sd">        Date</span>
+<span class="sd">        2005-12-21  19.577126  19.475122  2.218566  2.246069</span>
+<span class="sd">        2005-12-22  19.460543  19.373114  2.258598  2.261960</span>
+
+<span class="sd">        &gt;&gt;&gt; panel = panel.shift(window = 1)</span>
+
+<span class="sd">        &gt;&gt;&gt; panel[0]</span>
+<span class="sd">                MSFT       AAPL</span>
+<span class="sd">                Open Close Open Close</span>
+<span class="sd">        Date</span>
+<span class="sd">        2005-12-21  NaN   NaN  NaN   NaN</span>
+<span class="sd">        2005-12-22  NaN   NaN  NaN   NaN</span>
+
+<span class="sd">        &gt;&gt;&gt; panel[1]</span>
+<span class="sd">                        MSFT                 AAPL</span>
+<span class="sd">                        Open      Close      Open     Close</span>
+<span class="sd">        Date</span>
+<span class="sd">        2005-12-21  19.577126  19.475122  2.218566  2.246069</span>
+<span class="sd">        2005-12-22  19.460543  19.373114  2.258598  2.261960</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">new_panel</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frame</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">):</span>
+            <span class="n">new_index</span> <span class="o">=</span> <span class="n">i</span> <span class="o">-</span> <span class="n">window</span>
+            <span class="n">new_index</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">new_index</span> <span class="k">if</span> <span class="n">new_index</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">new_index</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">)</span>
+            <span class="n">new_values</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="n">new_index</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+                <span class="k">if</span> <span class="n">new_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+            <span class="p">)</span>
+            <span class="n">new_frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">new_values</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">frame</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">frame</span><span class="o">.</span><span class="n">columns</span>
+            <span class="p">)</span>
+            <span class="n">new_panel</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_frame</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Panel</span><span class="p">(</span><span class="n">new_panel</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Panel.diff"><a class="viewcode-back" href="../../wavy/wavy.panel.html#wavy.panel.Panel.diff">[docs]</a>    <span class="k">def</span> <span class="nf">diff</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Difference between frames.</span>
+
+<span class="sd">        Similar to `Pandas diff &lt;https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.diff.html&gt;`__</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            window (int): Number of frames to diff</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ``Panel``: Result of diff function.</span>
+
+<span class="sd">        Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; panel[0]</span>
+<span class="sd">                        MSFT                 AAPL</span>
+<span class="sd">                        Open      Close      Open     Close</span>
+<span class="sd">        Date</span>
+<span class="sd">        2005-12-21  19.577126  19.475122  2.218566  2.246069</span>
+<span class="sd">        2005-12-22  19.460543  19.373114  2.258598  2.261960</span>
+
+<span class="sd">        &gt;&gt;&gt; panel = panel.diff(window = 1)</span>
+
+<span class="sd">        &gt;&gt;&gt; panel[0]</span>
+<span class="sd">                MSFT       AAPL</span>
+<span class="sd">                Open Close Open Close</span>
+<span class="sd">        Date</span>
+<span class="sd">        2005-12-21  NaN   NaN  NaN   NaN</span>
+<span class="sd">        2005-12-22  NaN   NaN  NaN   NaN</span>
+
+<span class="sd">        &gt;&gt;&gt; panel[1]</span>
+<span class="sd">                        MSFT                AAPL</span>
+<span class="sd">                        Open     Close      Open     Close</span>
+<span class="sd">        Date</span>
+<span class="sd">        2005-12-22 -0.116582 -0.102009  0.040033  0.015891</span>
+<span class="sd">        2005-12-23 -0.138421  0.036438  0.007945 -0.020475</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="n">window</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Panel.pct_change"><a class="viewcode-back" href="../../wavy/wavy.panel.html#wavy.panel.Panel.pct_change">[docs]</a>    <span class="k">def</span> <span class="nf">pct_change</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Percentage change between the current and a prior frame.</span>
+
+<span class="sd">        Similar to `Pandas pct_change &lt;https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.pct_change.html&gt;`__</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            window (int): Number of frames to calculate percent change</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ``Panel``: Result of pct_change function.</span>
+
+<span class="sd">        Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; panel[0]</span>
+<span class="sd">                        MSFT                 AAPL</span>
+<span class="sd">                        Open      Close      Open     Close</span>
+<span class="sd">        Date</span>
+<span class="sd">        2005-12-21  19.577126  19.475122  2.218566  2.246069</span>
+<span class="sd">        2005-12-22  19.460543  19.373114  2.258598  2.261960</span>
+
+<span class="sd">        &gt;&gt;&gt; panel = panel.pct_change(window = 1)</span>
+
+<span class="sd">        &gt;&gt;&gt; panel[0]</span>
+<span class="sd">                MSFT       AAPL</span>
+<span class="sd">                Open Close Open Close</span>
+<span class="sd">        Date</span>
+<span class="sd">        2005-12-21  NaN   NaN  NaN   NaN</span>
+<span class="sd">        2005-12-22  NaN   NaN  NaN   NaN</span>
+
+<span class="sd">        &gt;&gt;&gt; panel[1]</span>
+<span class="sd">                        MSFT                AAPL</span>
+<span class="sd">                        Open     Close      Open     Close</span>
+<span class="sd">        Date</span>
+<span class="sd">        2005-12-22 -0.005955 -0.005238  0.018044  0.007075</span>
+<span class="sd">        2005-12-23 -0.007113  0.001881  0.003518 -0.009052</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="n">window</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">/</span> <span class="n">a</span></div>
+
+<div class="viewcode-block" id="Panel.match"><a class="viewcode-back" href="../../wavy/wavy.panel.html#wavy.panel.Panel.match">[docs]</a>    <span class="k">def</span> <span class="nf">match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Modify using values from another Panel. Aligns on indices.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            other: (Panel)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ``Panel``: Result of match function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="n">frame</span><span class="o">.</span><span class="n">frame_index</span> <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">other</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">Panel</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">frame</span>
+                <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">,</span> <span class="n">disable</span><span class="o">=</span><span class="ow">not</span> <span class="n">verbose</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">frame</span><span class="o">.</span><span class="n">frame_index</span> <span class="ow">in</span> <span class="n">index</span>
+            <span class="p">]</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Panel.set_training_split"><a class="viewcode-back" href="../../wavy/wavy.panel.html#wavy.panel.Panel.set_training_split">[docs]</a>    <span class="k">def</span> <span class="nf">set_training_split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Time series split into training, validation, and test sets, avoiding data leakage.</span>
+<span class="sd">        Splits the panel in training, validation, and test panels, accessed with the properties</span>
+<span class="sd">        .train, .val and .test. The sum of the three sizes inserted must equals one.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            val_size (float): Percentage of data used for the validation set.</span>
+<span class="sd">            test_size (float): Percentage of data used for the test set.</span>
+<span class="sd">        Example:</span>
+<span class="sd">        &gt;&gt;&gt; panel.set_training_split(val_size=0.2, test_size=0.1)</span>
+<span class="sd">        &gt;&gt;&gt; train = panel.train</span>
+<span class="sd">        &gt;&gt;&gt; val = panel.val</span>
+<span class="sd">        &gt;&gt;&gt; test = panel.test</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">train_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">*</span> <span class="n">test_size</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">*</span> <span class="n">test_size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">val_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">train_size</span> <span class="o">*</span> <span class="n">val_size</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train_size</span> <span class="o">=</span> <span class="n">train_size</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">val_size</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_size</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">val_size</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_size</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Panel.update"><a class="viewcode-back" href="../../wavy/wavy.panel.html#wavy.panel.Panel.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="n">panel</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="n">df</span> <span class="o">=</span> <span class="n">panel</span><span class="o">.</span><span class="n">as_dataframe</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">other</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;If using different sizes, other must be a DataFrame&quot;</span><span class="p">)</span>
+
+            <span class="k">assert</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">())</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;Sizes don&#39;t match. Using dataframe indexes and columns to update.&quot;</span>
+            <span class="p">)</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">panel</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+            <span class="n">i</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">j</span>
+        <span class="k">return</span> <span class="n">panel</span></div>
+
+<div class="viewcode-block" id="Panel.resample"><a class="viewcode-back" href="../../wavy/wavy.panel.html#wavy.panel.Panel.resample">[docs]</a>    <span class="k">def</span> <span class="nf">resample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">samples</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;first&quot;</span><span class="p">):</span>
+        <span class="c1"># TODO: Naming is confusing. This is closer to the panel level of pandas sample(), not resample().</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Resample panel returning a subset of frames.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            samples (int): Number of samples to keep</span>
+<span class="sd">            type (str): Resempling type, &#39;first&#39;, &#39;last&#39; or &#39;spaced&#39;</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ``Panel``: Result of resample function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;first&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[:</span><span class="n">samples</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;last&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="o">-</span><span class="n">samples</span><span class="p">:]</span>
+        <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;spaced&quot;</span><span class="p">:</span>
+            <span class="n">indexes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">),</span> <span class="n">samples</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">indexes</span><span class="p">]</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the Panel with the pairs of the training set, according to</span>
+<span class="sd">        the parameters given in the &#39;set_train_val_test_sets&#39; function.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            ``Panel``: Panel with the pairs of the training set.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_size</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_size</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">val</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the Panel with the pairs of the validation set, according to</span>
+<span class="sd">        the parameters given in the &#39;set_train_val_test_sets&#39; function.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            ``Panel``: Panel with the pairs of the validation set.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">val_size</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_size</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">train_size</span> <span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_size</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">val_size</span><span class="p">)]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the Panel with the pairs of the testing set, according to</span>
+<span class="sd">        the parameters given in the &#39;set_train_val_test_sets&#39; function.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            ``Panel``: Panel with the pairs of the testing set.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">val_size</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">train_size</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">train_size</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">val_size</span> <span class="p">:]</span>
+
+<div class="viewcode-block" id="Panel.plot"><a class="viewcode-back" href="../../wavy/wavy.panel.html#wavy.panel.Panel.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">split_sets</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">split_sets</span><span class="o">=</span><span class="n">split_sets</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Panel.plot_slider"><a class="viewcode-back" href="../../wavy/wavy.panel.html#wavy.panel.Panel.plot_slider">[docs]</a>    <span class="k">def</span> <span class="nf">plot_slider</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">steps</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">plot_slider</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">steps</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Logspace.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
