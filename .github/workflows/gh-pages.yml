@@ -34,7 +34,7 @@ jobs:
             ${{ runner.os }}-pip-
 
       - name: Install dependencies
-        run: python3 -m pip install sphinx sphinx-rtd-theme sphinxcontrib-napoleon
+        run: python3 -m pip install sphinx sphinx-rtd-theme sphinxcontrib-napoleon toml
 
       - run: cd docs && make doc
 
@@ -43,9 +43,3 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: docs/_build/html
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v1
-        with:
-          name: DocumentationHTML
-          path: docs/_build/html/

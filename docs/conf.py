@@ -12,6 +12,9 @@
 #
 # import os
 import sys
+from pathlib import Path
+
+import toml
 
 sys.path.append("../")
 
@@ -23,7 +26,10 @@ copyright = "2022, Logspace"
 author = "Logspace"
 
 # The full version, including alpha/beta/rc tags
-# release = "0.0.1"
+path = Path(__file__).resolve().parents[1] / "pyproject.toml"
+pyproject = toml.loads(open(str(path)).read())
+version = pyproject["tool"]["poetry"]["version"]
+release = version
 
 
 # -- General configuration ---------------------------------------------------
