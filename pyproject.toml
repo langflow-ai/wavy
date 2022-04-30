@@ -13,7 +13,7 @@ include = [
     "LICENSE",
 ]
 packages = [
-    {include = "wavy"}
+    {include = "wavy", from = "src"}
 ]
 
 [tool.poetry.dependencies]

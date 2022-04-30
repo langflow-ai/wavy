@@ -1,7 +1,0 @@
-panel
-=====
-
-.. automodule:: wavy.panel
-   :members:
-   :undoc-members:
-   :show-inheritance:

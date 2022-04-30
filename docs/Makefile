@@ -6,8 +6,8 @@
 SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = .
-FILESDIR      = wavy
-DESTDIR       = wavy
+FILESDIR      = src/wavy
+DESTDIR       = _src
 BUILDDIR      = _build
 TEMPLATEDIR   = _templates
 
