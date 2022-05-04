@@ -179,6 +179,7 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frames</span><span class="p">):</span>
         <span class="c1"># ? Should frames always have increasing indexes? Maybe add warning and reindex</span>
         <span class="c1"># ? What about duplicated indices?</span>
+        <span class="c1"># ? Would it make sense to have the panel as only one dataframe with index references per frame window?</span>
 
         <span class="k">class</span> <span class="nc">_IXIndexer</span><span class="p">:</span>
             <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
@@ -209,12 +210,14 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">set_training_split</span><span class="p">()</span>
 
+
+    <span class="c1"># TODO: add setattr, e.g. for renaming columns ()</span>
+
     <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
 
             <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-                <span class="c1"># TODO: Only certain functions should happen here</span>
-                <span class="c1"># Either blacklist or whitelist</span>
+                <span class="c1"># TODO: add either blacklist or whitelist of functions to wrap</span>
                 <span class="k">return</span> <span class="n">Panel</span><span class="p">(</span>
                     <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">name</span><span class="p">)(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">]</span>
                 <span class="p">)</span>
@@ -396,6 +399,8 @@
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">)),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;nan&quot;</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="Panel.dropna"><a class="viewcode-back" href="../../wavy/wavy.panel.html#wavy.panel.Panel.dropna">[docs]</a>    <span class="k">def</span> <span class="nf">dropna</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># TODO: Consider renaming this function and adding pandas dropna</span>
+        <span class="c1"># TODO: Pandas dropna warning if lookbacks have different size</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Drop pairs with missing values from the panel.</span>
 
@@ -454,12 +459,15 @@
 <span class="sd">        2005-12-23 19.460543 19.373114 2.258598 2.261960 19.322122 19.409552 2.266543 2.241485</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
+
+
         <span class="k">if</span> <span class="n">flatten</span><span class="p">:</span>
             <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">])</span>
             <span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">]</span>
             <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># TODO: Add column representing the frame index of each row</span>
             <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
                 <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df</span><span class="p">,</span> <span class="n">i</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">timesteps</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">:]])</span>
