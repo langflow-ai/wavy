@@ -379,6 +379,7 @@ class ShallowModel:
     def __init__(self, x, y, model, metrics, **kwargs):
         # TODO: Add remaining functions (predict, score, etc.)
         # TODO: Include model_type and metrics for scoring
+        # TODO: Fix shape issues
         """model: Scikit-learn model
         metrics: List of sklearn metrics to use for scoring
         """

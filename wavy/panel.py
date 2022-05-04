@@ -100,6 +100,7 @@ class Panel:
     def __init__(self, frames):
         # ? Should frames always have increasing indexes? Maybe add warning and reindex
         # ? What about duplicated indices?
+        # ? Would it make sense to have the panel as only one dataframe with index references per frame window?
 
         class _IXIndexer:
             def __getitem__(self, item):
@@ -130,12 +131,14 @@ class Panel:
 
         self.set_training_split()
 
+
+    # TODO: add setattr, e.g. for renaming columns ()
+
     def __getattr__(self, name):
         try:
 
             def wrapper(*args, **kwargs):
-                # TODO: Only certain functions should happen here
-                # Either blacklist or whitelist
+                # TODO: add either blacklist or whitelist of functions to wrap
                 return Panel(
                     [getattr(frame, name)(*args, **kwargs) for frame in self.frames]
                 )
@@ -317,6 +320,8 @@ class Panel:
         return pd.DataFrame(values, index=range(len(self.frames)), columns=["nan"])
 
     def dropna(self):
+        # TODO: Consider renaming this function and adding pandas dropna
+        # TODO: Pandas dropna warning if lookbacks have different size
         """
         Drop pairs with missing values from the panel.
 
@@ -375,12 +380,15 @@ class Panel:
         2005-12-23 19.460543 19.373114 2.258598 2.261960 19.322122 19.409552 2.266543 2.241485
         """
 
+
+
         if flatten:
             values = np.array([i.values.flatten() for i in self.frames])
             index = [i.index[-1] for i in self.frames]
             return pd.DataFrame(values, index=index)
 
         else:
+            # TODO: Add column representing the frame index of each row
             df = self[0].copy()
             for i in self[1:]:
                 df = pd.concat([df, i[self.timesteps - 1 :]])
