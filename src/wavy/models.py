@@ -209,7 +209,7 @@ class BaselineConstant(_Baseline):
         constant: float = 0,
     ):
 
-        self.constant = constant if model_type == 'regression' else int(constant)
+        self.constant = constant if model_type == "regression" else int(constant)
         super().__init__(x=x, y=y, model_type=model_type, loss=loss, metrics=metrics)
 
     def set_arrays(self):
