@@ -140,10 +140,6 @@ class _BaseModel:
     def residuals(self):
         return self.predict() - self.y
 
-    # def plot_residuals(self):
-    #     # TODO: use area plot
-    #     return panel_plot(self.residuals())
-
 
 class _Baseline(_BaseModel):
     def __init__(
@@ -202,6 +198,7 @@ class BaselineShift(_Baseline):
 
 
 class BaselineConstant(_Baseline):
+    # BUG: Not working when model_type="classification"
     def __init__(
         self,
         x,
@@ -212,7 +209,7 @@ class BaselineConstant(_Baseline):
         constant: float = 0,
     ):
 
-        self.constant = constant
+        self.constant = constant if model_type == 'regression' else int(constant)
         super().__init__(x=x, y=y, model_type=model_type, loss=loss, metrics=metrics)
 
     def set_arrays(self):
@@ -321,6 +318,7 @@ class ConvModel(_BaseModel):
             ``DenseModel``: Constructed DenseModel
         """
 
+        # TODO: Raise error if lookback <= (or <, not sure) kernel_size
         self.conv_layers = conv_layers
         self.conv_filters = conv_filters
         self.kernel_size = kernel_size
@@ -423,11 +421,9 @@ def compute_score_per_model(*models, on="val"):
     )
 
 
-def compute_default_scores(x, y, model_type, metrics, epochs=10, verbose=0, **kwargs):
-    models = [BaselineConstant, BaselineShift, DenseModel, ConvModel]
-    models = [
-        model(x=x, y=y, model_type=model_type, metrics=metrics) for model in models
-    ]
+def compute_default_scores(x, y, model_type, epochs=10, verbose=0, **kwargs):
+    models = [BaselineShift, DenseModel, ConvModel]
+    models = [model(x=x, y=y, model_type=model_type) for model in models]
     for model in models:
         model.fit(epochs=epochs, verbose=verbose, **kwargs)
     return compute_score_per_model(*models)
