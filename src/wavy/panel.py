@@ -198,7 +198,7 @@ class Panel:
             columns = key[1] if isinstance(key[1], list) else [key[1]]
 
             if isinstance(index, int):
-                return Panel([self.frames[index]]).loc[:, columns]
+                return self.frames[index].loc[:, columns]
             elif isinstance(index, slice):
                 return Panel(self.frames[index]).loc[:, columns]
             elif isinstance(index, list):
@@ -326,7 +326,7 @@ class Panel:
             ``Panel``: Panel with missing values dropped.
         """
         nan_values = self.findna()
-        idx = {i for i in range(len(self)) if i not in nan_values}
+        idx = [i for i in range(len(self)) if i not in nan_values]
         if not idx:
             raise ValueError("'dropna' would create empty Panel")
         return self[idx]
@@ -340,7 +340,7 @@ class Panel:
         """
 
         values = pd.Series([frame.values.sum() for frame in self]).isna()
-        return values[values == True].index.tolist()
+        return values[values].index.tolist()
 
     def findinf(self):
         """
@@ -350,7 +350,7 @@ class Panel:
             ``List``: List with index of Inf values.
         """
         values = np.isinf(pd.Series([frame.values.sum() for frame in self]))
-        return values[values == True].index.tolist()
+        return values[values].index.tolist()
 
     def as_dataframe(self, flatten=False):
         # TODO: Add column names instead of only index

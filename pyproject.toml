@@ -9,12 +9,8 @@ readme = "README.md"
 license = "MIT"
 homepage = "https://github.com/logspace-ai/wavy"
 repository = "https://github.com/logspace-ai/wavy"
-include = [
-    "LICENSE",
-]
-packages = [
-    {include = "wavy", from = "src"}
-]
+include = ["LICENSE"]
+packages = [{include = "wavy", from = "src"}]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.11"
@@ -38,3 +34,9 @@ isort = "*"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
+[tool.pytest]
+python_files = ["test_*.py"]
