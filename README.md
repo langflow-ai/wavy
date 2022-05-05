@@ -14,7 +14,7 @@
   <h3 align="center">Wavy</h3>
 
   <p align="center">
-    Time Series Done The Right Way
+    Time Series Windowing Made Easy
     <br />
     <a href="https://logspace-ai.github.io/wavy/"><strong>Explore the docs</strong></a>
     <br />
