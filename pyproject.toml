@@ -22,6 +22,7 @@ numpy = "^1.22.3"
 tqdm = "^4.64.0"
 plotlab = "^0.1.0"
 toml = "^0.10.2"
+nbformat = "^5.4.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
@@ -30,6 +31,8 @@ pre-commit = "*"
 flake8 = "*"
 black = "*"
 isort = "*"
+ipykernel = "*"
+yfinance = "^0.1.70"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -1,3 +1,4 @@
+import itertools
 import warnings
 from copy import deepcopy
 
@@ -7,13 +8,13 @@ from tqdm.auto import tqdm
 
 from wavy.plot import plot, plot_slider
 
-ARG_0_METHODS = [
+_ARG_0_METHODS = [
     "__abs__",
     "__pos__",
     "__neg__",
     "__invert__",
 ]
-ARG_1_METHODS = [
+_ARG_1_METHODS = [
     "__add__",
     "__sub__",
     "__mul__",
@@ -55,18 +56,7 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0):
 
     Example:
 
-    >>> from_data(df, 5, 5, 0)
-    size                               1
-    lookback                           2
-    horizon                            2
-    num_xassets                        2
-    num_yassets                        2
-    num_xchannels                      2
-    num_ychannels                      2
-    start            2005-12-27 00:00:00
-    end              2005-12-30 00:00:00
-    Name: Panel, dtype: object
-    <Panel, size 1>
+    >>> x, y = wavy.create_panels(hist, lookback=2, horizon=1)
     """
 
     x_timesteps = len(df.index)
@@ -131,14 +121,12 @@ class Panel:
 
         self.set_training_split()
 
-
     # TODO: add setattr, e.g. for renaming columns ()
 
     def __getattr__(self, name):
         try:
 
             def wrapper(*args, **kwargs):
-                # TODO: add either blacklist or whitelist of functions to wrap
                 return Panel(
                     [getattr(frame, name)(*args, **kwargs) for frame in self.frames]
                 )
@@ -158,14 +146,14 @@ class Panel:
             )
         return Panel([getattr(frame, __f)(other) for frame in self.frames])
 
-    for dunder in ARG_1_METHODS:
-        locals()[dunder] = lambda self, other, __f=dunder: self._1_arg(other, __f)
+    for _dunder in _ARG_1_METHODS:
+        locals()[_dunder] = lambda self, other, __f=_dunder: self._1_arg(other, __f)
 
     def _0_arg(self, __f):
         return Panel([getattr(frame, __f)() for frame in self.frames])
 
-    for dunder in ARG_0_METHODS:
-        locals()[dunder] = lambda self, __f=dunder: self._0_arg(__f)
+    for _dunder in _ARG_0_METHODS:
+        locals()[_dunder] = lambda self, __f=_dunder: self._0_arg(__f)
 
     def __getitem__(self, key):
 
@@ -246,7 +234,7 @@ class Panel:
         Example:
 
         >>> panel.columns
-        {'Level 0': {'AAPL', 'MSFT'}, 'Level 1': {'Close', 'Open'}}
+        Index(['Open', 'High', 'Low', 'Close'], dtype='object')
         """
 
         return self[0].columns
@@ -259,7 +247,11 @@ class Panel:
         Example:
 
         >>> panel.index
-        DatetimeIndex(['2005-12-21', '2005-12-22', '2005-12-23'], dtype='datetime64[ns]', name='Date', freq=None)
+        0   2022-05-04
+        1   2022-05-05
+        2   2022-05-06
+        3   2022-05-09
+        dtype: datetime64[ns]
         """
 
         return pd.Series([frame.index[-1] for frame in self.frames])
@@ -272,19 +264,23 @@ class Panel:
         Example:
 
         >>> panel.values
-        array([[[19.57712554, 19.47512245,  2.21856582,  2.24606872],
-                [19.46054323, 19.37311363,  2.25859845,  2.26195979]],
-               [[19.46054323, 19.37311363,  2.25859845,  2.26195979],
-                [19.32212198, 19.40955162,  2.26654326,  2.24148512]]])
+        array([[[283.95999146, 284.13000488, 280.1499939 , 281.77999878],
+                [282.58999634, 290.88000488, 276.73001099, 289.98001099]],
+               [[282.58999634, 290.88000488, 276.73001099, 289.98001099],
+                [285.54000854, 286.3500061 , 274.33999634, 277.3500061 ]],
+               [[285.54000854, 286.3500061 , 274.33999634, 277.3500061 ],
+                [274.80999756, 279.25      , 271.26998901, 274.73001099]],
+               [[274.80999756, 279.25      , 271.26998901, 274.73001099],
+                [270.05999756, 272.35998535, 263.32000732, 264.57998657]]])
         """
 
         return np.array(
             [frame.values for frame in tqdm(self.frames, disable=not verbose)]
         )
 
-    @property
-    def timesteps(self):
-        return len(self[0])
+    # @property
+    # def timesteps(self):
+    #     return len(self[0])
 
     @property
     def shape(self):
@@ -294,7 +290,7 @@ class Panel:
         Example:
 
         >>> panel.shape
-        (2, 2, 4)
+        (4, 2, 4)
         """
 
         return (len(self),) + self[0].shape
@@ -310,8 +306,10 @@ class Panel:
 
         >>> panel.countna()
            nan
-        0    2
-        1    2
+        0    0
+        1    0
+        2    0
+        3    0
         """
         values = [
             frame.isnull().values.sum()
@@ -319,13 +317,41 @@ class Panel:
         ]
         return pd.DataFrame(values, index=range(len(self.frames)), columns=["nan"])
 
-    def dropna(self):
-        # TODO: Consider renaming this function and adding pandas dropna
-        # TODO: Pandas dropna warning if lookbacks have different size
+    def dropna(self, axis=0, how="any", thresh=None, subset=None, verbose=False):
         """
-        Drop pairs with missing values from the panel.
+        Drop rows or columns with missing values.
 
         Similar to `Pandas dropna <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop.html>`__
+
+        Args:
+            axis (int): The axis to drop on.
+            how (str): Method to use for dropping.
+            thresh (int): The number of non-NA values to require.
+            subset (list): List of columns to check.
+            verbose (bool): Whether to print progress.
+
+        Returns:
+            ``Panel``: Dropped panel.
+        """
+        new_panel = Panel(
+            [
+                frame.dropna(axis=axis, how=how, thresh=thresh, subset=subset)
+                for frame in self.frames
+            ]
+        )
+
+        different = any(
+            new_panel[i].shape != self[i].shape for i in range(len(new_panel))
+        )
+
+        if different:
+            warnings.warn("Dropped frames have different shape")
+
+        return new_panel
+
+    def wdropna(self):
+        """
+        Drop frames with missing values from the panel.
 
         Returns:
             ``Panel``: Panel with missing values dropped.
@@ -358,7 +384,6 @@ class Panel:
         return values[values].index.tolist()
 
     def as_dataframe(self, flatten=False):
-        # TODO: Add column names instead of only index
         """
 
         flatten=True will return one panel frame per row
@@ -380,21 +405,25 @@ class Panel:
         2005-12-23 19.460543 19.373114 2.258598 2.261960 19.322122 19.409552 2.266543 2.241485
         """
 
-
-
         if flatten:
+            columns = [
+                f"{str(i)}-{col}"
+                for i, col in itertools.product(range(self.shape[1]), self[0].columns)
+            ]
             values = np.array([i.values.flatten() for i in self.frames])
             index = [i.index[-1] for i in self.frames]
-            return pd.DataFrame(values, index=index)
+            return pd.DataFrame(values, index=index, columns=columns)
 
         else:
-            # TODO: Add column representing the frame index of each row
-            df = self[0].copy()
-            for i in self[1:]:
-                df = pd.concat([df, i[self.timesteps - 1 :]])
+            df = pd.DataFrame()
+
+            for i in range(self.shape[1]):
+                a = self[i].head(1).copy()
+                a["frame"] = self[i].frame_index
+                df = pd.concat([df, a])
             return df
 
-    def shift(self, window: int = 1):
+    def shiftw(self, window: int = 1):
         """
         Shift panel by desired number of frames.
 
@@ -451,7 +480,7 @@ class Panel:
 
         return Panel(new_panel)
 
-    def diff(self, window: int = 1):
+    def diffw(self, window: int = 1):
         """
         Difference between frames.
 
@@ -491,7 +520,7 @@ class Panel:
 
         return self - self.shift(window)
 
-    def pct_change(self, window: int = 1):
+    def pct_changew(self, window: int = 1):
         """
         Percentage change between the current and a prior frame.
 
@@ -573,6 +602,15 @@ class Panel:
         assert self.train_size + self.val_size + self.test_size == len(self)
 
     def update(self, other):
+        """
+        Update the panel with values from another panel.
+
+        Args:
+            other (Panel): Panel to update with.
+
+        Returns:
+            ``Panel``: Result of update function.
+        """
         panel = deepcopy(self)
 
         df = panel.as_dataframe()
@@ -590,17 +628,40 @@ class Panel:
             i.iloc[:, :] = j
         return panel
 
-    def resample(self, samples: int = 1, type: str = "first"):
-        # TODO: Naming is confusing. This is closer to the panel level of pandas sample(), not resample().
+    def head(self, n: int = 5):
         """
-        Resample panel returning a subset of frames.
+        Return the first n frames of the panel.
+
+        Args:
+            n (int): Number of frames to return.
+
+        Returns:
+            ``Panel``: Result of head function.
+        """
+        return Panel(self.frames[:n])
+
+    def tail(self, n: int = 5):
+        """
+        Return the last n frames of the panel.
+
+        Args:
+            n (int): Number of frames to return.
+
+        Returns:
+            ``Panel``: Result of tail function.
+        """
+        return Panel(self.frames[-n:])
+
+    def sample(self, samples: int = 5, type: str = "first"):
+        """
+        Sample panel returning a subset of frames.
 
         Args:
             samples (int): Number of samples to keep
             type (str): Resempling type, 'first', 'last' or 'spaced'
 
         Returns:
-            ``Panel``: Result of resample function.
+            ``Panel``: Result of sample function.
         """
 
         if type == "first":
@@ -650,7 +711,26 @@ class Panel:
             return self[self.train_size + self.val_size :]
 
     def plot(self, split_sets=True, **kwargs):
+        """
+        Plot the panel.
+
+        Args:
+            split_sets (bool): If True, plot the training, validation, and test sets.
+            **kwargs: Additional arguments to pass to the plot function.
+
+        Returns:
+            ``plot``: Result of plot function.
+        """
         return plot(self, split_sets=split_sets, **kwargs)
 
     def plot_slider(self, steps):
+        """
+        Plot the panel using a slider.
+
+        Args:
+            steps (int): Number of steps to plot.
+
+        Returns:
+            ``plot_slider``: Result of plot_slider function.
+        """
         return plot_slider(self, steps)
