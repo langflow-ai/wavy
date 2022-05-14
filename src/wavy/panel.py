@@ -349,7 +349,7 @@ class Panel:
 
         return new_panel
 
-    def wdropna(self):
+    def dropnaw(self):
         """
         Drop frames with missing values from the panel.
 
@@ -385,24 +385,36 @@ class Panel:
 
     def as_dataframe(self, flatten=False):
         """
+        Convert panel to DataFrame.
 
-        flatten=True will return one panel frame per row
+        Args:
+            flatten (bool): Whether to flatten the panel.
+
+        Returns:
+            ``DataFrame``: Panel as DataFrame.
 
         Example:
 
         Panel containing two frames will present the following result:
 
         >>> panel[0]
-                        MSFT                 AAPL
-                        Open      Close      Open     Close
+                          Open        High         Low       Close
         Date
-        2005-12-21  19.577126  19.475122  2.218566  2.246069
-        2005-12-22  19.460543  19.373114  2.258598  2.261960
+        2022-05-06  274.809998  279.250000  271.269989  274.730011
+        2022-05-09  270.059998  272.359985  263.320007  264.579987
+
+        >>> panel.as_dataframe()
+                          Open        High         Low       Close  frame
+        Date
+        2022-05-06  274.809998  279.250000  271.269989  274.730011      2
+        2022-05-09  270.059998  272.359985  263.320007  264.579987      3
 
         >>> panel.as_dataframe(flatten=True)
-                           0         1        2        3         4         5        6        7
-        2005-12-22 19.577126 19.475122 2.218566 2.246069 19.460543 19.373114 2.258598 2.261960
-        2005-12-23 19.460543 19.373114 2.258598 2.261960 19.322122 19.409552 2.266543 2.241485
+                        0-Open      0-High       0-Low     0-Close      1-Open      1-High       1-Low     1-Close
+        2022-05-09  274.809998  279.250000  271.269989  274.730011  270.059998  272.359985  263.320007  264.579987
+        2022-05-10  270.059998  272.359985  263.320007  264.579987  271.690002  273.750000  265.070007  269.500000
+        2022-05-11  271.690002  273.750000  265.070007  269.500000  265.679993  271.359985  259.299988  260.549988
+        2022-05-12  265.679993  271.359985  259.299988  260.549988  257.690002  259.880005  250.020004  255.350006
         """
 
         if flatten:
@@ -438,27 +450,24 @@ class Panel:
         Example:
 
         >>> panel[0]
-                        MSFT                 AAPL
-                        Open      Close      Open     Close
+                          Open        High         Low       Close
         Date
-        2005-12-21  19.577126  19.475122  2.218566  2.246069
-        2005-12-22  19.460543  19.373114  2.258598  2.261960
+        2022-05-06  274.809998  279.250000  271.269989  274.730011
+        2022-05-09  270.059998  272.359985  263.320007  264.579987
 
         >>> panel = panel.shift(window = 1)
 
         >>> panel[0]
-                MSFT       AAPL
-                Open Close Open Close
+                   Open  High  Low Close
         Date
-        2005-12-21  NaN   NaN  NaN   NaN
-        2005-12-22  NaN   NaN  NaN   NaN
+        2022-05-06  NaN   NaN  NaN   NaN
+        2022-05-09  NaN   NaN  NaN   NaN
 
         >>> panel[1]
-                        MSFT                 AAPL
-                        Open      Close      Open     Close
+                          Open        High         Low       Close
         Date
-        2005-12-21  19.577126  19.475122  2.218566  2.246069
-        2005-12-22  19.460543  19.373114  2.258598  2.261960
+        2022-05-06  274.809998  279.250000  271.269989  274.730011
+        2022-05-09  270.059998  272.359985  263.320007  264.579987
         """
 
         new_panel = []
@@ -481,6 +490,7 @@ class Panel:
         return Panel(new_panel)
 
     def diffw(self, window: int = 1):
+        # TODO Check if this function is correct
         """
         Difference between frames.
 
@@ -495,30 +505,27 @@ class Panel:
         Example:
 
         >>> panel[0]
-                        MSFT                 AAPL
-                        Open      Close      Open     Close
+                          Open        High         Low       Close
         Date
-        2005-12-21  19.577126  19.475122  2.218566  2.246069
-        2005-12-22  19.460543  19.373114  2.258598  2.261960
+        2022-05-06  274.809998  279.250000  271.269989  274.730011
+        2022-05-09  270.059998  272.359985  263.320007  264.579987
 
         >>> panel = panel.diff(window = 1)
 
         >>> panel[0]
-                MSFT       AAPL
-                Open Close Open Close
+                   Open  High  Low Close
         Date
-        2005-12-21  NaN   NaN  NaN   NaN
-        2005-12-22  NaN   NaN  NaN   NaN
+        2022-05-06  NaN   NaN  NaN   NaN
+        2022-05-09  NaN   NaN  NaN   NaN
 
         >>> panel[1]
-                        MSFT                AAPL
-                        Open     Close      Open     Close
+                        Open      High       Low      Close
         Date
-        2005-12-22 -0.116582 -0.102009  0.040033  0.015891
-        2005-12-23 -0.138421  0.036438  0.007945 -0.020475
+        2022-05-09 -4.750000 -6.890015 -7.949982 -10.150024
+        2022-05-10  1.630005  1.390015  1.750000   4.920013
         """
 
-        return self - self.shift(window)
+        return self - self.shiftw(window)
 
     def pct_changew(self, window: int = 1):
         """
@@ -535,29 +542,26 @@ class Panel:
         Example:
 
         >>> panel[0]
-                        MSFT                 AAPL
-                        Open      Close      Open     Close
+                          Open        High         Low       Close
         Date
-        2005-12-21  19.577126  19.475122  2.218566  2.246069
-        2005-12-22  19.460543  19.373114  2.258598  2.261960
+        2022-05-06  274.809998  279.250000  271.269989  274.730011
+        2022-05-09  270.059998  272.359985  263.320007  264.579987
 
         >>> panel = panel.pct_change(window = 1)
 
         >>> panel[0]
-                MSFT       AAPL
-                Open Close Open Close
+                    Open  High  Low  Close
         Date
-        2005-12-21  NaN   NaN  NaN   NaN
-        2005-12-22  NaN   NaN  NaN   NaN
+        2022-05-06   NaN   NaN  NaN    NaN
+        2022-05-09   NaN   NaN  NaN    NaN
 
         >>> panel[1]
-                        MSFT                AAPL
-                        Open     Close      Open     Close
+                        Open      High       Low     Close
         Date
-        2005-12-22 -0.005955 -0.005238  0.018044  0.007075
-        2005-12-23 -0.007113  0.001881  0.003518 -0.009052
+        2022-05-09 -0.017285 -0.024673 -0.029307 -0.036945
+        2022-05-10  0.006036  0.005104  0.006646  0.018596
         """
-        a = self.shift(window)
+        a = self.shiftw(window)
         return (self - a) / a
 
     def match(self, other, verbose=False):

@@ -48,7 +48,7 @@ def test_countna(panel):
 
 
 def test_dropna(panel):
-    assert panel.dropna().shape[0] == 2, "Nan indexes are not correct"
+    assert panel.dropnaw().shape[0] == 2, "Nan indexes are not correct"
 
 
 def test_findna(panel):
@@ -103,5 +103,3 @@ def test_diff(panel):
 
 def test_pct_change(panel):
     assert panel.pct_change().shape == (3, 1, 2), "Pct change is not correct"
-
-
