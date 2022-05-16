@@ -427,13 +427,14 @@ class Panel:
             return pd.DataFrame(values, index=index, columns=columns)
 
         else:
-            df = pd.DataFrame()
-
-            for i in range(self.shape[1]):
+            list_frames = []
+            for i in range(self.shape[0]):
                 a = self[i].head(1).copy()
                 a["frame"] = self[i].frame_index
-                df = pd.concat([df, a])
-            return df
+                list_frames.append(a)
+            dataframe = pd.concat(list_frames)
+            dataframe.drop_duplicates(inplace=True)
+            return dataframe
 
     def shiftw(self, window: int = 1):
         """
@@ -490,7 +491,6 @@ class Panel:
         return Panel(new_panel)
 
     def diffw(self, window: int = 1):
-        # TODO Check if this function is correct
         """
         Difference between frames.
 

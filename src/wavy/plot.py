@@ -14,6 +14,14 @@ class PanelFigure(Figure):
         super().__init__()
 
     def split_sets(self, panel, color="gray", opacity=1):
+        """
+        Split panel into sets.
+
+        Args:
+            panel (wavy.Panel): Panel to split
+            color (str): Color of the sets
+            opacity (float): Opacity of the sets
+        """
         # BUG: Seems to break if using "ggplot2"
         # ! Won't take effect until next trace is added (no axis was added)
         # TODO: Functions could accept both dataframe or panel
@@ -63,28 +71,59 @@ class PanelFigure(Figure):
                 data = data.as_dataframe()
 
             for col in data.columns:
-                func(self, data[col], *tuple(args), **kwargs)
+                if col != "frame":
+                    func(self, data[col], *tuple(args), **kwargs)
 
         return inner
 
     @iterator
     def add_line(self, col, *args, **kwargs):
+        """
+        Add a line to the figure.
+
+        Args:
+            col (str): Column to plot
+        """
         self.line(col, *args, **kwargs)
 
     @iterator
     def add_area(self, col, *args, **kwargs):
+        """
+        Add an area to the figure.
+
+        Args:
+            col (str): Column to plot
+        """
         self.area(col, *args, **kwargs)
 
     @iterator
     def add_bar(self, col, *args, **kwargs):
+        """
+        Add a bar to the figure.
+
+        Args:
+            col (str): Column to plot
+        """
         self.bar(col, *args, **kwargs)
 
     @iterator
     def add_scatter(self, col, *args, **kwargs):
-        self.scatter(col, **kwargs)
+        """
+        Add a scatter to the figure.
+
+        Args:
+            col (str): Column to plot
+        """
+        self.scatter(col, *args, **kwargs)
 
     @iterator
     def add_dotline(self, col, *args, **kwargs):  # color="gray", opacity=0.5):
+        """
+        Add a dotline to the figure.
+
+        Args:
+            col (str): Column to plot
+        """
         # BUG: Dots and lines look displaced if zoomed in
         self.dotline(col, *args, **kwargs)  # color=color, opacity=opacity)
 
@@ -98,6 +137,17 @@ class PanelFigure(Figure):
         down_color="red",
         col=None,
     ):
+        """
+        Add a threshold line to the figure.
+
+        Args:
+            panel (wavy.Panel): Panel to plot
+            up_thresh (float): Upper threshold
+            down_thresh (float): Lower threshold
+            up_color (str): Color of the upper threshold
+            down_color (str): Color of the lower threshold
+            col (str): Column to plot
+        """
         col = self._colcheck(panel, col)
         self.threshline(
             panel.as_dataframe()[col], up_thresh, down_thresh, up_color, down_color
@@ -132,7 +182,7 @@ def plot(panel, split_sets=False, **kwargs):
 
     Args:
         panel (Panel): Panel object
-        split (bool): If True, plot vertical lines showing train, val, and test periods
+        split_sets (bool): If True, plot vertical lines showing train, val, and test periods
 
     Returns:
         ``Plot``: Plotted data
@@ -146,6 +196,12 @@ def plot(panel, split_sets=False, **kwargs):
 
 
 def plot_frame(x, y, index=None):
+    """
+    Plot a dataframe.
+
+    Args:
+
+    """
 
     # TODO: Code below is confusing
     # TODO: split into two functions?
