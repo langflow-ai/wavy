@@ -383,12 +383,13 @@ class Panel:
         values = np.isinf(pd.Series([frame.values.sum() for frame in self]))
         return values[values].index.tolist()
 
-    def as_dataframe(self, flatten=False):
+    def as_dataframe(self, flatten=False, frame=False):
         """
         Convert panel to DataFrame.
 
         Args:
             flatten (bool): Whether to flatten the panel.
+            frame (bool): Whether to include frame or not.
 
         Returns:
             ``DataFrame``: Panel as DataFrame.
@@ -430,7 +431,8 @@ class Panel:
             list_frames = []
             for i in range(self.shape[0]):
                 a = self[i].head(1).copy()
-                a["frame"] = self[i].frame_index
+                if frame:
+                    a["frame"] = self[i].frame_index
                 list_frames.append(a)
             dataframe = pd.concat(list_frames)
             dataframe.drop_duplicates(inplace=True)
