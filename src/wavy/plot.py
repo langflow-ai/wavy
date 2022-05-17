@@ -127,53 +127,6 @@ class PanelFigure(Figure):
         # BUG: Dots and lines look displaced if zoomed in
         self.dotline(col, *args, **kwargs)  # color=color, opacity=opacity)
 
-    # TODO check this function
-    def add_threshline(
-        self,
-        panel,
-        up_thresh,
-        down_thresh,
-        up_color="green",
-        down_color="red",
-        col=None,
-    ):
-        """
-        Add a threshold line to the figure.
-
-        Args:
-            panel (wavy.Panel): Panel to plot
-            up_thresh (float): Upper threshold
-            down_thresh (float): Lower threshold
-            up_color (str): Color of the upper threshold
-            down_color (str): Color of the lower threshold
-            col (str): Column to plot
-        """
-        col = self._colcheck(panel, col)
-        self.threshline(
-            panel.as_dataframe()[col], up_thresh, down_thresh, up_color, down_color
-        )
-
-    def _colcheck(self, panel, col):
-        if col is None:
-            if panel.columns.size == 1:
-                return panel.columns[0]
-            else:
-                raise ValueError("Must specify column to plot")
-
-
-# def plot_dataframes(dfs, **kwargs):
-#     """
-#     Plot dataframes.
-
-#     Args:
-#         dfs (list): List of dataframes
-
-#     Returns:
-#         ``Plot``: Plotted data
-#     """
-
-#     return pd.concat(dfs, axis=1).plot(**kwargs)
-
 
 def plot(panel, split_sets=False, **kwargs):
     # TODO: Add "kind" parameter to chose between plot types
@@ -195,158 +148,211 @@ def plot(panel, split_sets=False, **kwargs):
     return fig()
 
 
-def plot_frame(x, y, index=None):
-    """
-    Plot a dataframe.
+# def plot_dataframes(dfs, **kwargs):
+#     """
+#     Plot dataframes.
 
-    Args:
+#     Args:
+#         dfs (list): List of dataframes
 
-    """
+#     Returns:
+#         ``Plot``: Plotted data
+#     """
 
-    # TODO: Code below is confusing
-    # TODO: split into two functions?
-    # if not(is_panel(x) and is_panel(y) and index is not None) or (is_dataframe(x) and is_dataframe(y)):
-    #     raise Exception("x and y should be either Panel or DataFrame")
-
-    # if is_panel(x):
-    #     x = x[index]
-    #     y = y[index]
-
-    fig = PanelFigure()
-    fig.add_line(x)
-    fig.add_scatter(x)
-    fig.add_line(y)
-    fig.add_scatter(y)
-
-    return fig()
+#     return pd.concat(dfs, axis=1).plot(**kwargs)
 
 
-def plot_slider(x, y):
-    """
-    Make panel plots with slider.
+# def add_threshline(
+#     # self,
+#     panel,
+#     up_thresh,
+#     down_thresh,
+#     up_color="green",
+#     down_color="red",
+#     col=None,
+# ):
+#     """
+#     Add a threshold line to the figure.
 
-    Args:
-        steps (int): Number of equally spaced frames to plot
+#     Args:
+#         panel (wavy.Panel): Panel to plot
+#         up_thresh (float): Upper threshold
+#         down_thresh (float): Lower threshold
+#         up_color (str): Color of the upper threshold
+#         down_color (str): Color of the lower threshold
+#         col (str): Column to plot
+#     """
 
-    Returns:
-        ``Plot``: Plotted data.
-    """
+#     def _colcheck(panel, col):
+#         if col is None:
+#             if panel.columns.size == 1:
+#                 return panel.columns[0]
+#             else:
+#                 raise ValueError("Must specify column to plot")
 
-    assert len(x) == len(
-        y
-    ), "Length of frame should be equal, try using match function!"
-    assert len(x) < 100, "Number of steps cannot be bigger than 100."
+#     col = _colcheck(panel, col)
 
-    # cmap = px.colors.qualitative.Plotly
+#     fig = PanelFigure()
 
-    # Create figure
-    # columns_size = len(panel.columns)
-    # fig = make_subplots(rows=columns_size, cols=1, subplot_titles=[' '.join(column) for column in panel.columns])
-    # fig = make_subplots(rows=len(panel.channels), cols=len(panel.assets), subplot_titles=panel.assets)
+#     fig.threshline(
+#         panel.as_dataframe()[col], up_thresh, down_thresh, up_color, down_color
+#     )
 
-    # fig =
+#     return fig
 
-    # Add traces, one for each slider step
-    # len_ = np.linspace(0, len(x.frames), steps, dtype=int, endpoint=False)
-    # for step in len_:  # np.arange(len(panel_.x.frames)):
 
-    fig = go.Figure()
+# def plot_frame(x, y, index=None):
+#     """
+#     Plot a dataframe.
 
-    len_ = list(range(len(x)))
+#     Args:
 
-    for i in range(len(x)):
-        frame = plot_frame(x[i], y[i]).data
+#     """
 
-        for f in frame:
-            fig.add_trace(f)
+#     # TODO: Code below is confusing
+#     # TODO: split into two functions?
+#     # if not(is_panel(x) and is_panel(y) and index is not None) or (is_dataframe(x) and is_dataframe(y)):
+#     #     raise Exception("x and y should be either Panel or DataFrame")
 
-        # for i, column in enumerate(panel.columns):
-        #     # c = cmap[i]
+#     # if is_panel(x):
+#     #     x = x[index]
+#     #     y = y[index]
 
-        #     x_df = panel.frames[step].loc[:, column]
-        #     index = x_df.index
-        #     values = x_df.values.flatten()
+#     fig = PanelFigure()
+#     fig.add_line(x)
+#     fig.add_scatter(x)
+#     fig.add_line(y)
+#     fig.add_scatter(y)
 
-        #     fig =
+#     return fig()
 
-        # x_trace = go.Scatter(visible=False, x=index, y=values, line=dict(width=2, color=c), showlegend=False)
 
-        # x_trace = go.Scatter(x=index, y=values,
-        #                     line=dict(width=2, color=c), showlegend=showlegend, name=channel)
+# def plot_slider(panel, steps):
+#     """
+#     Make panel plots with slider.
 
-        # row = math.floor(i / 2)
-        # col = i % 2
-        # fig.add_trace(x_trace, row = row + 1, col = 1)
+#     Args:
+#         steps (int): Number of equally spaced frames to plot
 
-    # Make 10th trace visible
-    for i in range(len(fig.data)):
-        fig.data[i].visible = i < len(frame)
-    # Create and add slider
-    steps = []
-    for i in range(len(x)):
-        step = dict(
-            method="update",
-            args=[
-                {"visible": [False] * len(fig.data)},
-                {"title": f"frame {str(i)}"},
-            ],
-        )
-        # step["args"][0]["visible"][i] = True  # Toggle i'th trace to "visible"
+#     Returns:
+#         ``Plot``: Plotted data.
+#     """
 
-        for g in range(len(frame)):
-            step["args"][0]["visible"][
-                i * len(frame) + g
-            ] = True  # Toggle i'th trace to "visible"
+#     # assert len(x) == len(
+#     #     y
+#     # ), "Length of frame should be equal, try using match function!"
+#     # assert len(x) < 100, "Number of steps cannot be bigger than 100."
 
-        steps.append(step)
+#     # cmap = px.colors.qualitative.Plotly
 
-    sliders = [
-        dict(
-            active=0,
-            # currentvalue={"prefix": "Frequency: "},
-            pad={"t": 50},
-            steps=steps,
-        )
-    ]
+#     # Create figure
+#     # columns_size = len(panel.columns)
+#     # fig = make_subplots(rows=columns_size, cols=1, subplot_titles=[' '.join(column) for column in panel.columns])
+#     # fig = make_subplots(rows=len(panel.channels), cols=len(panel.assets), subplot_titles=panel.assets)
 
-    fig.update_layout(sliders=sliders)
+#     # fig =
 
-    # # Create and add slider
-    # steps_ = []
-    # for i in range(steps):
-    #     step = dict(
-    #         method="update",
-    #         args=[
-    #             {"visible": [False] * len(fig.data)},
-    #             {"title": f"frame {str(len_[i])}"},
-    #         ],
-    #     )
+#     # Add traces, one for each slider step
+#     # len_ = np.linspace(0, len(x.frames), steps, dtype=int, endpoint=False)
+#     # for step in len_:  # np.arange(len(panel_.x.frames)):
 
-    #     for g in range(columns_size):
-    #         step["args"][0]["visible"][i * columns_size + g] = True  # Toggle i'th trace to "visible"
+#     fig = go.Figure()
 
-    #     steps_.append(step)
+#     len_ = list(range(len(x)))
 
-    # sliders = [dict(
-    #     active=0,
-    #     # currentvalue={"prefix": "frame: "},
-    #     pad={"t": 50},
-    #     steps=steps_
-    # )]
+#     for i in range(len(x)):
+#         frame = plot_frame(x[i], y[i]).data
 
-    # fig.update_layout(
-    #     template='simple_white',
-    #     sliders=sliders
-    # )
+#         for f in frame:
+#             fig.add_trace(f)
 
-    return fig.show()
+#         # for i, column in enumerate(panel.columns):
+#         #     # c = cmap[i]
 
-    # Plot y titles
-    # num_assets = len(panel.assets)
-    # for i, channel in enumerate(panel.channels):
-    #     fig['layout'][f'yaxis{i*num_assets+1}'].update({'title':channel})
+#         #     x_df = panel.frames[step].loc[:, column]
+#         #     index = x_df.index
+#         #     values = x_df.values.flatten()
 
-    # fig.show()
+#         #     fig =
+
+#         # x_trace = go.Scatter(visible=False, x=index, y=values, line=dict(width=2, color=c), showlegend=False)
+
+#         # x_trace = go.Scatter(x=index, y=values,
+#         #                     line=dict(width=2, color=c), showlegend=showlegend, name=channel)
+
+#         # row = math.floor(i / 2)
+#         # col = i % 2
+#         # fig.add_trace(x_trace, row = row + 1, col = 1)
+
+#     # Make 10th trace visible
+#     for i in range(len(fig.data)):
+#         fig.data[i].visible = i < len(frame)
+#     # Create and add slider
+#     steps = []
+#     for i in range(len(x)):
+#         step = dict(
+#             method="update",
+#             args=[
+#                 {"visible": [False] * len(fig.data)},
+#                 {"title": f"frame {str(i)}"},
+#             ],
+#         )
+#         # step["args"][0]["visible"][i] = True  # Toggle i'th trace to "visible"
+
+#         for g in range(len(frame)):
+#             step["args"][0]["visible"][
+#                 i * len(frame) + g
+#             ] = True  # Toggle i'th trace to "visible"
+
+#         steps.append(step)
+
+#     sliders = [
+#         dict(
+#             active=0,
+#             # currentvalue={"prefix": "Frequency: "},
+#             pad={"t": 50},
+#             steps=steps,
+#         )
+#     ]
+
+#     fig.update_layout(sliders=sliders)
+
+#     # # Create and add slider
+#     # steps_ = []
+#     # for i in range(steps):
+#     #     step = dict(
+#     #         method="update",
+#     #         args=[
+#     #             {"visible": [False] * len(fig.data)},
+#     #             {"title": f"frame {str(len_[i])}"},
+#     #         ],
+#     #     )
+
+#     #     for g in range(columns_size):
+#     #         step["args"][0]["visible"][i * columns_size + g] = True  # Toggle i'th trace to "visible"
+
+#     #     steps_.append(step)
+
+#     # sliders = [dict(
+#     #     active=0,
+#     #     # currentvalue={"prefix": "frame: "},
+#     #     pad={"t": 50},
+#     #     steps=steps_
+#     # )]
+
+#     # fig.update_layout(
+#     #     template='simple_white',
+#     #     sliders=sliders
+#     # )
+
+#     return fig.show()
+
+# Plot y titles
+# num_assets = len(panel.assets)
+# for i, channel in enumerate(panel.channels):
+#     fig['layout'][f'yaxis{i*num_assets+1}'].update({'title':channel})
+
+# fig.show()
 
 
 # def plot_prediction(panel, x):

@@ -729,7 +729,7 @@ class Panel:
         """
         return plot(self, split_sets=split_sets, **kwargs)
 
-    def plot_slider(self, steps):
+    def plot_slider(self, steps=100):
         """
         Plot the panel using a slider.
 
