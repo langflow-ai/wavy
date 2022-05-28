@@ -1,9 +1,3 @@
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
-
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
@@ -26,6 +20,19 @@
     <a href="https://github.com/logspace-ai/wavy/issues">Request Feature</a>
   </p>
 </div>
+
+<p align="center">
+<img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/logspace-ai/wavy" />
+<img alt="GitHub Last Commit" src="https://img.shields.io/github/last-commit/logspace-ai/wavy" />
+<img alt="GitHub Language Count" src="https://img.shields.io/github/languages/count/logspace-ai/wavy" />
+<img alt="" src="https://img.shields.io/github/repo-size/logspace-ai/wavy" />
+<img alt="GitHub Issues" src="https://img.shields.io/github/issues/logspace-ai/wavy" />
+<img alt="GitHub Closed Issues" src="https://img.shields.io/github/issues-closed/logspace-ai/wavy" />
+<img alt="GitHub Pull Requests" src="https://img.shields.io/github/issues-pr/logspace-ai/wavy" />
+<img alt="GitHub Closed Pull Requests" src="https://img.shields.io/github/issues-pr-closed/logspace-ai/wavy" /> 
+<img alt="GitHub Commit Activity (Year)" src="https://img.shields.io/github/commit-activity/y/logspace-ai/wavy" />
+<img alt="Github License" src="https://img.shields.io/github/license/logspace-ai/wavy" />  
+</p>
 
 
 <!-- ABOUT THE PROJECT -->
