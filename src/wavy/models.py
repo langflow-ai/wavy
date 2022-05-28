@@ -469,23 +469,43 @@ class ShallowModel:
 
         return Panel(pred_train + pred_val + pred_test)
 
-    def score(self, on=None, **kwargs):
+    def score(self, on=None):
+        """Score the model.
+
+        Args:
+            on (str): Column to use for scoring
+
+        Returns:
+            pd.Series: Score
+        """
+
+        metrics_dict = {}
 
         if on == "train":
-            train_metrics = self.model.evaluate(
-                self.x_train, self.y_train, verbose=0, **kwargs
-            )
-            return pd.Series(train_metrics, index=metrics_names)
-        if on == "val":
-            val_metrics = self.model.evaluate(
-                self.x_val, self.y_val, verbose=0, **kwargs
-            )
-            return pd.Series(val_metrics, index=metrics_names)
-        if on == "test":
-            test_metrics = self.model.evaluate(
-                self.x_test, self.y_test, verbose=0, **kwargs
-            )
-            return pd.Series(test_metrics, index=metrics_names)
+
+            for a in self.metrics:
+                metrics_dict[a.__name__] = a(
+                    self.y_train.values.squeeze(),
+                    self.predict(self.x_train).values.squeeze(),
+                )
+
+            return pd.Series(metrics_dict)
+        elif on == "val":
+            for a in self.metrics:
+                metrics_dict[a.__name__] = a(
+                    self.y_val.values.squeeze(),
+                    self.predict(self.x_val).values.squeeze(),
+                )
+
+            return pd.Series(metrics_dict)
+        elif on == "test":
+            for a in self.metrics:
+                metrics_dict[a.__name__] = a(
+                    self.y_test.values.squeeze(),
+                    self.predict(self.x_test).values.squeeze(),
+                )
+
+            return pd.Series(metrics_dict)
 
 
 def compute_score_per_model(*models, on="val"):
