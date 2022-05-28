@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm
 
-from wavy.plot import plot, plot_slider
+from wavy.plot import plot
 
 _ARG_0_METHODS = [
     "__abs__",
@@ -278,9 +278,17 @@ class Panel:
             [frame.values for frame in tqdm(self.frames, disable=not verbose)]
         )
 
-    # @property
-    # def timesteps(self):
-    #     return len(self[0])
+    @property
+    def timesteps(self):
+        """
+        Number of timesteps in the panel.
+
+        Example:
+
+        >>> panel.timesteps
+        4
+        """
+        return len(self[0])
 
     @property
     def shape(self):
@@ -729,14 +737,14 @@ class Panel:
         """
         return plot(self, split_sets=split_sets, **kwargs)
 
-    def plot_slider(self, steps=100):
-        """
-        Plot the panel using a slider.
+    # def plot_slider(self, steps=100):
+    #     """
+    #     Plot the panel using a slider.
 
-        Args:
-            steps (int): Number of steps to plot.
+    #     Args:
+    #         steps (int): Number of steps to plot.
 
-        Returns:
-            ``plot_slider``: Result of plot_slider function.
-        """
-        return plot_slider(self, steps)
+    #     Returns:
+    #         ``plot_slider``: Result of plot_slider function.
+    #     """
+    #     return plot_slider(self, steps)

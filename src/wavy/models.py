@@ -17,6 +17,8 @@ from tensorflow.keras.layers import (
     concatenate,
 )
 
+from .panel import Panel
+
 # ? Maybe we get rid of model_type and add e.g. DenseRegressor / DenseClassifier.
 
 
@@ -32,9 +34,6 @@ class _ConstantKerasModel(tf.keras.Model):
 
 class _BaseModel:
     """Base class for panel models."""
-
-    # TODO: Add warning when panel has nan values
-    # TODO: Auto convert boolean to int
 
     def __init__(
         self,
@@ -67,6 +66,18 @@ class _BaseModel:
                 "last_activation": "softmax",
             },
         }
+
+        # Raise error when panel has nan values
+        if x.findna():
+            raise ValueError("Panel x has NaN values.")
+        if y.findna():
+            raise ValueError("Panel x has NaN values.")
+
+        # Raise error if column is not numeric
+        for sample in [x[0], y[0]]:
+            for col in sample.columns:
+                if sample[col].dtype not in [np.float64, np.int64]:
+                    raise ValueError(f"Column {col} is not numeric.")
 
         self.x = x
         self.y = y
@@ -107,35 +118,53 @@ class _BaseModel:
     def build(self):
         pass
 
-    def predict(self, **kwargs):
-        pred_train = self.model.predict(self.x_train, **kwargs)
-        pred_val = self.model.predict(self.x_val, **kwargs)
-        pred_test = self.model.predict(self.x_test, **kwargs)
-        return self.y.update(np.concatenate([pred_train, pred_val, pred_test]))
+    def predict(self, data: Panel = None, **kwargs):
+
+        if data is not None:
+            return Panel(
+                [
+                    pd.DataFrame(b, columns=self.y[0].columns)
+                    for b in self.model.predict(data.values, **kwargs)
+                ]
+            )
+        pred_train = [
+            pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
+            for a, b in zip(self.model.predict(self.x_train, **kwargs), self.y.train)
+        ]
+        pred_val = [
+            pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
+            for a, b in zip(self.model.predict(self.x_val, **kwargs), self.y.val)
+        ]
+        pred_test = [
+            pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
+            for a, b in zip(self.model.predict(self.x_test, **kwargs), self.y.test)
+        ]
+
+        return Panel(pred_train + pred_val + pred_test)
 
     def score(self, on=None, **kwargs):
-        # TODO: Improve conditions to run faster
         metrics_names = self.model.metrics_names
 
-        train_metrics = self.model.evaluate(
-            self.x_train, self.y_train, verbose=0, **kwargs
-        )
-        val_metrics = self.model.evaluate(self.x_val, self.y_val, verbose=0, **kwargs)
-        test_metrics = self.model.evaluate(
-            self.x_test, self.y_test, verbose=0, **kwargs
-        )
-
         if on == "train":
+            train_metrics = self.model.evaluate(
+                self.x_train, self.y_train, verbose=0, **kwargs
+            )
             return pd.Series(train_metrics, index=metrics_names)
         if on == "val":
+            val_metrics = self.model.evaluate(
+                self.x_val, self.y_val, verbose=0, **kwargs
+            )
             return pd.Series(val_metrics, index=metrics_names)
         if on == "test":
+            test_metrics = self.model.evaluate(
+                self.x_test, self.y_test, verbose=0, **kwargs
+            )
             return pd.Series(test_metrics, index=metrics_names)
 
-        return pd.DataFrame(
-            {"train": train_metrics, "val": val_metrics, "test": test_metrics},
-            index=metrics_names,
-        )
+        # return pd.DataFrame(
+        #     {"train": train_metrics, "val": val_metrics, "test": test_metrics},
+        #     index=metrics_names,
+        # )
 
     def residuals(self):
         return self.predict() - self.y
@@ -176,8 +205,6 @@ class BaselineShift(_Baseline):
         super().__init__(x=x, y=y, model_type=model_type, loss=loss, metrics=metrics)
 
     def set_arrays(self):
-
-        warnings.warn(f"Filling nan values with {self.fillna}")
 
         self.x_train = (
             self.y.train.as_dataframe().shift(self.shift).fillna(self.fillna).values
@@ -318,7 +345,11 @@ class ConvModel(_BaseModel):
             ``DenseModel``: Constructed DenseModel
         """
 
-        # TODO: Raise error if lookback <= (or <, not sure) kernel_size
+        if x.shape[1] < kernel_size:
+            raise ValueError(
+                f"Lookback ({x.shape[1]}) must be greater or equal to kernel_size ({kernel_size})"
+            )
+
         self.conv_layers = conv_layers
         self.conv_filters = conv_filters
         self.kernel_size = kernel_size
@@ -407,15 +438,64 @@ class ShallowModel:
 
     def fit(self, **kwargs):
         """Fit the model."""
-        self.model.fit(X=self.x_train, y=self.y_train, **kwargs)
-        scores = [
-            scorer(self.model.predict(self.x_val), self.y_val)
-            for scorer in self.metrics
+        return self.model.fit(X=self.x_train, y=self.y_train, **kwargs)
+        # scores = [
+        #     scorer(self.model.predict(self.x_val), self.y_val)
+        #     for scorer in self.metrics
+        # ]
+        # return f"Model Trained. Validation Scores: {[round(i, 5) for i in scores]}"
+
+    def predict(self, data: Panel = None):
+
+        if data is not None:
+            return Panel(
+                [
+                    pd.DataFrame(b, columns=self.y[0].columns)
+                    for b in self.model.predict(data.values)
+                ]
+            )
+        pred_train = [
+            pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
+            for a, b in zip(self.model.predict(self.x_train), self.y.train)
         ]
-        return f"Model Trained. Validation Scores: {[round(i, 5) for i in scores]}"
+        pred_val = [
+            pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
+            for a, b in zip(self.model.predict(self.x_val), self.y.val)
+        ]
+        pred_test = [
+            pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
+            for a, b in zip(self.model.predict(self.x_test), self.y.test)
+        ]
+
+        return Panel(pred_train + pred_val + pred_test)
+
+    def score(self, on=None, **kwargs):
+
+        if on == "train":
+            train_metrics = self.model.evaluate(
+                self.x_train, self.y_train, verbose=0, **kwargs
+            )
+            return pd.Series(train_metrics, index=metrics_names)
+        if on == "val":
+            val_metrics = self.model.evaluate(
+                self.x_val, self.y_val, verbose=0, **kwargs
+            )
+            return pd.Series(val_metrics, index=metrics_names)
+        if on == "test":
+            test_metrics = self.model.evaluate(
+                self.x_test, self.y_test, verbose=0, **kwargs
+            )
+            return pd.Series(test_metrics, index=metrics_names)
 
 
 def compute_score_per_model(*models, on="val"):
+    """
+    Compute score per model
+
+    Args:
+
+    """
+
     return pd.DataFrame(
         [model.score(on=on) for model in models],
         index=[model.model.name for model in models],
@@ -428,6 +508,9 @@ def compute_default_scores(x, y, model_type, epochs=10, verbose=0, **kwargs):
     for model in models:
         model.fit(epochs=epochs, verbose=verbose, **kwargs)
     return compute_score_per_model(*models)
+
+
+# TODO: Panel Downsample (remove many frames for quick analysis)
 
 
 # TODO: Add LSTMModel / GRU / Transformer / ?
@@ -443,4 +526,3 @@ def compute_default_scores(x, y, model_type, epochs=10, verbose=0, **kwargs):
 # - Optimize hyperparameters and models and lookback/horizon/gap
 
 # TODO: Reinforcement Learning
-# TODO: Panel Downsample (remove many frames for quick analysis)
