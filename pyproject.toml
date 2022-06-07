@@ -33,6 +33,7 @@ black = "*"
 isort = "*"
 ipykernel = "*"
 yfinance = "^0.1.70"
+matplotlib = "^3.5.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

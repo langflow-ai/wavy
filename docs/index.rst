@@ -8,6 +8,31 @@ Welcome to Wavy's documentation!
 
 .. raw:: latex
 
+   \part{Installation}
+
+.. toctree::
+   :glob:
+   :maxdepth: 5
+   :caption: Installation
+
+   manual/installation.rst
+
+.. toctree::
+   :glob:
+   :maxdepth: 5
+   :caption: Introduction
+
+   manual/introduction.rst
+
+.. toctree::
+   :glob:
+   :maxdepth: 5
+   :caption: QuickStart
+
+   manual/quickstart.rst
+
+.. raw:: latex
+
    \part{Code}
 
 .. toctree::

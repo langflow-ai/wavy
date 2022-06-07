@@ -4,7 +4,7 @@ from typing import List
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import auc, mean_squared_error, roc_curve
 from tensorflow.keras import Input, Model, Sequential
 from tensorflow.keras.layers import (
     Conv1D,
@@ -73,6 +73,16 @@ class _BaseModel:
         if y.findna():
             raise ValueError("Panel x has NaN values.")
 
+        # Convert boolean in x and y to int
+        for col in x[0].columns:
+            if x[0][col].dtype == bool:
+                for i in range(len(x)):
+                    x[i][col] = x[i][col].astype(int)
+        for col in y[0].columns:
+            if y[0][col].dtype == bool:
+                for i in range(len(y)):
+                    y[i][col] = y[i][col].astype(int)
+
         # Raise error if column is not numeric
         for sample in [x[0], y[0]]:
             for col in sample.columns:
@@ -82,6 +92,7 @@ class _BaseModel:
         self.x = x
         self.y = y
 
+        self.model_type = model_type
         self.loss = loss or PARAMS[model_type]["loss"]
         self.optimizer = optimizer or PARAMS[model_type]["optimizer"]
         self.metrics = metrics or PARAMS[model_type]["metrics"]
@@ -100,6 +111,21 @@ class _BaseModel:
         self.y_train = self.y.train.values
         self.y_val = self.y.val.values
         self.y_test = self.y.test.values
+
+    def get_roc(self):
+        y = self.y_test.squeeze()
+        prediction = self.model.predict(self.x_test).squeeze()
+
+        # prediction = self.predict(data=self.x_test).values.squeeze()
+
+        fpr, tpr, thresholds = roc_curve(y, prediction)
+        # roc_auc = auc(fpr, tpr)
+        # print("ROC_AUC Score : ",roc_auc)
+        # print("Function for ROC_AUC Score : ",roc_auc_score(y_test, predictions)) # Function present
+        optimal_idx = np.argmax(tpr - fpr)
+        return thresholds[optimal_idx]
+        # print("Threshold value is:", optimal_threshold)
+        # plot_roc_curve(fpr, tpr)
 
     def fit(self, **kwargs):
         """Fit the model."""
@@ -120,13 +146,22 @@ class _BaseModel:
 
     def predict(self, data: Panel = None, **kwargs):
 
+        threshold = self.get_roc() if self.model_type == "classification" else None
+
         if data is not None:
-            return Panel(
+            panel = Panel(
                 [
                     pd.DataFrame(b, columns=self.y[0].columns)
                     for b in self.model.predict(data.values, **kwargs)
                 ]
             )
+
+            return (
+                panel
+                if threshold is None
+                else panel.apply(lambda x: (x > threshold) + 0)
+            )
+
         pred_train = [
             pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
             for a, b in zip(self.model.predict(self.x_train, **kwargs), self.y.train)
@@ -140,7 +175,10 @@ class _BaseModel:
             for a, b in zip(self.model.predict(self.x_test, **kwargs), self.y.test)
         ]
 
-        return Panel(pred_train + pred_val + pred_test)
+        panel = Panel(pred_train + pred_val + pred_test)
+        return (
+            panel if threshold is None else panel.apply(lambda x: (x > threshold) + 0)
+        )
 
     def score(self, on=None, **kwargs):
         metrics_names = self.model.metrics_names
@@ -408,11 +446,18 @@ class LogisticRegression(DenseModel):
 
 class ShallowModel:
     def __init__(self, x, y, model, metrics, **kwargs):
-        # TODO: Add remaining functions (predict, score, etc.)
-        # TODO: Include model_type and metrics for scoring
         # TODO: Fix shape issues
-        """model: Scikit-learn model
-        metrics: List of sklearn metrics to use for scoring
+        """Shallow Model.
+
+        Args:
+            x (Panel): Panel with data
+            y (Panel): Panel with data
+            model (str): Model (regression, classification, multi_classification)
+            metrics (List[str]): Metrics list
+            **kwargs: Additional arguments
+
+        Returns:
+            ``ShallowModel``: Constructed ShallowModel
         """
 
         self.x = x
@@ -426,6 +471,9 @@ class ShallowModel:
         self.set_arrays()
 
     def set_arrays(self):
+        """
+        Sets arrays for training, testing, and validation.
+        """
 
         self.x_train = self.x.train.as_dataframe(flatten=True)
         self.y_train = self.y.train.as_dataframe(flatten=True)
@@ -437,15 +485,25 @@ class ShallowModel:
         self.y_test = self.y.test.as_dataframe(flatten=True)
 
     def fit(self, **kwargs):
-        """Fit the model."""
+        """Fit the model.
+
+        Args:
+            **kwargs: Keyword arguments for the fit method of the model.
+
+        Returns:
+            ``ShallowModel``: The fitted model.
+        """
         return self.model.fit(X=self.x_train, y=self.y_train, **kwargs)
-        # scores = [
-        #     scorer(self.model.predict(self.x_val), self.y_val)
-        #     for scorer in self.metrics
-        # ]
-        # return f"Model Trained. Validation Scores: {[round(i, 5) for i in scores]}"
 
     def predict(self, data: Panel = None):
+        """Predict on data.
+
+        Args:
+            data (Panel, optional): Data to predict on. Defaults to None.
+
+        Returns:
+            Panel: Predicted data
+        """
 
         if data is not None:
             return Panel(
@@ -473,7 +531,7 @@ class ShallowModel:
         """Score the model.
 
         Args:
-            on (str): Column to use for scoring
+            on (str): Data to use for scoring
 
         Returns:
             pd.Series: Score
@@ -513,7 +571,11 @@ def compute_score_per_model(*models, on="val"):
     Compute score per model
 
     Args:
+        *models: Models to score
+        on (str, optional): Data to use for scoring. Defaults to "val".
 
+    Returns:
+        pd.DataFrame: Scores
     """
 
     return pd.DataFrame(
@@ -523,26 +585,22 @@ def compute_score_per_model(*models, on="val"):
 
 
 def compute_default_scores(x, y, model_type, epochs=10, verbose=0, **kwargs):
+    """
+    Compute default scores for a model.
+
+    Args:
+        x (Panel): X data
+        y (Panel): Y data
+        model_type (str): Model type
+        epochs (int, optional): Number of epochs. Defaults to 10.
+        verbose (int, optional): Verbosity. Defaults to 0.
+        **kwargs: Keyword arguments for the model.
+
+    Returns:
+        pd.DataFrame: Scores
+    """
     models = [BaselineShift, DenseModel, ConvModel]
     models = [model(x=x, y=y, model_type=model_type) for model in models]
     for model in models:
         model.fit(epochs=epochs, verbose=verbose, **kwargs)
     return compute_score_per_model(*models)
-
-
-# TODO: Panel Downsample (remove many frames for quick analysis)
-
-
-# TODO: Add LSTMModel / GRU / Transformer / ?
-# TODO: Add Warm-Up
-# TODO: Add Early Stopping
-
-# TODO: Feature Selection
-# TODO: Model explainability (e.g. feature importance, shap)
-
-# TODO: Grid Search / Random Search / Bayesian Optimization / Genetic Algorithm:
-# - Optimize hyperparameters
-# - Optimize hyperparameters and models
-# - Optimize hyperparameters and models and lookback/horizon/gap
-
-# TODO: Reinforcement Learning

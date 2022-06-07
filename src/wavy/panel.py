@@ -127,9 +127,21 @@ class Panel:
         try:
 
             def wrapper(*args, **kwargs):
-                return Panel(
-                    [getattr(frame, name)(*args, **kwargs) for frame in self.frames]
-                )
+                for i in range(len(self.frames)):
+                    new_frame = getattr(self.frames[i], name)(*args, **kwargs)
+                    if isinstance(new_frame, pd.Series):
+                        new_frame = pd.DataFrame(new_frame).T
+                    self.frames[i] = new_frame
+                return self
+
+                # new_frames = []
+                # for frame in range(len(self.frames)):
+                #     new_frame = getattr(frame, name)(*args, **kwargs)
+                #     if isinstance(new_frame, pd.Series):
+                #         new_frame = pd.DataFrame(new_frame).T
+                #     self.frames[0] = new_frame
+                #     new_frames.append(new_frame)
+                #     return Panel(new_frames)
 
             return wrapper
         except AttributeError:
