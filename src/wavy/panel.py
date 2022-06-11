@@ -1,4 +1,5 @@
 import itertools
+import math
 import warnings
 from copy import deepcopy
 
@@ -58,6 +59,9 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0):
 
     >>> x, y = wavy.create_panels(hist, lookback=2, horizon=1)
     """
+    import time
+
+    start = time.time()
 
     x_timesteps = len(df.index)
 
@@ -73,17 +77,34 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0):
     indexes = np.arange(lookback, end)
     xframes, yframes = [], []
 
-    for i in indexes:
+    print(f"elapsed time in seconds: {time.time() - start}")
+
+    start = time.time()
+    for index, i in enumerate(indexes):
         # ? functions that create a new panel might keep old frame indexes
-        x_frame = x.iloc[i - lookback : i]
-        x_frame.frame_index = i
-        xframes.append(x_frame)
+        xframes.append(x.iloc[i - lookback : i])
+        xframes[-1].columns.name = index
 
-        y_frame = y.iloc[i + gap : i + gap + horizon]
-        y_frame.frame_index = i
-        yframes.append(y_frame)
+        yframes.append(y.iloc[i + gap : i + gap + horizon])
+        yframes[-1].columns.name = index
+    print(f"elapsed time in seconds: {time.time() - start}")
 
-    return Panel(xframes), Panel(yframes)
+    start = time.time()
+    a, b = Panel(xframes), Panel(yframes)
+    print(f"elapsed time in seconds: {time.time() - start}")
+    return a, b
+
+
+def shallow_copy(panel, frames=[]):
+    """
+    Shallow copy of a panel.
+    """
+    new_panel = Panel(frames)
+    new_panel.train_size = panel.train_size
+    new_panel.test_size = panel.test_size
+    new_panel.val_size = panel.val_size
+
+    return new_panel
 
 
 class Panel:
@@ -94,25 +115,26 @@ class Panel:
 
         class _IXIndexer:
             def __getitem__(self, item):
-                return Panel([i.ix[item] for i in frames])
+                return shallow_copy(self, [i.ix[item] for i in frames])
 
         class _iLocIndexer:
             def __getitem__(self, item):
-                return Panel([i.iloc[item] for i in frames])
+                return shallow_copy(self, [i.iloc[item] for i in frames])
 
         class _LocIndexer:
             def __getitem__(self, item):
-                return Panel([i.loc[item] for i in frames])
+                return shallow_copy(self, [i.loc[item] for i in frames])
 
         class _AtIndexer:
             def __getitem__(self, item):
-                return Panel([i.at[item] for i in frames])
+                return shallow_copy(self, [i.at[item] for i in frames])
 
         class _iAtIndexer:
             def __getitem__(self, item):
-                return Panel([i.iat[item] for i in frames])
+                return shallow_copy(self, [i.iat[item] for i in frames])
 
         self.frames = frames
+
         self.ix = _IXIndexer()
         self.iloc = _iLocIndexer()
         self.loc = _LocIndexer()
@@ -122,6 +144,13 @@ class Panel:
         self.set_training_split()
 
     # TODO: add setattr, e.g. for renaming columns ()
+
+    @property
+    def indices(self):
+        """
+        Return the indices of the panel.
+        """
+        return [frame.columns.name for frame in self.frames]
 
     def __getattr__(self, name):
         try:
@@ -150,19 +179,20 @@ class Panel:
     # Function to map all dunder functions
     def _1_arg(self, other, __f):
         if isinstance(other, Panel):
-            return Panel(
+            return shallow_copy(
+                self,
                 [
                     getattr(frame, __f)(other_frame)
                     for frame, other_frame in zip(self.frames, other.frames)
-                ]
+                ],
             )
-        return Panel([getattr(frame, __f)(other) for frame in self.frames])
+        return shallow_copy(self, [getattr(frame, __f)(other) for frame in self.frames])
 
     for _dunder in _ARG_1_METHODS:
         locals()[_dunder] = lambda self, other, __f=_dunder: self._1_arg(other, __f)
 
     def _0_arg(self, __f):
-        return Panel([getattr(frame, __f)() for frame in self.frames])
+        return shallow_copy(self, [getattr(frame, __f)() for frame in self.frames])
 
     for _dunder in _ARG_0_METHODS:
         locals()[_dunder] = lambda self, __f=_dunder: self._0_arg(__f)
@@ -203,9 +233,11 @@ class Panel:
             if isinstance(index, int):
                 return self.frames[index].loc[:, columns]
             elif isinstance(index, slice):
-                return Panel(self.frames[index]).loc[:, columns]
+                return shallow_copy(self, self.frames[index]).loc[:, columns]
             elif isinstance(index, list):
-                return Panel([self.frames[i] for i in index]).loc[:, columns]
+                return shallow_copy(self, [self.frames[i] for i in index]).loc[
+                    :, columns
+                ]
 
         # Columns
         if isinstance(key, list) and all(isinstance(k, str) for k in key):
@@ -217,9 +249,9 @@ class Panel:
         if isinstance(key, int):
             return self.frames[key]
         elif isinstance(key, slice):
-            return Panel(self.frames[key])
+            return shallow_copy(self, self.frames[key])
         elif isinstance(key, list) and all(isinstance(k, int) for k in key):
-            return Panel([self.frames[i] for i in key])
+            return shallow_copy(self, [self.frames[i] for i in key])
 
     def __len__(self):
         return len(self.frames)
@@ -353,12 +385,17 @@ class Panel:
         Returns:
             ``Panel``: Dropped panel.
         """
-        new_panel = Panel(
-            [
-                frame.dropna(axis=axis, how=how, thresh=thresh, subset=subset)
-                for frame in self.frames
-            ]
-        )
+        new_panel = shallow_copy(self)
+        new_panel.frames = [
+            frame.dropna(axis=axis, how=how, thresh=thresh, subset=subset)
+            for frame in self.frames
+        ]
+        # new_panel = Panel(
+        #     [
+        #         frame.dropna(axis=axis, how=how, thresh=thresh, subset=subset)
+        #         for frame in self.frames
+        #     ]
+        # )
 
         different = any(
             new_panel[i].shape != self[i].shape for i in range(len(new_panel))
@@ -452,7 +489,7 @@ class Panel:
             for i in range(self.shape[0]):
                 a = self[i].head(1).copy()
                 if frame:
-                    a["frame"] = self[i].frame_index
+                    a["frame"] = self[i].columns.name
                 list_frames.append(a)
             dataframe = pd.concat(list_frames)
             dataframe.drop_duplicates(inplace=True)
@@ -510,7 +547,7 @@ class Panel:
             )
             new_panel.append(new_frame)
 
-        return Panel(new_panel)
+        return shallow_copy(self, new_panel)
 
     def diffw(self, window: int = 1):
         """
@@ -596,16 +633,20 @@ class Panel:
         Returns:
             ``Panel``: Result of match function.
         """
-        index = [frame.frame_index for frame in other]
-        return Panel(
+        panel = shallow_copy(
+            self,
             [
                 frame
                 for frame in tqdm(self.frames, disable=not verbose)
-                if frame.frame_index in index
-            ]
+                if frame.columns.name in other.indices
+            ],
         )
+        panel.test_size = other.test_size
+        panel.val_size = other.val_size
+        panel.train_size = other.train_size
+        return panel
 
-    def set_training_split(self, val_size=0.2, test_size=0.1):
+    def set_training_split(self, test_size=0.1, val_split=0.2):
         """
         Time series split into training, validation, and test sets, avoiding data leakage.
         Splits the panel in training, validation, and test panels, accessed with the properties
@@ -620,12 +661,13 @@ class Panel:
         >>> test = panel.test
         """
 
-        train_size = len(self) - int(len(self) * test_size)
-
-        self.test_size = int(len(self) * test_size)
-        self.val_size = int(train_size * val_size)
-        self.train_size = train_size - self.val_size
-        assert self.train_size + self.val_size + self.test_size == len(self)
+        self.train_size = 1 - test_size
+        self.test_size = test_size
+        self.val_size = val_split * self.train_size
+        self.train_size = self.train_size - self.val_size
+        assert math.isclose(
+            self.train_size + self.val_size + self.test_size, 1, abs_tol=1e-6
+        )
 
     def update(self, other):
         """
@@ -664,7 +706,7 @@ class Panel:
         Returns:
             ``Panel``: Result of head function.
         """
-        return Panel(self.frames[:n])
+        return self[:n]
 
     def tail(self, n: int = 5):
         """
@@ -676,7 +718,7 @@ class Panel:
         Returns:
             ``Panel``: Result of tail function.
         """
-        return Panel(self.frames[-n:])
+        return self[-n:]
 
     def sample(self, samples: int = 5, type: str = "first"):
         """
@@ -709,8 +751,7 @@ class Panel:
             ``Panel``: Panel with the pairs of the training set.
         """
 
-        if self.train_size:
-            return self[: self.train_size]
+        return self[: int(self.train_size * len(self))]
 
     @property
     def val(self):
@@ -721,8 +762,11 @@ class Panel:
             ``Panel``: Panel with the pairs of the validation set.
         """
 
-        if self.val_size and self.train_size:
-            return self[self.train_size : int(self.train_size + self.val_size)]
+        return self[
+            int(self.train_size * len(self)) : int(
+                (self.train_size + self.val_size) * len(self)
+            )
+        ]
 
     @property
     def test(self):
@@ -733,8 +777,7 @@ class Panel:
             ``Panel``: Panel with the pairs of the testing set.
         """
 
-        if self.val_size and self.train_size:
-            return self[self.train_size + self.val_size :]
+        return self[int((self.train_size + self.val_size) * len(self)) :]
 
     def plot(self, split_sets=True, **kwargs):
         """
@@ -748,15 +791,3 @@ class Panel:
             ``plot``: Result of plot function.
         """
         return plot(self, split_sets=split_sets, **kwargs)
-
-    # def plot_slider(self, steps=100):
-    #     """
-    #     Plot the panel using a slider.
-
-    #     Args:
-    #         steps (int): Number of steps to plot.
-
-    #     Returns:
-    #         ``plot_slider``: Result of plot_slider function.
-    #     """
-    #     return plot_slider(self, steps)

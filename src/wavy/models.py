@@ -181,28 +181,31 @@ class _BaseModel:
         )
 
     def score(self, on=None, **kwargs):
+        on = [on] if on else ["train", "val", "test"]
+
         metrics_names = self.model.metrics_names
 
-        if on == "train":
+        dic = {}
+        if "train" in on:
             train_metrics = self.model.evaluate(
                 self.x_train, self.y_train, verbose=0, **kwargs
             )
-            return pd.Series(train_metrics, index=metrics_names)
-        if on == "val":
-            val_metrics = self.model.evaluate(
-                self.x_val, self.y_val, verbose=0, **kwargs
-            )
-            return pd.Series(val_metrics, index=metrics_names)
-        if on == "test":
+            dic["train"] = train_metrics
+        if "test" in on:
             test_metrics = self.model.evaluate(
                 self.x_test, self.y_test, verbose=0, **kwargs
             )
-            return pd.Series(test_metrics, index=metrics_names)
+            dic["test"] = test_metrics
+        if "val" in on:
+            val_metrics = self.model.evaluate(
+                self.x_val, self.y_val, verbose=0, **kwargs
+            )
+            dic["val"] = val_metrics
 
-        # return pd.DataFrame(
-        #     {"train": train_metrics, "val": val_metrics, "test": test_metrics},
-        #     index=metrics_names,
-        # )
+        return pd.DataFrame(
+            dic,
+            index=metrics_names,
+        )
 
     def residuals(self):
         return self.predict() - self.y
@@ -226,6 +229,7 @@ class _Baseline(_BaseModel):
 
 class BaselineShift(_Baseline):
     # ! Maybe shift should be y.horizon by default, to avoid leakage
+    # TODO test with different gap and horizon values
 
     def __init__(
         self,
@@ -263,7 +267,7 @@ class BaselineShift(_Baseline):
 
 
 class BaselineConstant(_Baseline):
-    # BUG: Not working when model_type="classification"
+    # TODO BUG: Not working when model_type="classification"
     def __init__(
         self,
         x,
@@ -536,34 +540,38 @@ class ShallowModel:
         Returns:
             pd.Series: Score
         """
+        on = [on] if on else ["train", "val", "test"]
 
-        metrics_dict = {}
+        dic = {}
 
-        if on == "train":
-
+        if "train" in on:
+            metrics_dict = {}
             for a in self.metrics:
                 metrics_dict[a.__name__] = a(
                     self.y_train.values.squeeze(),
                     self.predict(self.x_train).values.squeeze(),
                 )
-
-            return pd.Series(metrics_dict)
-        elif on == "val":
-            for a in self.metrics:
-                metrics_dict[a.__name__] = a(
-                    self.y_val.values.squeeze(),
-                    self.predict(self.x_val).values.squeeze(),
-                )
-
-            return pd.Series(metrics_dict)
-        elif on == "test":
+            dic["train"] = metrics_dict
+            # return pd.Series(metrics_dict)
+        if "test" in on:
+            metrics_dict = {}
             for a in self.metrics:
                 metrics_dict[a.__name__] = a(
                     self.y_test.values.squeeze(),
                     self.predict(self.x_test).values.squeeze(),
                 )
-
-            return pd.Series(metrics_dict)
+            dic["test"] = metrics_dict
+            # return pd.Series(metrics_dict)
+        if "val" in on:
+            metrics_dict = {}
+            for a in self.metrics:
+                metrics_dict[a.__name__] = a(
+                    self.y_val.values.squeeze(),
+                    self.predict(self.x_val).values.squeeze(),
+                )
+            dic["val"] = metrics_dict
+            # return pd.Series(metrics_dict)
+        return pd.DataFrame(dic, index=[a.__name__ for a in self.metrics])
 
 
 def compute_score_per_model(*models, on="val"):
