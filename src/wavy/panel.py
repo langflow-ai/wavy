@@ -61,7 +61,7 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0):
     """
     import time
 
-    start = time.time()
+    # start = time.time()
 
     x_timesteps = len(df.index)
 
@@ -77,9 +77,9 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0):
     indexes = np.arange(lookback, end)
     xframes, yframes = [], []
 
-    print(f"elapsed time in seconds: {time.time() - start}")
+    # print(f"elapsed time in seconds: {time.time() - start}")
 
-    start = time.time()
+    # start = time.time()
     for index, i in enumerate(indexes):
         # ? functions that create a new panel might keep old frame indexes
         xframes.append(x.iloc[i - lookback : i])
@@ -87,11 +87,11 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0):
 
         yframes.append(y.iloc[i + gap : i + gap + horizon])
         yframes[-1].columns.name = index
-    print(f"elapsed time in seconds: {time.time() - start}")
+    # print(f"elapsed time in seconds: {time.time() - start}")
 
-    start = time.time()
+    # start = time.time()
     a, b = Panel(xframes), Panel(yframes)
-    print(f"elapsed time in seconds: {time.time() - start}")
+    # print(f"elapsed time in seconds: {time.time() - start}")
     return a, b
 
 
@@ -114,32 +114,93 @@ class Panel:
         # ? Would it make sense to have the panel as only one dataframe with index references per frame window?
 
         class _IXIndexer:
+            def __init__(self, outer):
+                self.outer = outer
+
             def __getitem__(self, item):
-                return shallow_copy(self, [i.ix[item] for i in frames])
+                return shallow_copy(self.outer, [i.ix[item] for i in self.outer.frames])
 
         class _iLocIndexer:
+            def __init__(self, outer):
+                self.outer = outer
+
             def __getitem__(self, item):
-                return shallow_copy(self, [i.iloc[item] for i in frames])
+                return shallow_copy(
+                    self.outer, [i.iloc[item] for i in self.outer.frames]
+                )
 
         class _LocIndexer:
+            def __init__(self, outer):
+                self.outer = outer
+
             def __getitem__(self, item):
-                return shallow_copy(self, [i.loc[item] for i in frames])
+                return shallow_copy(
+                    self.outer, [i.loc[item] for i in self.outer.frames]
+                )
 
         class _AtIndexer:
+            def __init__(self, outer):
+                self.outer = outer
+
             def __getitem__(self, item):
-                return shallow_copy(self, [i.at[item] for i in frames])
+                return shallow_copy(self.outer, [i.at[item] for i in self.outer.frames])
 
         class _iAtIndexer:
+            def __init__(self, outer):
+                self.outer = outer
+
             def __getitem__(self, item):
-                return shallow_copy(self, [i.iat[item] for i in frames])
+                return shallow_copy(
+                    self.outer, [i.iat[item] for i in self.outer.frames]
+                )
+
+        class _IXIndexer:
+            def __init__(self, outer):
+                self.outer = outer
+
+            def __getitem__(self, item):
+                return shallow_copy(self.outer, [i.ix[item] for i in self.outer.frames])
+
+        class _iLocIndexer:
+            def __init__(self, outer):
+                self.outer = outer
+
+            def __getitem__(self, item):
+                return shallow_copy(
+                    self.outer, [i.iloc[item] for i in self.outer.frames]
+                )
+
+        class _LocIndexer:
+            def __init__(self, outer):
+                self.outer = outer
+
+            def __getitem__(self, item):
+                return shallow_copy(
+                    self.outer, [i.loc[item] for i in self.outer.frames]
+                )
+
+        class _AtIndexer:
+            def __init__(self, outer):
+                self.outer = outer
+
+            def __getitem__(self, item):
+                return shallow_copy(self.outer, [i.at[item] for i in self.outer.frames])
+
+        class _iAtIndexer:
+            def __init__(self, outer):
+                self.outer = outer
+
+            def __getitem__(self, item):
+                return shallow_copy(
+                    self.outer, [i.iat[item] for i in self.outer.frames]
+                )
 
         self.frames = frames
-
-        self.ix = _IXIndexer()
-        self.iloc = _iLocIndexer()
-        self.loc = _LocIndexer()
-        self.at = _AtIndexer()
-        self.iat = _iAtIndexer()
+        self.ix = _IXIndexer(self)
+        self.iloc = _iLocIndexer(self)
+        self.loc = _LocIndexer(self)
+        self.at = _AtIndexer(self)
+        self.iat = _iAtIndexer(self)
 
         self.set_training_split()
 

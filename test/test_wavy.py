@@ -103,3 +103,7 @@ def test_diff(panel):
 
 def test_pct_change(panel):
     assert panel.pct_change().shape == (3, 1, 2), "Pct change is not correct"
+
+
+if __name__ == "__main__":
+    pytest.main()
