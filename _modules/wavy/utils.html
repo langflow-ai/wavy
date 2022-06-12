@@ -13,6 +13,7 @@
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -43,12 +44,20 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Code</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Using Wavy</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../wavy/wavy.panel.html">panel</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../wavy/wavy.models.html">models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../wavy/wavy.plot.html">plot</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../wavy/wavy.utils.html">utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../manual/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../manual/introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../manual/quickstart.html">QuickStart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../manual/basics.html">Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../manual/models.html">Models</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Library</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../_src/wavy.panel.html">panel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../_src/wavy.models.html">models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../_src/wavy.plot.html">plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../_src/wavy.utils.html">utils</a></li>
 </ul>
 
         </div>
@@ -80,12 +89,31 @@
 <span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
 
-<div class="viewcode-block" id="reverse_pct_change"><a class="viewcode-back" href="../../wavy/wavy.utils.html#wavy.utils.reverse_pct_change">[docs]</a><span class="k">def</span> <span class="nf">reverse_pct_change</span><span class="p">(</span><span class="n">panel</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+<div class="viewcode-block" id="reverse_pct_change"><a class="viewcode-back" href="../../_src/wavy.utils.html#wavy.utils.reverse_pct_change">[docs]</a><span class="k">def</span> <span class="nf">reverse_pct_change</span><span class="p">(</span><span class="n">panel</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reverse the pct_change function.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        panel (wavy.Panel): Panel to reverse</span>
+<span class="sd">        df (pd.DataFrame): Dataframe to reverse</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        pd.DataFrame: Reversed dataframe</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">shift</span><span class="p">()</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">panel</span><span class="o">.</span><span class="n">as_dataframe</span><span class="p">())</span>
     <span class="k">return</span> <span class="n">panel</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">df</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="is_dataframe"><a class="viewcode-back" href="../../wavy/wavy.utils.html#wavy.utils.is_dataframe">[docs]</a><span class="k">def</span> <span class="nf">is_dataframe</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<div class="viewcode-block" id="is_dataframe"><a class="viewcode-back" href="../../_src/wavy.utils.html#wavy.utils.is_dataframe">[docs]</a><span class="k">def</span> <span class="nf">is_dataframe</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if x is a dataframe.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x (object): Object to check</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bool: True if x is a dataframe, False otherwise</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span></div>
 
 

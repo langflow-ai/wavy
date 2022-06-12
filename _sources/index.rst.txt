@@ -6,19 +6,34 @@
 Welcome to Wavy's documentation!
 ================================
 
-.. raw:: latex
+.. .. raw:: latex
 
-   \part{Code}
+..    \part{Installation}
 
 .. toctree::
    :glob:
-   :maxdepth: 5
-   :caption: Code
+   :maxdepth: 1
+   :caption: Using Wavy
 
-   wavy/wavy.panel.rst
-   wavy/wavy.models.rst
-   wavy/wavy.plot.rst
-   wavy/wavy.utils.rst
+   manual/installation.rst
+   manual/introduction.rst
+   manual/quickstart.rst
+   manual/basics.rst
+   manual/models.rst
+
+.. .. raw:: latex
+
+..    \part{Code}
+
+.. toctree::
+   :glob:
+   :maxdepth: 1
+   :caption: Library
+
+   _src/wavy.panel.rst
+   _src/wavy.models.rst
+   _src/wavy.plot.rst
+   _src/wavy.utils.rst
 
 .. only:: html
 

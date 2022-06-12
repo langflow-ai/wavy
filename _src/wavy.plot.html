@@ -14,6 +14,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -46,7 +47,15 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Code</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Using Wavy</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../manual/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/quickstart.html">QuickStart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/basics.html">Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/models.html">Models</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Library</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="wavy.panel.html">panel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="wavy.models.html">models</a></li>
@@ -70,7 +79,7 @@
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
       <li>plot</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/wavy/wavy.plot.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/_src/wavy.plot.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -79,15 +88,25 @@
            <div itemprop="articleBody">
              
   <section id="module-wavy.plot">
-<span id="plot"></span><h1>plot<a class="headerlink" href="#module-wavy.plot" title="Permalink to this headline"></a></h1>
+<span id="plot"></span><h1>plot<a class="headerlink" href="#module-wavy.plot" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="wavy.plot.PanelFigure">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PanelFigure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/plot.html#PanelFigure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.plot.PanelFigure" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">plotlab.Figure</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code></p>
 <dl class="py method">
 <dt class="sig sig-object py" id="wavy.plot.PanelFigure.split_sets">
 <span class="sig-name descname"><span class="pre">split_sets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">panel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gray'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/plot.html#PanelFigure.split_sets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.plot.PanelFigure.split_sets" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Split panel into sets.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>panel</strong> (<em>wavy.Panel</em>) – Panel to split</p></li>
+<li><p><strong>color</strong> (<em>str</em>) – Color of the sets</p></li>
+<li><p><strong>opacity</strong> (<em>float</em>) – Opacity of the sets</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="wavy.plot.PanelFigure.iterator">
@@ -119,11 +138,6 @@
 <span class="sig-name descname"><span class="pre">add_dotline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/plot.html#PanelFigure.add_dotline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.plot.PanelFigure.add_dotline" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="wavy.plot.PanelFigure.add_threshline">
-<span class="sig-name descname"><span class="pre">add_threshline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">panel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">up_thresh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">down_thresh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">up_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'green'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">down_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'red'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/plot.html#PanelFigure.add_threshline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.plot.PanelFigure.add_threshline" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="py function">
@@ -134,33 +148,11 @@
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>panel</strong> (<a class="reference internal" href="wavy.panel.html#wavy.panel.Panel" title="wavy.panel.Panel"><em>Panel</em></a>) – Panel object</p></li>
-<li><p><strong>split</strong> (<em>bool</em>) – If True, plot vertical lines showing train, val, and test periods</p></li>
+<li><p><strong>split_sets</strong> (<em>bool</em>) – If True, plot vertical lines showing train, val, and test periods</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Plotted data</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">Plot</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="wavy.plot.plot_frame">
-<span class="sig-name descname"><span class="pre">plot_frame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/plot.html#plot_frame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.plot.plot_frame" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="wavy.plot.plot_slider">
-<span class="sig-name descname"><span class="pre">plot_slider</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/plot.html#plot_slider"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.plot.plot_slider" title="Permalink to this definition"></a></dt>
-<dd><p>Make panel plots with slider.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>steps</strong> (<em>int</em>) – Number of equally spaced frames to plot</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Plotted data.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">Plot</span></code></p>
