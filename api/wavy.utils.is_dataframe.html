@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Basics &mdash; Wavy 0.1.9 documentation</title>
+  <title>is_dataframe &mdash; Wavy 0.1.9 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
@@ -20,8 +20,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Models" href="models.html" />
-    <link rel="prev" title="QuickStart" href="quickstart.html" />
+    <link rel="next" title="reverse_pct_change" href="wavy.utils.reverse_pct_change.html" />
+    <link rel="prev" title="wavy.utils Module" href="utils.html" />
 <script type="text/javascript">
   window.onload = function() {
     document.body.innerHTML = document.body.innerHTML.replace(/ module/g, '');
@@ -49,20 +49,27 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Using Wavy</span></p>
-<ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quickstart.html">QuickStart</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Basics</a></li>
-<li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../manual/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/quickstart.html">QuickStart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/basics.html">Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/tutorials.html">Tutorials</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Library</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../api/panel.html">wavy.panel Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../api/models.html">wavy.models Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../api/plot.html">wavy.plot Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">wavy.utils Module</a></li>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="panel.html">wavy.panel Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">wavy.models Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot.html">wavy.plot Module</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="utils.html">wavy.utils Module</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="utils.html#functions">Functions</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">is_dataframe</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wavy.utils.reverse_pct_change.html">reverse_pct_change</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 
         </div>
@@ -79,9 +86,10 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Basics</li>
+          <li><a href="utils.html">wavy.utils Module</a> &raquo;</li>
+      <li>is_dataframe</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/manual/basics.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/api/wavy.utils.is_dataframe.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -89,27 +97,33 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="basics">
-<h1>Basics<a class="headerlink" href="#basics" title="Permalink to this heading"></a></h1>
-<p>The <cite>wavyts</cite> library is implemented to make the windowing of time series easy. The processing starts with a <cite>DataFrame</cite> with the data to be analyzed, where the index is the time and the columns are the different variables.</p>
-<p>When creating the <cite>Panel</cite> object, the user needs to specify three things:</p>
-<ul class="simple">
-<li><p>lookback - the number of time steps to look back</p></li>
-<li><p>gap - the number of time steps to skip</p></li>
-<li><p>horizon - the number of time steps to look ahead</p></li>
-</ul>
-<a class="reference internal image-reference" href="../_images/panel.png"><img alt="../_images/panel.png" class="align-center" src="../_images/panel.png" style="width: 355.8px; height: 421.2px;" /></a>
-<p>For example, lets suppose that we have a <cite>DataFrame</cite> with 12 time indexes and we want to create a <cite>Panel</cite> with <code class="docutils literal notranslate"><span class="pre">lookback=5</span></code>, <code class="docutils literal notranslate"><span class="pre">gap=1</span></code> and <code class="docutils literal notranslate"><span class="pre">horizon=2</span></code>.</p>
-<a class="reference internal image-reference" href="../_images/panel_divided.png"><img alt="../_images/panel_divided.png" class="align-center" src="../_images/panel_divided.png" style="width: 531.0px; height: 1385.0px;" /></a>
-<p>At the end we get a <cite>Panel</cite> for x and y with 3 frames each.</p>
+  <section id="is-dataframe">
+<h1>is_dataframe<a class="headerlink" href="#is-dataframe" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="wavy.utils.is_dataframe">
+<span class="sig-name descname"><span class="pre">is_dataframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/utils.html#is_dataframe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.utils.is_dataframe" title="Permalink to this definition"></a></dt>
+<dd><p>Check if x is a dataframe.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>object</em>) – Object to check</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if x is a dataframe, False otherwise</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="quickstart.html" class="btn btn-neutral float-left" title="QuickStart" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="models.html" class="btn btn-neutral float-right" title="Models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="utils.html" class="btn btn-neutral float-left" title="wavy.utils Module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="wavy.utils.reverse_pct_change.html" class="btn btn-neutral float-right" title="reverse_pct_change" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

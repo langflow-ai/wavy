@@ -6,6 +6,7 @@
   <title>wavy.utils &mdash; Wavy 0.1.9 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -51,13 +52,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../manual/quickstart.html">QuickStart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../manual/basics.html">Basics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../manual/models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../manual/tutorials.html">Tutorials</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Library</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../_src/wavy.panel.html">panel</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../_src/wavy.models.html">models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../_src/wavy.plot.html">plot</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../_src/wavy.utils.html">utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/panel.html">wavy.panel Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/models.html">wavy.models Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/plot.html">wavy.plot Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/utils.html">wavy.utils Module</a></li>
 </ul>
 
         </div>
@@ -75,7 +77,6 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../index.html">Module code</a> &raquo;</li>
-          <li><a href="../wavy.html">wavy</a> &raquo;</li>
       <li>wavy.utils</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -89,7 +90,7 @@
 <span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
 
-<div class="viewcode-block" id="reverse_pct_change"><a class="viewcode-back" href="../../_src/wavy.utils.html#wavy.utils.reverse_pct_change">[docs]</a><span class="k">def</span> <span class="nf">reverse_pct_change</span><span class="p">(</span><span class="n">panel</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+<div class="viewcode-block" id="reverse_pct_change"><a class="viewcode-back" href="../../api/wavy.utils.reverse_pct_change.html#wavy.utils.reverse_pct_change">[docs]</a><span class="k">def</span> <span class="nf">reverse_pct_change</span><span class="p">(</span><span class="n">panel</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Reverse the pct_change function.</span>
 
@@ -104,7 +105,7 @@
     <span class="k">return</span> <span class="n">panel</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">df</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="is_dataframe"><a class="viewcode-back" href="../../_src/wavy.utils.html#wavy.utils.is_dataframe">[docs]</a><span class="k">def</span> <span class="nf">is_dataframe</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<div class="viewcode-block" id="is_dataframe"><a class="viewcode-back" href="../../api/wavy.utils.is_dataframe.html#wavy.utils.is_dataframe">[docs]</a><span class="k">def</span> <span class="nf">is_dataframe</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Check if x is a dataframe.</span>
 

@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wavy &mdash; Wavy 0.1.9 documentation</title>
+  <title>wavy.plot Module &mdash; Wavy 0.1.9 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -18,6 +20,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="plot" href="wavy.plot.plot.html" />
+    <link rel="prev" title="ShallowModel" href="wavy.models.ShallowModel.html" />
 <script type="text/javascript">
   window.onload = function() {
     document.body.innerHTML = document.body.innerHTML.replace(/ module/g, '');
@@ -51,13 +55,24 @@
 <li class="toctree-l1"><a class="reference internal" href="../manual/quickstart.html">QuickStart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../manual/basics.html">Basics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../manual/models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/tutorials.html">Tutorials</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Library</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../_src/wavy.panel.html">panel</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../_src/wavy.models.html">models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../_src/wavy.plot.html">plot</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../_src/wavy.utils.html">utils</a></li>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="panel.html">wavy.panel Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">wavy.models Module</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">wavy.plot Module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#functions">Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="wavy.plot.plot.html">plot</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#classes">Classes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="wavy.plot.PanelFigure.html">PanelFigure</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">wavy.utils Module</a></li>
 </ul>
 
         </div>
@@ -74,9 +89,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="index.html">Module code</a> &raquo;</li>
-      <li>wavy</li>
+      <li>wavy.plot Module</li>
       <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/plot.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -84,31 +99,48 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for wavy</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+  <section id="module-wavy.plot">
+<span id="wavy-plot-module"></span><h1>wavy.plot Module<a class="headerlink" href="#module-wavy.plot" title="Permalink to this heading"></a></h1>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="wavy.plot.plot.html#wavy.plot.plot" title="wavy.plot.plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot</span></code></a>(panel[, split_sets])</p></td>
+<td><p>Plot a panel.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">Figure</span></code>()</p></td>
+<td><p>Higher level wrapper for plotly, especially focused on time series plots.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="wavy.plot.PanelFigure.html#wavy.plot.PanelFigure" title="wavy.plot.PanelFigure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PanelFigure</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
 
-<span class="kn">import</span> <span class="nn">pkg_resources</span>
-<span class="kn">import</span> <span class="nn">toml</span>
-
-<span class="kn">from</span> <span class="nn">wavy.models</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">wavy.panel</span> <span class="kn">import</span> <span class="o">*</span>
-
-
-<div class="viewcode-block" id="get_version"><a class="viewcode-back" href="../_src/wavy.html#wavy.get_version">[docs]</a><span class="k">def</span> <span class="nf">get_version</span><span class="p">():</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">get_distribution</span><span class="p">(</span><span class="s2">&quot;wavyts&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">version</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="s2">&quot;pyproject.toml&quot;</span>
-        <span class="n">pyproject</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">))</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
-        <span class="k">return</span> <span class="n">pyproject</span><span class="p">[</span><span class="s2">&quot;tool&quot;</span><span class="p">][</span><span class="s2">&quot;poetry&quot;</span><span class="p">][</span><span class="s2">&quot;version&quot;</span><span class="p">]</span></div>
-
-
-<span class="n">__version__</span> <span class="o">=</span> <span class="n">get_version</span><span class="p">()</span>
-</pre></div>
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="wavy.models.ShallowModel.html" class="btn btn-neutral float-left" title="ShallowModel" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="wavy.plot.plot.html" class="btn btn-neutral float-right" title="plot" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 

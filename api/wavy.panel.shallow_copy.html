@@ -4,9 +4,10 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wavy &mdash; Wavy 0.1.9 documentation</title>
+  <title>shallow_copy &mdash; Wavy 0.1.9 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -19,6 +20,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Panel" href="wavy.panel.Panel.html" />
+    <link rel="prev" title="create_panels" href="wavy.panel.create_panels.html" />
 <script type="text/javascript">
   window.onload = function() {
     document.body.innerHTML = document.body.innerHTML.replace(/ module/g, '');
@@ -52,13 +55,22 @@
 <li class="toctree-l1"><a class="reference internal" href="../manual/quickstart.html">QuickStart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../manual/basics.html">Basics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../manual/models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/tutorials.html">Tutorials</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Library</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="wavy.panel.html">panel</a></li>
-<li class="toctree-l1"><a class="reference internal" href="wavy.models.html">models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="wavy.plot.html">plot</a></li>
-<li class="toctree-l1"><a class="reference internal" href="wavy.utils.html">utils</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="panel.html">wavy.panel Module</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="panel.html#functions">Functions</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="wavy.panel.create_panels.html">create_panels</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">shallow_copy</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="panel.html#classes">Classes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">wavy.models Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot.html">wavy.plot Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">wavy.utils Module</a></li>
 </ul>
 
         </div>
@@ -75,9 +87,10 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>wavy</li>
+          <li><a href="panel.html">wavy.panel Module</a> &raquo;</li>
+      <li>shallow_copy</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/_src/wavy.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/api/wavy.panel.shallow_copy.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -85,28 +98,23 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="wavy">
-<h1>wavy<a class="headerlink" href="#wavy" title="Permalink to this heading"></a></h1>
-<p class="package-sub rubric">Submodules</p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="wavy.models.html">models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="wavy.panel.html">panel</a></li>
-<li class="toctree-l1"><a class="reference internal" href="wavy.plot.html">plot</a></li>
-<li class="toctree-l1"><a class="reference internal" href="wavy.utils.html">utils</a></li>
-</ul>
-</div>
-<span class="target" id="module-wavy"></span><dl class="py function">
-<dt class="sig sig-object py" id="wavy.get_version">
-<span class="sig-name descname"><span class="pre">get_version</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy.html#get_version"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.get_version" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+  <section id="shallow-copy">
+<h1>shallow_copy<a class="headerlink" href="#shallow-copy" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="wavy.panel.shallow_copy">
+<span class="sig-name descname"><span class="pre">shallow_copy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">panel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/panel.html#shallow_copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.shallow_copy" title="Permalink to this definition"></a></dt>
+<dd><p>Shallow copy of a panel.</p>
+</dd></dl>
 
 </section>
 
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="wavy.panel.create_panels.html" class="btn btn-neutral float-left" title="create_panels" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="wavy.panel.Panel.html" class="btn btn-neutral float-right" title="Panel" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 

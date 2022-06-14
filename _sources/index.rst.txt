@@ -3,12 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Wavy's documentation!
-================================
+Wavy
+====
 
-.. .. raw:: latex
-
-..    \part{Installation}
+.. image:: ../images/logo.png
+   :scale: 150 %
+   :align: center
 
 .. toctree::
    :glob:
@@ -20,26 +20,27 @@ Welcome to Wavy's documentation!
    manual/quickstart.rst
    manual/basics.rst
    manual/models.rst
-
-.. .. raw:: latex
-
-..    \part{Code}
+   manual/tutorials.rst
 
 .. toctree::
    :glob:
    :maxdepth: 1
    :caption: Library
 
-   _src/wavy.panel.rst
-   _src/wavy.models.rst
-   _src/wavy.plot.rst
-   _src/wavy.utils.rst
+   api/panel.rst
+   api/models.rst
+   api/plot.rst
+   api/utils.rst
 
-.. only:: html
+.. _src/wavy.models.rst
+.. _src/wavy.plot.rst
+.. _src/wavy.utils.rst
 
-Indices and tables
-==================
+.. .. only:: html
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. Indices and tables
+.. ==================
+
+.. * :ref:`genindex`
+.. * :ref:`modindex`
+.. * :ref:`search`

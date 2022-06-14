@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Basics &mdash; Wavy 0.1.9 documentation</title>
+  <title>Tutorials &mdash; Wavy 0.1.9 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
@@ -20,8 +20,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Models" href="models.html" />
-    <link rel="prev" title="QuickStart" href="quickstart.html" />
+    <link rel="next" title="wavy.panel Module" href="../api/panel.html" />
+    <link rel="prev" title="Models" href="models.html" />
 <script type="text/javascript">
   window.onload = function() {
     document.body.innerHTML = document.body.innerHTML.replace(/ module/g, '');
@@ -53,9 +53,9 @@
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">QuickStart</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basics.html">Basics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorials</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Library</span></p>
 <ul>
@@ -79,9 +79,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Basics</li>
+      <li>Tutorials</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/manual/basics.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/manual/tutorials.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -89,27 +89,16 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="basics">
-<h1>Basics<a class="headerlink" href="#basics" title="Permalink to this heading"></a></h1>
-<p>The <cite>wavyts</cite> library is implemented to make the windowing of time series easy. The processing starts with a <cite>DataFrame</cite> with the data to be analyzed, where the index is the time and the columns are the different variables.</p>
-<p>When creating the <cite>Panel</cite> object, the user needs to specify three things:</p>
-<ul class="simple">
-<li><p>lookback - the number of time steps to look back</p></li>
-<li><p>gap - the number of time steps to skip</p></li>
-<li><p>horizon - the number of time steps to look ahead</p></li>
-</ul>
-<a class="reference internal image-reference" href="../_images/panel.png"><img alt="../_images/panel.png" class="align-center" src="../_images/panel.png" style="width: 355.8px; height: 421.2px;" /></a>
-<p>For example, lets suppose that we have a <cite>DataFrame</cite> with 12 time indexes and we want to create a <cite>Panel</cite> with <code class="docutils literal notranslate"><span class="pre">lookback=5</span></code>, <code class="docutils literal notranslate"><span class="pre">gap=1</span></code> and <code class="docutils literal notranslate"><span class="pre">horizon=2</span></code>.</p>
-<a class="reference internal image-reference" href="../_images/panel_divided.png"><img alt="../_images/panel_divided.png" class="align-center" src="../_images/panel_divided.png" style="width: 531.0px; height: 1385.0px;" /></a>
-<p>At the end we get a <cite>Panel</cite> for x and y with 3 frames each.</p>
+  <section id="tutorials">
+<h1>Tutorials<a class="headerlink" href="#tutorials" title="Permalink to this heading"></a></h1>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="quickstart.html" class="btn btn-neutral float-left" title="QuickStart" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="models.html" class="btn btn-neutral float-right" title="Models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="models.html" class="btn btn-neutral float-left" title="Models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../api/panel.html" class="btn btn-neutral float-right" title="wavy.panel Module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

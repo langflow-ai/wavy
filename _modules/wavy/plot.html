@@ -6,6 +6,7 @@
   <title>wavy.plot &mdash; Wavy 0.1.9 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -51,13 +52,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../manual/quickstart.html">QuickStart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../manual/basics.html">Basics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../manual/models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../manual/tutorials.html">Tutorials</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Library</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../_src/wavy.panel.html">panel</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../_src/wavy.models.html">models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../_src/wavy.plot.html">plot</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../_src/wavy.utils.html">utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/panel.html">wavy.panel Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/models.html">wavy.models Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/plot.html">wavy.plot Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/utils.html">wavy.utils Module</a></li>
 </ul>
 
         </div>
@@ -75,7 +77,6 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../index.html">Module code</a> &raquo;</li>
-          <li><a href="../wavy.html">wavy</a> &raquo;</li>
       <li>wavy.plot</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -94,14 +95,14 @@
 <span class="c1"># TODO: Check if kwargs would overwrite fig.add_trace if same params are used</span>
 
 
-<div class="viewcode-block" id="PanelFigure"><a class="viewcode-back" href="../../_src/wavy.plot.html#wavy.plot.PanelFigure">[docs]</a><span class="k">class</span> <span class="nc">PanelFigure</span><span class="p">(</span><span class="n">Figure</span><span class="p">):</span>
+<div class="viewcode-block" id="PanelFigure"><a class="viewcode-back" href="../../api/wavy.plot.PanelFigure.html#wavy.plot.PanelFigure">[docs]</a><span class="k">class</span> <span class="nc">PanelFigure</span><span class="p">(</span><span class="n">Figure</span><span class="p">):</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># TODO: Add dynamic color changing once new traces are added</span>
         <span class="c1"># TODO: Add candlestick plot</span>
         <span class="c1"># TODO: Add trace names as panel cols</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
-<div class="viewcode-block" id="PanelFigure.split_sets"><a class="viewcode-back" href="../../_src/wavy.plot.html#wavy.plot.PanelFigure.split_sets">[docs]</a>    <span class="k">def</span> <span class="nf">split_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">panel</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<div class="viewcode-block" id="PanelFigure.split_sets"><a class="viewcode-back" href="../../api/wavy.plot.PanelFigure.html#wavy.plot.PanelFigure.split_sets">[docs]</a>    <span class="k">def</span> <span class="nf">split_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">panel</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Split panel into sets.</span>
 
@@ -149,7 +150,7 @@
         <span class="p">)</span></div>
 
     <span class="c1"># Add decorator for instance check and for loop</span>
-<div class="viewcode-block" id="PanelFigure.iterator"><a class="viewcode-back" href="../../_src/wavy.plot.html#wavy.plot.PanelFigure.iterator">[docs]</a>    <span class="k">def</span> <span class="nf">iterator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+<div class="viewcode-block" id="PanelFigure.iterator"><a class="viewcode-back" href="../../api/wavy.plot.PanelFigure.html#wavy.plot.PanelFigure.iterator">[docs]</a>    <span class="k">def</span> <span class="nf">iterator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
         <span class="k">def</span> <span class="nf">inner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
             <span class="n">args</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
@@ -164,7 +165,7 @@
 
         <span class="k">return</span> <span class="n">inner</span></div>
 
-<div class="viewcode-block" id="PanelFigure.add_line"><a class="viewcode-back" href="../../_src/wavy.plot.html#wavy.plot.PanelFigure.add_line">[docs]</a>    <span class="nd">@iterator</span>
+<div class="viewcode-block" id="PanelFigure.add_line"><a class="viewcode-back" href="../../api/wavy.plot.PanelFigure.html#wavy.plot.PanelFigure.add_line">[docs]</a>    <span class="nd">@iterator</span>
     <span class="k">def</span> <span class="nf">add_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add a line to the figure.</span>
@@ -174,7 +175,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="PanelFigure.add_area"><a class="viewcode-back" href="../../_src/wavy.plot.html#wavy.plot.PanelFigure.add_area">[docs]</a>    <span class="nd">@iterator</span>
+<div class="viewcode-block" id="PanelFigure.add_area"><a class="viewcode-back" href="../../api/wavy.plot.PanelFigure.html#wavy.plot.PanelFigure.add_area">[docs]</a>    <span class="nd">@iterator</span>
     <span class="k">def</span> <span class="nf">add_area</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add an area to the figure.</span>
@@ -184,7 +185,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">area</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="PanelFigure.add_bar"><a class="viewcode-back" href="../../_src/wavy.plot.html#wavy.plot.PanelFigure.add_bar">[docs]</a>    <span class="nd">@iterator</span>
+<div class="viewcode-block" id="PanelFigure.add_bar"><a class="viewcode-back" href="../../api/wavy.plot.PanelFigure.html#wavy.plot.PanelFigure.add_bar">[docs]</a>    <span class="nd">@iterator</span>
     <span class="k">def</span> <span class="nf">add_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add a bar to the figure.</span>
@@ -194,7 +195,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="PanelFigure.add_scatter"><a class="viewcode-back" href="../../_src/wavy.plot.html#wavy.plot.PanelFigure.add_scatter">[docs]</a>    <span class="nd">@iterator</span>
+<div class="viewcode-block" id="PanelFigure.add_scatter"><a class="viewcode-back" href="../../api/wavy.plot.PanelFigure.html#wavy.plot.PanelFigure.add_scatter">[docs]</a>    <span class="nd">@iterator</span>
     <span class="k">def</span> <span class="nf">add_scatter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add a scatter to the figure.</span>
@@ -204,7 +205,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="PanelFigure.add_dotline"><a class="viewcode-back" href="../../_src/wavy.plot.html#wavy.plot.PanelFigure.add_dotline">[docs]</a>    <span class="nd">@iterator</span>
+<div class="viewcode-block" id="PanelFigure.add_dotline"><a class="viewcode-back" href="../../api/wavy.plot.PanelFigure.html#wavy.plot.PanelFigure.add_dotline">[docs]</a>    <span class="nd">@iterator</span>
     <span class="k">def</span> <span class="nf">add_dotline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>  <span class="c1"># color=&quot;gray&quot;, opacity=0.5):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add a dotline to the figure.</span>
@@ -216,7 +217,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">dotline</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># color=color, opacity=opacity)</span></div></div>
 
 
-<div class="viewcode-block" id="plot"><a class="viewcode-back" href="../../_src/wavy.plot.html#wavy.plot.plot">[docs]</a><span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="n">panel</span><span class="p">,</span> <span class="n">split_sets</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="plot"><a class="viewcode-back" href="../../api/wavy.plot.plot.html#wavy.plot.plot">[docs]</a><span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="n">panel</span><span class="p">,</span> <span class="n">split_sets</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="c1"># TODO: Add &quot;kind&quot; parameter to chose between plot types</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot a panel.</span>

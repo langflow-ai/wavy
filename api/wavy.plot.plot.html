@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Overview: module code &mdash; Wavy 0.1.9 documentation</title>
+  <title>plot &mdash; Wavy 0.1.9 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
@@ -19,6 +20,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="PanelFigure" href="wavy.plot.PanelFigure.html" />
+    <link rel="prev" title="wavy.plot Module" href="plot.html" />
 <script type="text/javascript">
   window.onload = function() {
     document.body.innerHTML = document.body.innerHTML.replace(/ module/g, '');
@@ -55,11 +58,18 @@
 <li class="toctree-l1"><a class="reference internal" href="../manual/tutorials.html">Tutorials</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Library</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../api/panel.html">wavy.panel Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../api/models.html">wavy.models Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../api/plot.html">wavy.plot Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">wavy.utils Module</a></li>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="panel.html">wavy.panel Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">wavy.models Module</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="plot.html">wavy.plot Module</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="plot.html#functions">Functions</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">plot</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="plot.html#classes">Classes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">wavy.utils Module</a></li>
 </ul>
 
         </div>
@@ -76,8 +86,10 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Overview: module code</li>
+          <li><a href="plot.html">wavy.plot Module</a> &raquo;</li>
+      <li>plot</li>
       <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/wavy.plot.plot.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -85,16 +97,37 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>All modules for which code is available</h1>
-<ul><li><a href="wavy/models.html">wavy.models</a></li>
-<li><a href="wavy/panel.html">wavy.panel</a></li>
-<li><a href="wavy/plot.html">wavy.plot</a></li>
-<li><a href="wavy/utils.html">wavy.utils</a></li>
+  <section id="plot">
+<h1>plot<a class="headerlink" href="#plot" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="wavy.plot.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">panel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_sets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/plot.html#plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.plot.plot" title="Permalink to this definition"></a></dt>
+<dd><p>Plot a panel.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>panel</strong> (<a class="reference internal" href="wavy.panel.Panel.html#wavy.panel.Panel" title="wavy.panel.Panel"><em>Panel</em></a>) – Panel object</p></li>
+<li><p><strong>split_sets</strong> (<em>bool</em>) – If True, plot vertical lines showing train, val, and test periods</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Plotted data</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">Plot</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="plot.html" class="btn btn-neutral float-left" title="wavy.plot Module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="wavy.plot.PanelFigure.html" class="btn btn-neutral float-right" title="PanelFigure" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 
