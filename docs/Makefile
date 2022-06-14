@@ -24,5 +24,6 @@ help:
 
 doc:
 	$(MAKE) clean
-	sphinx-apidoc -e -f -t "$(TEMPLATEDIR)/" -o "$(DESTDIR)/" ../$(FILESDIR)/
 	$(MAKE) html
+
+# sphinx-apidoc -e -f -t "$(TEMPLATEDIR)/" -o "$(DESTDIR)/" ../$(FILESDIR)/

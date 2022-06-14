@@ -44,7 +44,9 @@ extensions = [
     "sphinxcontrib.napoleon",
     "sphinx.ext.autosectionlabel",
     "sphinx.ext.autosummary",
+    "sphinx_automodapi.automodapi",
 ]
+numpydoc_show_class_members = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -75,6 +77,9 @@ todo_include_todos = True
 add_module_names = False
 autodoc_member_order = "bysource"
 
+autosummary_generate = False
+autosummary_imported_members = False
+
 autodoc_mock_imports = [
     "toml",
     "numpy",
@@ -84,4 +89,5 @@ autodoc_mock_imports = [
     "plotlab",
     "tensorflow",
     "sklearn",
+    "wavy.panel.deepcopy",
 ]

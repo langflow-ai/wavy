@@ -82,11 +82,16 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0):
     # start = time.time()
     for index, i in enumerate(indexes):
         # ? functions that create a new panel might keep old frame indexes
-        xframes.append(x.iloc[i - lookback : i])
-        xframes[-1].columns.name = index
+        frame = x.iloc[i - lookback : i].copy()
+        frame.columns.name = index
+        xframes.append(frame)
+        # xframes.append(x.iloc[i - lookback : i])
+        # xframes[-1].columns.name = index
 
-        yframes.append(y.iloc[i + gap : i + gap + horizon])
-        yframes[-1].columns.name = index
+        frame = y.iloc[i + gap : i + gap + horizon].copy()
+        frame.columns.name = index
+        yframes.append(frame)
+        # yframes[-1].columns.name = index
     # print(f"elapsed time in seconds: {time.time() - start}")
 
     # start = time.time()
@@ -206,13 +211,6 @@ class Panel:
 
     # TODO: add setattr, e.g. for renaming columns ()
 
-    @property
-    def indices(self):
-        """
-        Return the indices of the panel.
-        """
-        return [frame.columns.name for frame in self.frames]
-
     def __getattr__(self, name):
         try:
 
@@ -330,6 +328,13 @@ class Panel:
 
         print(summary)
         return f"<Panel, size {self.__len__()}>"
+
+    @property
+    def indices(self):
+        """
+        Return the indices of the panel.
+        """
+        return [frame.columns.name for frame in self.frames]
 
     @property
     def columns(self):
