@@ -40,8 +40,9 @@ jobs:
           pip install poetry
           poetry config virtualenvs.in-project true
           poetry install
+        # run: python3 -m pip install sphinx sphinx-rtd-theme sphinxcontrib-napoleon sphinx-automodapi toml numpy pandas
 
-      - run: cd docs && make doc
+      - run: source .venv/bin/activate && cd docs && make doc
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
