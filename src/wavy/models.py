@@ -228,6 +228,7 @@ class _Baseline(_BaseModel):
 
 
 class BaselineShift(_Baseline):
+    # ! VERY SLOW
     # ! Maybe shift should be y.horizon by default, to avoid leakage
     # TODO test with different gap and horizon values
 
@@ -247,7 +248,7 @@ class BaselineShift(_Baseline):
         super().__init__(x=x, y=y, model_type=model_type, loss=loss, metrics=metrics)
 
     def set_arrays(self):
-
+        # TODO: Replace as_dataframe w/ quicker function
         self.x_train = (
             self.y.train.as_dataframe().shift(self.shift).fillna(self.fillna).values
         )
@@ -287,9 +288,9 @@ class BaselineConstant(_Baseline):
         self.x_val = np.full(self.y.val.shape, self.constant)
         self.x_test = np.full(self.y.test.shape, self.constant)
 
-        self.y_train = self.y.train.as_dataframe().values
-        self.y_val = self.y.val.as_dataframe().values
-        self.y_test = self.y.test.as_dataframe().values
+        self.y_train = self.y.train.values
+        self.y_val = self.y.val.values
+        self.y_test = self.y.test.values
 
 
 class DenseModel(_BaseModel):
@@ -349,6 +350,92 @@ class DenseModel(_BaseModel):
         ]
 
         self.model = Sequential(layers)
+
+
+class ConvModel(_BaseModel):
+    def __init__(
+        self,
+        x,
+        y,
+        model_type: str,
+        conv_layers: int = 1,
+        conv_filters: int = 32,
+        kernel_size: int = 3,
+        dense_layers: int = 1,
+        dense_units: int = 32,
+        activation: str = "relu",
+        loss: str = None,
+        optimizer: str = None,
+        metrics: List[str] = None,
+        last_activation: str = None,
+    ):
+        """
+        Convolution Model.
+        Args:
+            panel (Panel): Panel with data
+            model_type (str): Model type (regression, classification, multi_classification)
+            conv_layers (int): Number of convolution layers
+            conv_filters (int): Number of convolution filters
+            kernel_size (int): Kernel size of convolution layer
+            dense_layers (int): Number of dense layers
+            dense_units (int): Number of neurons in each dense layer
+            activation (str): Activation type of each dense layer
+            loss (str): Loss name
+            optimizer (str): Optimizer name
+            metrics (List[str]): Metrics list
+            last_activation (str): Activation type of the last layer
+        Returns:
+            ``DenseModel``: Constructed DenseModel
+        """
+
+        if x.shape[1] < kernel_size:
+            raise ValueError(
+                f"Lookback ({x.shape[1]}) must be greater or equal to kernel_size ({kernel_size})"
+            )
+
+        self.conv_layers = conv_layers
+        self.conv_filters = conv_filters
+        self.kernel_size = kernel_size
+        self.dense_layers = dense_layers
+        self.dense_units = dense_units
+        self.activation = activation
+
+        super().__init__(
+            x=x,
+            y=y,
+            model_type=model_type,
+            loss=loss,
+            optimizer=optimizer,
+            metrics=metrics,
+            last_activation=last_activation,
+        )
+
+    def build(self):
+        if self.x.timesteps % self.kernel_size != 0:
+            warnings.warn("Kernel size is not a divisor of lookback.")
+
+        conv = Conv1D(
+            filters=self.conv_filters,
+            kernel_size=self.kernel_size,
+            activation=self.activation,
+        )
+
+        dense = Dense(units=self.dense_units, activation=self.activation)
+
+        layers = [conv for _ in range(self.conv_layers)]
+        layers += [Flatten()]
+        layers += [conv for _ in range(self.conv_layers)]
+        layers += [dense for _ in range(self.dense_layers)]
+        layers += [
+            Dense(
+                units=self.y.timesteps * len(self.y.columns),
+                activation=self.last_activation,
+            ),
+            Reshape(self.y_train.shape[1:]),
+        ]
+
+        self.model = Sequential(layers)
+
 
 
 class ConvModel(_BaseModel):
@@ -552,7 +639,6 @@ class ShallowModel:
                     self.predict(self.x_train).values.squeeze(),
                 )
             dic["train"] = metrics_dict
-            # return pd.Series(metrics_dict)
         if "test" in on:
             metrics_dict = {}
             for a in self.metrics:
@@ -561,7 +647,6 @@ class ShallowModel:
                     self.predict(self.x_test).values.squeeze(),
                 )
             dic["test"] = metrics_dict
-            # return pd.Series(metrics_dict)
         if "val" in on:
             metrics_dict = {}
             for a in self.metrics:
@@ -570,7 +655,6 @@ class ShallowModel:
                     self.predict(self.x_val).values.squeeze(),
                 )
             dic["val"] = metrics_dict
-            # return pd.Series(metrics_dict)
         return pd.DataFrame(dic, index=[a.__name__ for a in self.metrics])
 
 

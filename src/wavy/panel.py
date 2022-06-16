@@ -43,6 +43,8 @@ pd.options.plotting.backend = "plotly"
 
 
 def create_panels(df, lookback: int, horizon: int, gap: int = 0):
+    # TODO: Add argument verbose to use tqdm if data is large
+    # TODO: Sort df index first? If so, add a warning.
     """
     Create a panel from a dataframe.
 
@@ -59,9 +61,6 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0):
 
     >>> x, y = wavy.create_panels(hist, lookback=2, horizon=1)
     """
-    import time
-
-    # start = time.time()
 
     x_timesteps = len(df.index)
 
@@ -70,40 +69,29 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0):
 
     end = x_timesteps - horizon - gap + 1
 
-    # Convert to frames
-    x = df
-    y = df
-
     indexes = np.arange(lookback, end)
     xframes, yframes = [], []
 
-    # print(f"elapsed time in seconds: {time.time() - start}")
-
-    # start = time.time()
     for index, i in enumerate(indexes):
         # ? functions that create a new panel might keep old frame indexes
-        frame = x.iloc[i - lookback : i].copy()
+        frame = df.iloc[i - lookback : i].copy()
         frame.columns.name = index
         xframes.append(frame)
-        # xframes.append(x.iloc[i - lookback : i])
-        # xframes[-1].columns.name = index
 
-        frame = y.iloc[i + gap : i + gap + horizon].copy()
+        frame = df.iloc[i + gap : i + gap + horizon].copy()
         frame.columns.name = index
         yframes.append(frame)
-        # yframes[-1].columns.name = index
-    # print(f"elapsed time in seconds: {time.time() - start}")
 
-    # start = time.time()
     a, b = Panel(xframes), Panel(yframes)
-    # print(f"elapsed time in seconds: {time.time() - start}")
     return a, b
 
 
-def shallow_copy(panel, frames=[]):
+def shallow_copy(panel, frames = None):
     """
     Shallow copy of a panel.
     """
+    if frames is None:
+        frames = []
     new_panel = Panel(frames)
     new_panel.train_size = panel.train_size
     new_panel.test_size = panel.test_size
@@ -257,11 +245,15 @@ class Panel:
         locals()[_dunder] = lambda self, __f=_dunder: self._0_arg(__f)
 
     def __getitem__(self, key):
+        # TODO: add support for dates x['2016':] (reference pandas)
+        # TODO: add support for exclusion / set operation, e.g. x[x.index < 1000 & x.index > 2000] (reference pandas)
+        # ? What if the panel was a np.array of frames, instead of a list of frames?
 
         assert isinstance(
             key, (int, slice, list, str, tuple)
         ), "Panel indexing must be int, slice, list, str or tuple"
         if isinstance(key, list):
+            # TODO: check if list is a list of ints or strings. If not, try casting before raising error.
             assert all(isinstance(k, int) for k in key) or all(
                 isinstance(k, str) for k in key
             ), "Panel indexing with list must be int or str"
@@ -334,7 +326,7 @@ class Panel:
         """
         Return the indices of the panel.
         """
-        return [frame.columns.name for frame in self.frames]
+        return np.array([frame.columns.name for frame in self.frames])
 
     @property
     def columns(self):
@@ -558,7 +550,7 @@ class Panel:
                     a["frame"] = self[i].columns.name
                 list_frames.append(a)
             dataframe = pd.concat(list_frames)
-            dataframe.drop_duplicates(inplace=True)
+            # dataframe.drop_duplicates(inplace=True) # ! didn't make sense
             return dataframe
 
     def shiftw(self, window: int = 1):
@@ -786,27 +778,27 @@ class Panel:
         """
         return self[-n:]
 
-    def sample(self, samples: int = 5, type: str = "first"):
+    def sample(self, samples: int = 5, how: str = "first"):
         """
         Sample panel returning a subset of frames.
 
         Args:
             samples (int): Number of samples to keep
-            type (str): Resempling type, 'first', 'last' or 'spaced'
+            how (str): Resempling how, 'first', 'last' or 'spaced'
 
         Returns:
             ``Panel``: Result of sample function.
         """
 
-        if type == "first":
+        if how == "first":
             return self[:samples]
-        elif type == "last":
+        elif how == "last":
             return self[-samples:]
-        elif type == "spaced":
-            indexes = list(
-                np.linspace(0, len(self.frames), samples, dtype=int, endpoint=False)
-            )
+        elif how == "spaced":
+            indexes = np.linspace(0, len(self.frames), samples, dtype=int, endpoint=False)
+            indexes = [int(i) for i in indexes]
             return self[indexes]
+        # TODO: Add random sample too
 
     @property
     def train(self):
@@ -845,7 +837,7 @@ class Panel:
 
         return self[int((self.train_size + self.val_size) * len(self)) :]
 
-    def plot(self, split_sets=True, **kwargs):
+    def plot(self, split_sets=True, max=10_000, **kwargs):
         """
         Plot the panel.
 
@@ -856,4 +848,6 @@ class Panel:
         Returns:
             ``plot``: Result of plot function.
         """
+        if max and len(self) > max:
+            return plot(self.sample(max, how='spaced'), split_sets=split_sets, **kwargs)
         return plot(self, split_sets=split_sets, **kwargs)
