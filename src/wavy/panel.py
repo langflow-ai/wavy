@@ -42,9 +42,7 @@ pd.set_option("multi_sparse", True)  # To see multilevel indexes
 pd.options.plotting.backend = "plotly"
 
 
-def create_panels(df, lookback: int, horizon: int, gap: int = 0):
-    # TODO: Add argument verbose to use tqdm if data is large
-    # TODO: Sort df index first? If so, add a warning.
+def create_panels(df, lookback: int, horizon: int, gap: int = 0, verbose=False):
     """
     Create a panel from a dataframe.
 
@@ -53,6 +51,7 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0):
         lookback (int): lookback size
         horizon (int): horizon size
         gap (int): gap between x and y
+        verbose (bool): Whether to print progress
 
     Returns:
         ``Panel``: Data Panel
@@ -61,6 +60,14 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0):
 
     >>> x, y = wavy.create_panels(hist, lookback=2, horizon=1)
     """
+
+    indices = df.index
+
+    # Sort by index
+    df = df.sort_index(ascending=False)
+
+    if not all(df.index == indices):
+        warnings.warn("DataFrame is being sorted!")
 
     x_timesteps = len(df.index)
 
@@ -72,7 +79,7 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0):
     indexes = np.arange(lookback, end)
     xframes, yframes = [], []
 
-    for index, i in enumerate(indexes):
+    for index, i in enumerate(tqdm(indexes, disable=not verbose)):
         # ? functions that create a new panel might keep old frame indexes
         frame = df.iloc[i - lookback : i].copy()
         frame.columns.name = index
@@ -86,7 +93,7 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0):
     return a, b
 
 
-def shallow_copy(panel, frames = None):
+def shallow_copy(panel, frames=None):
     """
     Shallow copy of a panel.
     """
@@ -102,7 +109,6 @@ def shallow_copy(panel, frames = None):
 
 class Panel:
     def __init__(self, frames):
-        # ? Should frames always have increasing indexes? Maybe add warning and reindex
         # ? What about duplicated indices?
         # ? Would it make sense to have the panel as only one dataframe with index references per frame window?
 
@@ -203,12 +209,14 @@ class Panel:
         try:
 
             def wrapper(*args, **kwargs):
-                for i in range(len(self.frames)):
-                    new_frame = getattr(self.frames[i], name)(*args, **kwargs)
+                frames = []
+                for i, frame in enumerate(self.frames):
+                    new_frame = getattr(frame.copy(), name)(*args, **kwargs)
                     if isinstance(new_frame, pd.Series):
                         new_frame = pd.DataFrame(new_frame).T
-                    self.frames[i] = new_frame
-                return self
+                        new_frame.index = frame.index[: len(new_frame.index)]
+                    frames.append(new_frame)
+                return Panel(frames)
 
                 # new_frames = []
                 # for frame in range(len(self.frames)):
@@ -795,7 +803,9 @@ class Panel:
         elif how == "last":
             return self[-samples:]
         elif how == "spaced":
-            indexes = np.linspace(0, len(self.frames), samples, dtype=int, endpoint=False)
+            indexes = np.linspace(
+                0, len(self.frames), samples, dtype=int, endpoint=False
+            )
             indexes = [int(i) for i in indexes]
             return self[indexes]
         # TODO: Add random sample too
@@ -849,5 +859,5 @@ class Panel:
             ``plot``: Result of plot function.
         """
         if max and len(self) > max:
-            return plot(self.sample(max, how='spaced'), split_sets=split_sets, **kwargs)
+            return plot(self.sample(max, how="spaced"), split_sets=split_sets, **kwargs)
         return plot(self, split_sets=split_sets, **kwargs)
