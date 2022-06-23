@@ -802,6 +802,7 @@
         <span class="k">return</span> <span class="n">panel</span></div>
 
 <div class="viewcode-block" id="Panel.set_training_split"><a class="viewcode-back" href="../../api/wavy.panel.Panel.html#wavy.panel.Panel.set_training_split">[docs]</a>    <span class="k">def</span> <span class="nf">set_training_split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">val_split</span><span class="o">=</span><span class="mf">0.2</span><span class="p">):</span>
+        <span class="c1"># BUG: train and test are swapped. This can be noticed when using the panel.plot() function.</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Time series split into training, validation, and test sets, avoiding data leakage.</span>
 <span class="sd">        Splits the panel in training, validation, and test panels, accessed with the properties</span>
