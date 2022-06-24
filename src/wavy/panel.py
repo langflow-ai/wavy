@@ -722,6 +722,7 @@ class Panel:
         return panel
 
     def set_training_split(self, test_size=0.1, val_split=0.2):
+        # BUG: train and test are swapped. This can be noticed when using the panel.plot() function.
         """
         Time series split into training, validation, and test sets, avoiding data leakage.
         Splits the panel in training, validation, and test panels, accessed with the properties
