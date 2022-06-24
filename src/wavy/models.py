@@ -108,9 +108,9 @@ class _BaseModel:
         self.x_val = self.x.val.values
         self.x_test = self.x.test.values
 
-        self.y_train = self.y.train.values
-        self.y_val = self.y.val.values
-        self.y_test = self.y.test.values
+        self.y_train = self.y.train.values.squeeze(axis=2)
+        self.y_val = self.y.val.values.squeeze(axis=2)
+        self.y_test = self.y.test.values.squeeze(axis=2)
 
     def get_roc(self):
         y = self.y_test.squeeze()
@@ -143,6 +143,31 @@ class _BaseModel:
 
     def build(self):
         pass
+
+    def predict_proba(self, data: Panel = None, **kwargs):
+
+        if data is not None:
+            return Panel(
+                [
+                    pd.DataFrame(b, columns=self.y[0].columns)
+                    for b in self.model.predict(data.values, **kwargs)
+                ]
+            )
+
+        pred_train = [
+            pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
+            for a, b in zip(self.model.predict(self.x_train, **kwargs), self.y.train)
+        ]
+        pred_val = [
+            pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
+            for a, b in zip(self.model.predict(self.x_val, **kwargs), self.y.val)
+        ]
+        pred_test = [
+            pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
+            for a, b in zip(self.model.predict(self.x_test, **kwargs), self.y.test)
+        ]
+
+        return Panel(pred_train + pred_val + pred_test)
 
     def predict(self, data: Panel = None, **kwargs):
 
@@ -435,7 +460,6 @@ class ConvModel(_BaseModel):
         ]
 
         self.model = Sequential(layers)
-
 
 
 class ConvModel(_BaseModel):

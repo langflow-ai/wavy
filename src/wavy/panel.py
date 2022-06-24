@@ -9,6 +9,8 @@ from tqdm.auto import tqdm
 
 from wavy.plot import plot
 
+# TODO Add reset index when comparing two panels
+
 _ARG_0_METHODS = [
     "__abs__",
     "__pos__",
@@ -64,7 +66,7 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0, verbose=False):
     indices = df.index
 
     # Sort by index
-    df = df.sort_index(ascending=False)
+    df = df.sort_index(ascending=True)
 
     if not all(df.index == indices):
         warnings.warn("DataFrame is being sorted!")
@@ -99,6 +101,8 @@ def shallow_copy(panel, frames=None):
     """
     if frames is None:
         frames = []
+    elif isinstance(frames[0], pd.Series):
+        frames = [pd.DataFrame(frame).T for frame in frames]
     new_panel = Panel(frames)
     new_panel.train_size = panel.train_size
     new_panel.test_size = panel.test_size
@@ -234,11 +238,16 @@ class Panel:
     # Function to map all dunder functions
     def _1_arg(self, other, __f):
         if isinstance(other, Panel):
+
+            # Reset index
+            frames_1 = self.reset_index(drop=True)
+            frames_2 = other.reset_index(drop=True)
+
             return shallow_copy(
                 self,
                 [
                     getattr(frame, __f)(other_frame)
-                    for frame, other_frame in zip(self.frames, other.frames)
+                    for frame, other_frame in zip(frames_1, frames_2)
                 ],
             )
         return shallow_copy(self, [getattr(frame, __f)(other) for frame in self.frames])
