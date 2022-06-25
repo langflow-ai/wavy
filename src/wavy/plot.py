@@ -1,4 +1,5 @@
 import pandas as pd
+import plotly.express as px
 import plotly.graph_objects as go
 from plotlab import Figure
 
@@ -12,8 +13,10 @@ class PanelFigure(Figure):
         # TODO: Add candlestick plot
         # TODO: Add trace names as panel cols
         super().__init__()
+        self.colors = px.colors.qualitative.Plotly
+        self.color_index = 0
 
-    def split_sets(self, panel, color="gray", opacity=1):
+    def add_annotation(self, panel, color="gray", opacity=1):
         """
         Split panel into sets.
 
@@ -26,20 +29,14 @@ class PanelFigure(Figure):
         # ! Won't take effect until next trace is added (no axis was added)
         # TODO: Functions could accept both dataframe or panel
 
-        data = {
-            "train": panel.train.as_dataframe() if panel.train_size else None,
-            "val": panel.val.as_dataframe() if panel.val_size else None,
-            "test": panel.test.as_dataframe() if panel.test_size else None,
-        }
-
         ymax = max(
-            data["train"].max().max() if panel.train_size else 0,
-            data["val"].max().max() if panel.val_size else 0,
-            data["test"].max().max() if panel.test_size else 0,
+            panel.train.as_dataframe().max().max() if panel.train_size else 0,
+            panel.val.as_dataframe().max().max() if panel.val_size else 0,
+            panel.test.as_dataframe().max().max() if panel.test_size else 0,
         )
 
         if panel.train_size:
-            xtrain_min = data["train"].index[0]
+            xtrain_min = panel.train[0].index[0]
             self.fig.add_vline(
                 x=xtrain_min, line_dash="dot", line_color=color, opacity=opacity
             )
@@ -48,7 +45,7 @@ class PanelFigure(Figure):
             )
 
         if panel.val_size:
-            xval_min = data["val"].index[0]
+            xval_min = panel.val[0].index[0]
             self.fig.add_vline(
                 x=xval_min, line_dash="dot", line_color=color, opacity=opacity
             )
@@ -57,7 +54,7 @@ class PanelFigure(Figure):
             )
 
         if panel.test_size:
-            xtest_min = data["test"].index[0]
+            xtest_min = panel.test[0].index[0]
             self.fig.add_vline(
                 x=xtest_min, line_dash="dot", line_color=color, opacity=opacity
             )
@@ -76,6 +73,8 @@ class PanelFigure(Figure):
                 data = data.as_dataframe()
 
             for col in data.columns:
+                kwargs["color"] = self.colors[self.color_index]
+                self.color_index = (self.color_index + 1) % len(self.colors)
                 if col != "frame":
                     func(self, data[col], *tuple(args), **kwargs)
 
@@ -133,23 +132,25 @@ class PanelFigure(Figure):
         self.dotline(col, *args, **kwargs)  # color=color, opacity=opacity)
 
 
-def plot(panel, split_sets=False, **kwargs):
+def plot(panel, add_annotation=False, **kwargs):
     # TODO: Add "kind" parameter to chose between plot types
     """
     Plot a panel.
 
     Args:
         panel (Panel): Panel object
-        split_sets (bool): If True, plot vertical lines showing train, val, and test periods
+        add_annotation (bool): If True, plot vertical lines showing train, val, and test periods
 
     Returns:
         ``Plot``: Plotted data
     """
     fig = PanelFigure()
-    if split_sets:
-        fig.split_sets(panel)
 
     fig.add_line(panel, **kwargs)
+
+    if add_annotation:
+        fig.add_annotation(panel)
+
     return fig()
 
 

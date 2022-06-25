@@ -9,8 +9,6 @@ from tqdm.auto import tqdm
 
 from wavy.plot import plot
 
-# TODO Add reset index when comparing two panels
-
 _ARG_0_METHODS = [
     "__abs__",
     "__pos__",
@@ -98,7 +96,18 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0, verbose=False):
 def shallow_copy(panel, frames=None, train_size=None, test_size=None, val_size=None):
     """
     Shallow copy of a panel.
+
+    Args:
+        panel (Panel): Panel to use as base
+        frames (DataFrame): DataFrame to copy
+        train_size (int): Train size
+        test_size (int): Test size
+        val_size (int): Validation size
+
+    Returns:
+        ``Panel``: Shallow copy of panel
     """
+
     if frames is None:
         frames = []
     elif isinstance(frames[0], pd.Series):
@@ -214,22 +223,13 @@ class Panel:
 
             def wrapper(*args, **kwargs):
                 frames = []
-                for i, frame in enumerate(self.frames):
+                for frame in self.frames:
                     new_frame = getattr(frame.copy(), name)(*args, **kwargs)
                     if isinstance(new_frame, pd.Series):
                         new_frame = pd.DataFrame(new_frame).T
                         new_frame.index = frame.index[: len(new_frame.index)]
                     frames.append(new_frame)
                 return Panel(frames)
-
-                # new_frames = []
-                # for frame in range(len(self.frames)):
-                #     new_frame = getattr(frame, name)(*args, **kwargs)
-                #     if isinstance(new_frame, pd.Series):
-                #         new_frame = pd.DataFrame(new_frame).T
-                #     self.frames[0] = new_frame
-                #     new_frames.append(new_frame)
-                #     return Panel(new_frames)
 
             return wrapper
         except AttributeError:
@@ -267,18 +267,17 @@ class Panel:
         # ? What if the panel was a np.array of frames, instead of a list of frames?
 
         assert isinstance(
-            key, (int, slice, list, str, tuple)
+            key, (int, np.integer, slice, list, str, tuple)
         ), "Panel indexing must be int, slice, list, str or tuple"
         if isinstance(key, list):
-            # TODO: check if list is a list of ints or strings. If not, try casting before raising error.
-            assert all(isinstance(k, int) for k in key) or all(
+            assert all(isinstance(k, (int, np.integer)) for k in key) or all(
                 isinstance(k, str) for k in key
             ), "Panel indexing with list must be int or str"
         if isinstance(key, tuple):
             index = key[0]
             columns = key[1]
             assert isinstance(
-                index, (int, slice, list)
+                index, (int, np.integer, slice, list)
             ), "Panel indexing rows with tuple must be int, slice or list"
             assert isinstance(
                 columns, (str, list)
@@ -286,7 +285,7 @@ class Panel:
 
             if isinstance(index, list):
                 assert all(
-                    isinstance(k, int) for k in index
+                    isinstance(k, (int, np.integer)) for k in index
                 ), "Panel indexing rows with list must be int"
             if isinstance(columns, list):
                 assert all(
@@ -298,7 +297,7 @@ class Panel:
             index = key[0]
             columns = key[1] if isinstance(key[1], list) else [key[1]]
 
-            if isinstance(index, int):
+            if isinstance(index, (int, np.integer)):
                 return self.frames[index].loc[:, columns]
             elif isinstance(index, slice):
                 return shallow_copy(self, self.frames[index]).loc[:, columns]
@@ -314,11 +313,13 @@ class Panel:
             return self.loc[:, [key]]
 
         # Index
-        if isinstance(key, int):
+        if isinstance(key, (int, np.integer)):
             return self.frames[key]
         elif isinstance(key, slice):
             return shallow_copy(self, self.frames[key])
-        elif isinstance(key, list) and all(isinstance(k, int) for k in key):
+        elif isinstance(key, list) and all(
+            isinstance(k, (int, np.integer)) for k in key
+        ):
             return shallow_copy(self, [self.frames[i] for i in key])
 
     def __len__(self):
@@ -465,12 +466,6 @@ class Panel:
             frame.dropna(axis=axis, how=how, thresh=thresh, subset=subset)
             for frame in self.frames
         ]
-        # new_panel = Panel(
-        #     [
-        #         frame.dropna(axis=axis, how=how, thresh=thresh, subset=subset)
-        #         for frame in self.frames
-        #     ]
-        # )
 
         different = any(
             new_panel[i].shape != self[i].shape for i in range(len(new_panel))
@@ -722,7 +717,6 @@ class Panel:
         return panel
 
     def set_training_split(self, test_size=0.1, val_split=0.2):
-        # BUG: train and test are swapped. This can be noticed when using the panel.plot() function.
         """
         Time series split into training, validation, and test sets, avoiding data leakage.
         Splits the panel in training, validation, and test panels, accessed with the properties
@@ -802,7 +796,7 @@ class Panel:
 
         Args:
             samples (int): Number of samples to keep
-            how (str): Resempling how, 'first', 'last' or 'spaced'
+            how (str): Resempling how, 'first', 'last', 'spaced' or 'random'
 
         Returns:
             ``Panel``: Result of sample function.
@@ -812,13 +806,15 @@ class Panel:
             return self[:samples]
         elif how == "last":
             return self[-samples:]
+        elif how == "random":
+            indexes = np.random.choice(len(self.frames), samples, replace=False)
+            indexes = sorted(indexes)
+            return self[indexes]
         elif how == "spaced":
             indexes = np.linspace(
                 0, len(self.frames), samples, dtype=int, endpoint=False
             )
-            indexes = [int(i) for i in indexes]
             return self[indexes]
-        # TODO: Add random sample too
 
     @property
     def train(self):
@@ -851,7 +847,7 @@ class Panel:
             )
         ]
         return shallow_copy(
-            None, frames=panel.frames, train_size=0, test_size=len(panel), val_size=0
+            None, frames=panel.frames, train_size=0, test_size=0, val_size=len(panel)
         )
 
     @property
@@ -866,20 +862,22 @@ class Panel:
             return None
         panel = self[int((self.train_size + self.val_size) * len(self)) :]
         return shallow_copy(
-            None, frames=panel.frames, train_size=0, test_size=0, val_size=len(panel)
+            None, frames=panel.frames, train_size=0, test_size=len(panel), val_size=0
         )
 
-    def plot(self, split_sets=True, max=10_000, **kwargs):
+    def plot(self, add_annotation=True, max=10_000, **kwargs):
         """
         Plot the panel.
 
         Args:
-            split_sets (bool): If True, plot the training, validation, and test sets.
+            add_annotation (bool): If True, plot the training, validation, and test sets.
             **kwargs: Additional arguments to pass to the plot function.
 
         Returns:
             ``plot``: Result of plot function.
         """
         if max and len(self) > max:
-            return plot(self.sample(max, how="spaced"), split_sets=split_sets, **kwargs)
-        return plot(self, split_sets=split_sets, **kwargs)
+            return plot(
+                self.sample(max, how="spaced"), add_annotation=add_annotation, **kwargs
+            )
+        return plot(self, add_annotation=add_annotation, **kwargs)
