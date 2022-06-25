@@ -88,6 +88,7 @@
              
   <h1>Source code for wavy.plot</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">plotly.express</span> <span class="k">as</span> <span class="nn">px</span>
 <span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span>
 <span class="kn">from</span> <span class="nn">plotlab</span> <span class="kn">import</span> <span class="n">Figure</span>
 
@@ -101,8 +102,10 @@
         <span class="c1"># TODO: Add candlestick plot</span>
         <span class="c1"># TODO: Add trace names as panel cols</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">colors</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">qualitative</span><span class="o">.</span><span class="n">Plotly</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">color_index</span> <span class="o">=</span> <span class="mi">0</span>
 
-<div class="viewcode-block" id="PanelFigure.split_sets"><a class="viewcode-back" href="../../api/wavy.plot.PanelFigure.html#wavy.plot.PanelFigure.split_sets">[docs]</a>    <span class="k">def</span> <span class="nf">split_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">panel</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">add_annotation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">panel</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Split panel into sets.</span>
 
@@ -115,20 +118,14 @@
         <span class="c1"># ! Won&#39;t take effect until next trace is added (no axis was added)</span>
         <span class="c1"># TODO: Functions could accept both dataframe or panel</span>
 
-        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;train&quot;</span><span class="p">:</span> <span class="n">panel</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">as_dataframe</span><span class="p">()</span> <span class="k">if</span> <span class="n">panel</span><span class="o">.</span><span class="n">train_size</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="s2">&quot;val&quot;</span><span class="p">:</span> <span class="n">panel</span><span class="o">.</span><span class="n">val</span><span class="o">.</span><span class="n">as_dataframe</span><span class="p">()</span> <span class="k">if</span> <span class="n">panel</span><span class="o">.</span><span class="n">val_size</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="s2">&quot;test&quot;</span><span class="p">:</span> <span class="n">panel</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">as_dataframe</span><span class="p">()</span> <span class="k">if</span> <span class="n">panel</span><span class="o">.</span><span class="n">test_size</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="p">}</span>
-
         <span class="n">ymax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
-            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="k">if</span> <span class="n">panel</span><span class="o">.</span><span class="n">train_size</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
-            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;val&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="k">if</span> <span class="n">panel</span><span class="o">.</span><span class="n">val_size</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
-            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;test&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="k">if</span> <span class="n">panel</span><span class="o">.</span><span class="n">test_size</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="n">panel</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">as_dataframe</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="k">if</span> <span class="n">panel</span><span class="o">.</span><span class="n">train_size</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="n">panel</span><span class="o">.</span><span class="n">val</span><span class="o">.</span><span class="n">as_dataframe</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="k">if</span> <span class="n">panel</span><span class="o">.</span><span class="n">val_size</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="n">panel</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">as_dataframe</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="k">if</span> <span class="n">panel</span><span class="o">.</span><span class="n">test_size</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">panel</span><span class="o">.</span><span class="n">train_size</span><span class="p">:</span>
-            <span class="n">xtrain_min</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">xtrain_min</span> <span class="o">=</span> <span class="n">panel</span><span class="o">.</span><span class="n">train</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">add_vline</span><span class="p">(</span>
                 <span class="n">x</span><span class="o">=</span><span class="n">xtrain_min</span><span class="p">,</span> <span class="n">line_dash</span><span class="o">=</span><span class="s2">&quot;dot&quot;</span><span class="p">,</span> <span class="n">line_color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="n">opacity</span>
             <span class="p">)</span>
@@ -137,7 +134,7 @@
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">panel</span><span class="o">.</span><span class="n">val_size</span><span class="p">:</span>
-            <span class="n">xval_min</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;val&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">xval_min</span> <span class="o">=</span> <span class="n">panel</span><span class="o">.</span><span class="n">val</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">add_vline</span><span class="p">(</span>
                 <span class="n">x</span><span class="o">=</span><span class="n">xval_min</span><span class="p">,</span> <span class="n">line_dash</span><span class="o">=</span><span class="s2">&quot;dot&quot;</span><span class="p">,</span> <span class="n">line_color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="n">opacity</span>
             <span class="p">)</span>
@@ -146,13 +143,13 @@
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">panel</span><span class="o">.</span><span class="n">test_size</span><span class="p">:</span>
-            <span class="n">xtest_min</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;test&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">xtest_min</span> <span class="o">=</span> <span class="n">panel</span><span class="o">.</span><span class="n">test</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">add_vline</span><span class="p">(</span>
                 <span class="n">x</span><span class="o">=</span><span class="n">xtest_min</span><span class="p">,</span> <span class="n">line_dash</span><span class="o">=</span><span class="s2">&quot;dot&quot;</span><span class="p">,</span> <span class="n">line_color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="n">opacity</span>
             <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">add_annotation</span><span class="p">(</span>
                 <span class="n">x</span><span class="o">=</span><span class="n">xtest_min</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">ymax</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Test&quot;</span><span class="p">,</span> <span class="n">showarrow</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">xshift</span><span class="o">=</span><span class="mi">18</span>
-            <span class="p">)</span></div>
+            <span class="p">)</span>
 
     <span class="c1"># Add decorator for instance check and for loop</span>
 <div class="viewcode-block" id="PanelFigure.iterator"><a class="viewcode-back" href="../../api/wavy.plot.PanelFigure.html#wavy.plot.PanelFigure.iterator">[docs]</a>    <span class="k">def</span> <span class="nf">iterator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
@@ -165,6 +162,8 @@
                 <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">as_dataframe</span><span class="p">()</span>
 
             <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;color&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">colors</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">color_index</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">color_index</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">color_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">colors</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">col</span> <span class="o">!=</span> <span class="s2">&quot;frame&quot;</span><span class="p">:</span>
                     <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">col</span><span class="p">],</span> <span class="o">*</span><span class="nb">tuple</span><span class="p">(</span><span class="n">args</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
@@ -222,23 +221,25 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">dotline</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># color=color, opacity=opacity)</span></div></div>
 
 
-<div class="viewcode-block" id="plot"><a class="viewcode-back" href="../../api/wavy.plot.plot.html#wavy.plot.plot">[docs]</a><span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="n">panel</span><span class="p">,</span> <span class="n">split_sets</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="plot"><a class="viewcode-back" href="../../api/wavy.plot.plot.html#wavy.plot.plot">[docs]</a><span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="n">panel</span><span class="p">,</span> <span class="n">add_annotation</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="c1"># TODO: Add &quot;kind&quot; parameter to chose between plot types</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot a panel.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        panel (Panel): Panel object</span>
-<span class="sd">        split_sets (bool): If True, plot vertical lines showing train, val, and test periods</span>
+<span class="sd">        add_annotation (bool): If True, plot vertical lines showing train, val, and test periods</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        ``Plot``: Plotted data</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">fig</span> <span class="o">=</span> <span class="n">PanelFigure</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">split_sets</span><span class="p">:</span>
-        <span class="n">fig</span><span class="o">.</span><span class="n">split_sets</span><span class="p">(</span><span class="n">panel</span><span class="p">)</span>
 
     <span class="n">fig</span><span class="o">.</span><span class="n">add_line</span><span class="p">(</span><span class="n">panel</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">add_annotation</span><span class="p">:</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">add_annotation</span><span class="p">(</span><span class="n">panel</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="n">fig</span><span class="p">()</span></div>
 
 
