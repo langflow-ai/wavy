@@ -104,6 +104,7 @@ class _BaseModel:
         self.model._name = self.__class__.__name__
 
     def set_arrays(self):
+        """Set the arrays."""
         self.x_train = self.x.train.values
         self.x_val = self.x.val.values
         self.x_test = self.x.test.values
@@ -115,21 +116,17 @@ class _BaseModel:
     def get_roc(self):
         y = self.y_test.squeeze()
         prediction = self.model.predict(self.x_test).squeeze()
-
-        # prediction = self.predict(data=self.x_test).values.squeeze()
-
         fpr, tpr, thresholds = roc_curve(y, prediction)
-        # roc_auc = auc(fpr, tpr)
-        # print("ROC_AUC Score : ",roc_auc)
-        # print("Function for ROC_AUC Score : ",roc_auc_score(y_test, predictions)) # Function present
         optimal_idx = np.argmax(tpr - fpr)
         return thresholds[optimal_idx]
-        # print("Threshold value is:", optimal_threshold)
-        # plot_roc_curve(fpr, tpr)
 
     def fit(self, **kwargs):
-        """Fit the model."""
-        return self.model.fit(
+        """Fit the model.
+
+        Args:
+            **kwargs: Additional arguments to pass to the fit method.
+        """
+        self.model.fit(
             self.x_train,
             self.y_train,
             validation_data=(self.x_val, self.y_val),
@@ -145,6 +142,15 @@ class _BaseModel:
         pass
 
     def predict_proba(self, data: Panel = None, **kwargs):
+        """Predict probabilities.
+
+        Args:
+            data: Panel of data to predict.
+            **kwargs: Additional arguments to pass to the predict method.
+
+        Returns:
+            Panel of predicted probabilities.
+        """
 
         if data is not None:
             return Panel(
@@ -170,70 +176,70 @@ class _BaseModel:
         return Panel(pred_train + pred_val + pred_test)
 
     def predict(self, data: Panel = None, **kwargs):
+        """Predict.
+
+        Args:
+            data: Panel of data to predict.
+            **kwargs: Additional arguments to pass to the predict method.
+
+        Returns:
+            Panel of predicted values.
+        """
 
         threshold = self.get_roc() if self.model_type == "classification" else None
 
-        if data is not None:
-            panel = Panel(
-                [
-                    pd.DataFrame(b, columns=self.y[0].columns)
-                    for b in self.model.predict(data.values, **kwargs)
-                ]
-            )
+        panel = self.predict_proba(data=data, **kwargs)
 
-            return (
-                panel
-                if threshold is None
-                else panel.apply(lambda x: (x > threshold) + 0)
-            )
-
-        pred_train = [
-            pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
-            for a, b in zip(self.model.predict(self.x_train, **kwargs), self.y.train)
-        ]
-        pred_val = [
-            pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
-            for a, b in zip(self.model.predict(self.x_val, **kwargs), self.y.val)
-        ]
-        pred_test = [
-            pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
-            for a, b in zip(self.model.predict(self.x_test, **kwargs), self.y.test)
-        ]
-
-        panel = Panel(pred_train + pred_val + pred_test)
         return (
             panel if threshold is None else panel.apply(lambda x: (x > threshold) + 0)
         )
 
     def score(self, on=None, **kwargs):
-        on = [on] if on else ["train", "val", "test"]
+        """Score the model.
 
-        metrics_names = self.model.metrics_names
+        Args:
+            on: Columns to score on.
+            **kwargs: Additional arguments to pass to the score method.
+
+        Returns:
+            Panel of scores.
+        """
+        on = [on] if on else ["train", "val", "test"]
 
         dic = {}
         if "train" in on:
-            train_metrics = self.model.evaluate(
+            dic["train"] = self.model.evaluate(
                 self.x_train, self.y_train, verbose=0, **kwargs
             )
-            dic["train"] = train_metrics
         if "test" in on:
-            test_metrics = self.model.evaluate(
+            dic["test"] = self.model.evaluate(
                 self.x_test, self.y_test, verbose=0, **kwargs
             )
-            dic["test"] = test_metrics
         if "val" in on:
-            val_metrics = self.model.evaluate(
+            dic["val"] = self.model.evaluate(
                 self.x_val, self.y_val, verbose=0, **kwargs
             )
-            dic["val"] = val_metrics
+
+        indexes = [self.model.metrics_names.index(metric) for metric in self.metrics]
 
         return pd.DataFrame(
-            dic,
-            index=metrics_names,
+            {key: [value[index] for index in indexes] for key, value in dic.items()},
+            index=self.metrics,
         )
 
     def residuals(self):
-        return self.predict() - self.y
+        """Residuals.
+
+        Returns:
+            Panel of residuals.
+        """
+        residuals = self.predict() - self.y
+        return Panel(
+            [
+                pd.DataFrame(a.values, columns=b.columns, index=b.index)
+                for a, b in zip(residuals, self.y)
+            ]
+        )
 
 
 class _Baseline(_BaseModel):
@@ -680,6 +686,20 @@ class ShallowModel:
                 )
             dic["val"] = metrics_dict
         return pd.DataFrame(dic, index=[a.__name__ for a in self.metrics])
+
+    def residuals(self):
+        """Residuals.
+
+        Returns:
+            Panel: Residuals
+        """
+        residuals = self.predict() - self.y
+        return Panel(
+            [
+                pd.DataFrame(a.values, columns=b.columns, index=b.index)
+                for a, b in zip(residuals, self.y)
+            ]
+        )
 
 
 def compute_score_per_model(*models, on="val"):

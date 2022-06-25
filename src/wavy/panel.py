@@ -95,7 +95,7 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0, verbose=False):
     return a, b
 
 
-def shallow_copy(panel, frames=None):
+def shallow_copy(panel, frames=None, train_size=None, test_size=None, val_size=None):
     """
     Shallow copy of a panel.
     """
@@ -104,9 +104,9 @@ def shallow_copy(panel, frames=None):
     elif isinstance(frames[0], pd.Series):
         frames = [pd.DataFrame(frame).T for frame in frames]
     new_panel = Panel(frames)
-    new_panel.train_size = panel.train_size
-    new_panel.test_size = panel.test_size
-    new_panel.val_size = panel.val_size
+    new_panel.train_size = train_size if train_size is not None else panel.train_size
+    new_panel.test_size = test_size if test_size is not None else panel.test_size
+    new_panel.val_size = val_size if val_size is not None else panel.val_size
 
     return new_panel
 
@@ -567,7 +567,7 @@ class Panel:
                     a["frame"] = self[i].columns.name
                 list_frames.append(a)
             dataframe = pd.concat(list_frames)
-            # dataframe.drop_duplicates(inplace=True) # ! didn't make sense
+            dataframe.drop_duplicates(inplace=True)
             return dataframe
 
     def shiftw(self, window: int = 1):
@@ -828,8 +828,12 @@ class Panel:
         Returns:
             ``Panel``: Panel with the pairs of the training set.
         """
-
-        return self[: int(self.train_size * len(self))]
+        if self.train_size == 0:
+            return None
+        panel = self[: int(self.train_size * len(self))]
+        return shallow_copy(
+            None, frames=panel.frames, train_size=len(panel), test_size=0, val_size=0
+        )
 
     @property
     def val(self):
@@ -839,12 +843,16 @@ class Panel:
         Returns:
             ``Panel``: Panel with the pairs of the validation set.
         """
-
-        return self[
+        if self.val_size == 0:
+            return None
+        panel = self[
             int(self.train_size * len(self)) : int(
                 (self.train_size + self.val_size) * len(self)
             )
         ]
+        return shallow_copy(
+            None, frames=panel.frames, train_size=0, test_size=len(panel), val_size=0
+        )
 
     @property
     def test(self):
@@ -854,8 +862,12 @@ class Panel:
         Returns:
             ``Panel``: Panel with the pairs of the testing set.
         """
-
-        return self[int((self.train_size + self.val_size) * len(self)) :]
+        if self.test_size == 0:
+            return None
+        panel = self[int((self.train_size + self.val_size) * len(self)) :]
+        return shallow_copy(
+            None, frames=panel.frames, train_size=0, test_size=0, val_size=len(panel)
+        )
 
     def plot(self, split_sets=True, max=10_000, **kwargs):
         """

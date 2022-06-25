@@ -27,38 +27,43 @@ class PanelFigure(Figure):
         # TODO: Functions could accept both dataframe or panel
 
         data = {
-            "train": panel.train.as_dataframe(),
-            "val": panel.val.as_dataframe(),
-            "test": panel.test.as_dataframe(),
+            "train": panel.train.as_dataframe() if panel.train_size else None,
+            "val": panel.val.as_dataframe() if panel.val_size else None,
+            "test": panel.test.as_dataframe() if panel.test_size else None,
         }
 
-        xtrain_min = data["train"].index[0]
-        xval_min = data["val"].index[0]
-        xtest_min = data["test"].index[0]
-
         ymax = max(
-            data["train"].max().max(), data["val"].max().max(), data["test"].max().max()
+            data["train"].max().max() if panel.train_size else 0,
+            data["val"].max().max() if panel.val_size else 0,
+            data["test"].max().max() if panel.test_size else 0,
         )
 
-        self.fig.add_vline(
-            x=xtrain_min, line_dash="dot", line_color=color, opacity=opacity
-        )
-        self.fig.add_vline(
-            x=xval_min, line_dash="dot", line_color=color, opacity=opacity
-        )
-        self.fig.add_vline(
-            x=xtest_min, line_dash="dot", line_color=color, opacity=opacity
-        )
+        if panel.train_size:
+            xtrain_min = data["train"].index[0]
+            self.fig.add_vline(
+                x=xtrain_min, line_dash="dot", line_color=color, opacity=opacity
+            )
+            self.fig.add_annotation(
+                x=xtrain_min, y=ymax, text="Train", showarrow=False, xshift=20
+            )
 
-        self.fig.add_annotation(
-            x=xtrain_min, y=ymax, text="Train", showarrow=False, xshift=20
-        )
-        self.fig.add_annotation(
-            x=xval_min, y=ymax, text="Validation", showarrow=False, xshift=35
-        )
-        self.fig.add_annotation(
-            x=xtest_min, y=ymax, text="Test", showarrow=False, xshift=18
-        )
+        if panel.val_size:
+            xval_min = data["val"].index[0]
+            self.fig.add_vline(
+                x=xval_min, line_dash="dot", line_color=color, opacity=opacity
+            )
+            self.fig.add_annotation(
+                x=xval_min, y=ymax, text="Validation", showarrow=False, xshift=35
+            )
+
+        if panel.test_size:
+            xtest_min = data["test"].index[0]
+            self.fig.add_vline(
+                x=xtest_min, line_dash="dot", line_color=color, opacity=opacity
+            )
+            self.fig.add_annotation(
+                x=xtest_min, y=ymax, text="Test", showarrow=False, xshift=18
+            )
 
     # Add decorator for instance check and for loop
     def iterator(func):
