@@ -651,7 +651,14 @@
                     <span class="n">a</span><span class="p">[</span><span class="s2">&quot;frame&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span>
                 <span class="n">list_frames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
             <span class="n">dataframe</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">list_frames</span><span class="p">)</span>
-            <span class="n">dataframe</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1"># dataframe.index.drop_duplicates(keep=&quot;first&quot;, inplace=True)</span>
+
+            <span class="c1"># Get only rows with unique identifiers</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">dataframe</span><span class="o">.</span><span class="n">index</span>
+            <span class="n">is_duplicate</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">keep</span><span class="o">=</span><span class="s2">&quot;first&quot;</span><span class="p">)</span>
+            <span class="n">not_duplicate</span> <span class="o">=</span> <span class="o">~</span><span class="n">is_duplicate</span>
+            <span class="n">dataframe</span> <span class="o">=</span> <span class="n">dataframe</span><span class="p">[</span><span class="n">not_duplicate</span><span class="p">]</span>
+
             <span class="k">return</span> <span class="n">dataframe</span></div>
 
 <div class="viewcode-block" id="Panel.shiftw"><a class="viewcode-back" href="../../api/wavy.panel.Panel.html#wavy.panel.Panel.shiftw">[docs]</a>    <span class="k">def</span> <span class="nf">shiftw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>

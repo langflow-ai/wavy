@@ -751,28 +751,34 @@
         <span class="n">dic</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">if</span> <span class="s2">&quot;train&quot;</span> <span class="ow">in</span> <span class="n">on</span><span class="p">:</span>
-            <span class="n">metrics_dict</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">:</span>
-                <span class="n">metrics_dict</span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="vm">__name__</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">(</span>
+            <span class="n">metrics_dict</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">a</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span> <span class="n">a</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">y_train</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_train</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span>
                 <span class="p">)</span>
+                <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span>
+            <span class="p">}</span>
+
             <span class="n">dic</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metrics_dict</span>
         <span class="k">if</span> <span class="s2">&quot;test&quot;</span> <span class="ow">in</span> <span class="n">on</span><span class="p">:</span>
-            <span class="n">metrics_dict</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">:</span>
-                <span class="n">metrics_dict</span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="vm">__name__</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">(</span>
+            <span class="n">metrics_dict</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">a</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span> <span class="n">a</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">y_test</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_test</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span>
                 <span class="p">)</span>
+                <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span>
+            <span class="p">}</span>
+
             <span class="n">dic</span><span class="p">[</span><span class="s2">&quot;test&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metrics_dict</span>
         <span class="k">if</span> <span class="s2">&quot;val&quot;</span> <span class="ow">in</span> <span class="n">on</span><span class="p">:</span>
-            <span class="n">metrics_dict</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">:</span>
-                <span class="n">metrics_dict</span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="vm">__name__</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span><span class="p">(</span>
+            <span class="n">metrics_dict</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">a</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span> <span class="n">a</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">y_val</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_val</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span>
                 <span class="p">)</span>
+                <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span>
+            <span class="p">}</span>
+
             <span class="n">dic</span><span class="p">[</span><span class="s2">&quot;val&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metrics_dict</span>
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="vm">__name__</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">])</span></div>
 
