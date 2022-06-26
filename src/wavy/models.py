@@ -662,28 +662,34 @@ class ShallowModel:
         dic = {}
 
         if "train" in on:
-            metrics_dict = {}
-            for a in self.metrics:
-                metrics_dict[a.__name__] = a(
+            metrics_dict = {
+                a.__name__: a(
                     self.y_train.values.squeeze(),
                     self.predict(self.x_train).values.squeeze(),
                 )
+                for a in self.metrics
+            }
+
             dic["train"] = metrics_dict
         if "test" in on:
-            metrics_dict = {}
-            for a in self.metrics:
-                metrics_dict[a.__name__] = a(
+            metrics_dict = {
+                a.__name__: a(
                     self.y_test.values.squeeze(),
                     self.predict(self.x_test).values.squeeze(),
                 )
+                for a in self.metrics
+            }
+
             dic["test"] = metrics_dict
         if "val" in on:
-            metrics_dict = {}
-            for a in self.metrics:
-                metrics_dict[a.__name__] = a(
+            metrics_dict = {
+                a.__name__: a(
                     self.y_val.values.squeeze(),
                     self.predict(self.x_val).values.squeeze(),
                 )
+                for a in self.metrics
+            }
+
             dic["val"] = metrics_dict
         return pd.DataFrame(dic, index=[a.__name__ for a in self.metrics])
 

@@ -562,7 +562,14 @@ class Panel:
                     a["frame"] = self[i].columns.name
                 list_frames.append(a)
             dataframe = pd.concat(list_frames)
-            dataframe.drop_duplicates(inplace=True)
+            # dataframe.index.drop_duplicates(keep="first", inplace=True)
+
+            # Get only rows with unique identifiers
+            index = dataframe.index
+            is_duplicate = index.duplicated(keep="first")
+            not_duplicate = ~is_duplicate
+            dataframe = dataframe[not_duplicate]
+
             return dataframe
 
     def shiftw(self, window: int = 1):
