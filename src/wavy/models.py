@@ -113,12 +113,15 @@ class _BaseModel:
         self.y_val = self.y.val.values.squeeze(axis=2)
         self.y_test = self.y.test.values.squeeze(axis=2)
 
-    def get_roc(self):
+    def get_auc(self):
+        """Get the AUC score."""
         y = self.y_test.squeeze()
         prediction = self.model.predict(self.x_test).squeeze()
-        fpr, tpr, thresholds = roc_curve(y, prediction)
-        optimal_idx = np.argmax(tpr - fpr)
-        return thresholds[optimal_idx]
+        fpr, tpr, _ = roc_curve(y, prediction)
+        # optimal_idx = np.argmax(tpr - fpr)
+        # return thresholds[optimal_idx]
+        fpr, tpr, _ = roc_curve(y, prediction)
+        return auc(fpr, tpr)
 
     def fit(self, **kwargs):
         """Fit the model.
@@ -186,7 +189,7 @@ class _BaseModel:
             Panel of predicted values.
         """
 
-        threshold = self.get_roc() if self.model_type == "classification" else None
+        threshold = self.get_auc() if self.model_type == "classification" else None
 
         panel = self.predict_proba(data=data, **kwargs)
 
@@ -616,6 +619,44 @@ class ShallowModel:
         """
         return self.model.fit(X=self.x_train, y=self.y_train, **kwargs)
 
+    def get_auc(self):
+        """Get the AUC score."""
+        y = self.y_test.squeeze()
+        prediction = self.model.predict(self.x_test).squeeze()
+        fpr, tpr, _ = roc_curve(y, prediction)
+        return auc(fpr, tpr)
+
+    def predict_proba(self, data: Panel = None):
+        """Predict probabilities.
+
+        Args:
+            data (Panel): Panel with data
+
+        Returns:
+            ``ShallowModel``: The predicted probabilities.
+        """
+        if data is not None:
+            return Panel(
+                [
+                    pd.DataFrame(b, columns=self.y[0].columns)
+                    for b in self.model.predict_proba(data.values)[:, 1]
+                ]
+            )
+        pred_train = [
+            pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
+            for a, b in zip(self.model.predict_proba(self.x_train)[:, 1], self.y.train)
+        ]
+        pred_val = [
+            pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
+            for a, b in zip(self.model.predict_proba(self.x_val)[:, 1], self.y.val)
+        ]
+        pred_test = [
+            pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
+            for a, b in zip(self.model.predict_proba(self.x_test)[:, 1], self.y.test)
+        ]
+
+        return Panel(pred_train + pred_val + pred_test)
+
     def predict(self, data: Panel = None):
         """Predict on data.
 
@@ -626,27 +667,13 @@ class ShallowModel:
             Panel: Predicted data
         """
 
-        if data is not None:
-            return Panel(
-                [
-                    pd.DataFrame(b, columns=self.y[0].columns)
-                    for b in self.model.predict(data.values)
-                ]
-            )
-        pred_train = [
-            pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
-            for a, b in zip(self.model.predict(self.x_train), self.y.train)
-        ]
-        pred_val = [
-            pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
-            for a, b in zip(self.model.predict(self.x_val), self.y.val)
-        ]
-        pred_test = [
-            pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
-            for a, b in zip(self.model.predict(self.x_test), self.y.test)
-        ]
+        threshold = self.get_auc()  # if self.model_type == "classification" else None
 
-        return Panel(pred_train + pred_val + pred_test)
+        panel = self.predict_proba(data=data)
+
+        return (
+            panel if threshold is None else panel.apply(lambda x: (x > threshold) + 0)
+        )
 
     def score(self, on=None):
         """Score the model.
