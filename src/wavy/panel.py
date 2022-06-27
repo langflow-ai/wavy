@@ -216,8 +216,6 @@ class Panel:
 
         self.set_training_split()
 
-    # TODO: add setattr, e.g. for renaming columns ()
-
     def __getattr__(self, name):
         try:
 
@@ -422,6 +420,23 @@ class Panel:
         """
 
         return (len(self),) + self[0].shape
+
+    def rename_columns(self, columns: dict):
+        """
+        Rename columns.
+
+        Args:
+            columns: Dictionary of old column names to new column names.
+
+        Returns:
+            Panel with renamed columns.
+
+        Example:
+
+        >>> panel.rename_columns({"Open": "open", "High": "high"})
+        """
+
+        return Panel([frame.rename(columns=columns) for frame in self.frames])
 
     def countna(self, verbose=False):
         """
