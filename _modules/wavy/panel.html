@@ -305,8 +305,6 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">set_training_split</span><span class="p">()</span>
 
-    <span class="c1"># TODO: add setattr, e.g. for renaming columns ()</span>
-
     <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
 
@@ -511,6 +509,23 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">return</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">),)</span> <span class="o">+</span> <span class="bp">self</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="k">def</span> <span class="nf">rename_columns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">columns</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Rename columns.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            columns: Dictionary of old column names to new column names.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Panel with renamed columns.</span>
+
+<span class="sd">        Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; panel.rename_columns({&quot;Open&quot;: &quot;open&quot;, &quot;High&quot;: &quot;high&quot;})</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">Panel</span><span class="p">([</span><span class="n">frame</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span> <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">])</span>
 
 <div class="viewcode-block" id="Panel.countna"><a class="viewcode-back" href="../../api/wavy.panel.Panel.html#wavy.panel.Panel.countna">[docs]</a>    <span class="k">def</span> <span class="nf">countna</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
