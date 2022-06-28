@@ -16,13 +16,11 @@
 
 
 <div align="left">
-wavy is a library for time series analysis in Python. 
-It is a wrapper around the pandas package. 
-The goal is to provide a simple and intuitive interface for 
-time series analysis, while providing a high level of flexibility 
-and extensibility. <a href="https://logspace-ai.github.io/wavy/"><strong>Explore the docs 📖</strong></a>
+wavy is a library for time series analysis in Python. It is a wrapper around the pandas package. 
+The goal is to provide a simple and intuitive interface for time series analysis, while providing 
+a high level of flexibility and extensibility. <a href="https://logspace-ai.github.io/wavy/"><strong>Explore the docs 📖</strong></a>
     <a href="https://github.com/logspace-ai/wavy">
-    <img width="50%" src="https://github.com/logspace-ai/wavy/blob/main/images/logo.png?raw=true" alt="Logo" width="419" height="235" align="right">
+    <img width="45%" src="https://github.com/logspace-ai/wavy/blob/main/images/logo.png?raw=true" alt="Logo" width="419" height="235" align="right">
   </a>
 </div>
 
