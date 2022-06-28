@@ -52,10 +52,13 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quickstart.html">QuickStart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="basics.html">Basics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorials</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#stock-price-analysis">Stock Price Analysis</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Library</span></p>
 <ul>
@@ -90,7 +93,74 @@
            <div itemprop="articleBody">
              
   <section id="tutorials">
-<h1>Tutorials<a class="headerlink" href="#tutorials" title="Permalink to this heading"></a></h1>
+<span id="id1"></span><h1>Tutorials<a class="headerlink" href="#tutorials" title="Permalink to this heading"></a></h1>
+<section id="stock-price-analysis">
+<h2>Stock Price Analysis<a class="headerlink" href="#stock-price-analysis" title="Permalink to this heading"></a></h2>
+<p>All the processing starts with the data to be analyzed. Here we are getting the Microsoft stock price from 2005 on.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import libraries</span>
+<span class="kn">import</span> <span class="nn">yfinance</span> <span class="k">as</span> <span class="nn">yf</span>
+<span class="kn">import</span> <span class="nn">wavy</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="c1"># Read in the data</span>
+<span class="n">msft</span> <span class="o">=</span> <span class="n">yf</span><span class="o">.</span><span class="n">Ticker</span><span class="p">(</span><span class="s2">&quot;MSFT&quot;</span><span class="p">)</span>
+
+<span class="c1"># Get historical market data from 2005 on</span>
+<span class="n">hist</span> <span class="o">=</span> <span class="n">msft</span><span class="o">.</span><span class="n">history</span><span class="p">(</span><span class="n">period</span><span class="o">=</span><span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="s2">&quot;2005-01-01&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>With the data we can filter the interest columns and .</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Select the interest columns</span>
+<span class="n">hist</span> <span class="o">=</span> <span class="n">hist</span><span class="p">[[</span><span class="s1">&#39;Open&#39;</span><span class="p">,</span> <span class="s1">&#39;High&#39;</span><span class="p">,</span> <span class="s1">&#39;Low&#39;</span><span class="p">,</span> <span class="s1">&#39;Close&#39;</span><span class="p">]]</span>
+
+<span class="c1"># Plot the data</span>
+<span class="n">hist</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../_images/newplot.png"><img alt="../_images/newplot.png" src="../_images/newplot.png" style="width: 775.5px; height: 225.0px;" /></a>
+<p>Calculate the percent change and drop rows with NaN.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Calculate percent change</span>
+<span class="n">hist</span> <span class="o">=</span> <span class="n">hist</span><span class="o">.</span><span class="n">pct_change</span><span class="p">()</span>
+
+<span class="c1"># Drop rows with NaN</span>
+<span class="n">hist</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We will create a model to predict if the stock in the next day will close higher or lower based on the information of the last 5 days.
+For this, we will create the panel using the following configuration.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create panels</span>
+<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">wavy</span><span class="o">.</span><span class="n">create_panels</span><span class="p">(</span><span class="n">hist</span><span class="p">,</span> <span class="n">lookback</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">gap</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">horizon</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># y will be the Close price of the next day</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">[[</span><span class="s1">&#39;Close&#39;</span><span class="p">]]</span>
+
+<span class="c1"># Convert y to boolean</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="s1">&#39;Close&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+<span class="c1"># Plot x</span>
+<span class="n">x</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../_images/x.png"><img alt="../_images/x.png" src="../_images/x.png" style="width: 767.5px; height: 225.0px;" /></a>
+<p>Now we can create the model.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create model</span>
+<span class="n">densemodel</span> <span class="o">=</span> <span class="n">wavy</span><span class="o">.</span><span class="n">DenseModel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;classification&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>With the model we can fit, and see the score for the validation set.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Fit model</span>
+<span class="n">densemodel</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+
+<span class="c1"># Score</span>
+<span class="n">densemodel</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="s1">&#39;val&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If we want, we can also predict on another dataset.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Predict</span>
+<span class="n">predicted</span> <span class="o">=</span> <span class="n">densemodel</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">val</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 </section>
 
 
