@@ -5,20 +5,8 @@
     <img src="https://github.com/logspace-ai/wavy/blob/main/images/logo.png?raw=true" alt="Logo" width="419" height="235">
   </a>
 
-  <h3 align="center">Wavy: </h3>
-
-  <h3 align="center">
-    Time Series Windowing. Simplified.
-    <br />
-    <a href="https://logspace-ai.github.io/wavy/"><strong>Explore the docs</strong></a>
-    <br />
-    <br />
-    <a href="https://github.com/logspace-ai/wavy">View Demo</a>
-    ·
-    <a href="https://github.com/logspace-ai/wavy/issues">Report Bug</a>
-    ·
-    <a href="https://github.com/logspace-ai/wavy/issues">Request Feature</a>
-  </h3>
+  <h3 align="center">Time-series windowing, simplified.</h3>
+  <a href="https://logspace-ai.github.io/wavy/"><strong>Explore the docs</strong></a>
 </div>
 
 <p align="center">
@@ -37,6 +25,7 @@
 
 <!-- ABOUT THE PROJECT -->
 ## About The Project
+![image](https://user-images.githubusercontent.com/12815734/176294464-d52222f1-1622-4488-8b45-f92680742b7b.png)
 
 Wavy is a library to facilitate time series analysis.
 
