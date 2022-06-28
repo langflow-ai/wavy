@@ -5,10 +5,10 @@
     <img src="https://github.com/logspace-ai/wavy/blob/main/images/logo.png?raw=true" alt="Logo" width="419" height="235">
   </a>
 
-  <h3 align="center">Wavy</h3>
+  <h3 align="center">Wavy: </h3>
 
-  <p align="center">
-    Time Series windowing made easy
+  <h3 align="center">
+    Time Series Windowing. Simplified.
     <br />
     <a href="https://logspace-ai.github.io/wavy/"><strong>Explore the docs</strong></a>
     <br />
@@ -18,7 +18,7 @@
     <a href="https://github.com/logspace-ai/wavy/issues">Report Bug</a>
     ·
     <a href="https://github.com/logspace-ai/wavy/issues">Request Feature</a>
-  </p>
+  </h3>
 </div>
 
 <p align="center">
