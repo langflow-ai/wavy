@@ -1,5 +1,5 @@
 <!-- Title -->
-## ≋ Wavy: Time-series preprocessing simplified ≋
+## ≋ Wavy: Time-Series Simplified ≋
 
 <p>
 <img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/logspace-ai/wavy" />
