@@ -29,6 +29,19 @@ def is_dataframe(x):
     return isinstance(x, pd.DataFrame)
 
 
+def is_series(x):
+    """
+    Check if x is a pd.Series.
+
+    Args:
+        x (object): Object to check
+
+    Returns:
+        bool: True if x is pd.Series, False otherwise
+    """
+    return isinstance(x, pd.Series)
+
+
 # def last_max(x):
 #     """
 #     Return True if last element is the biggest one
