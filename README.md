@@ -15,14 +15,10 @@
 </p>
 
 
-<div align="left">
-Wavy is a time series package designed to simplify the pre-processing steps and reliably avoid the problem of data leakage on time-series data. Its main structure is built on top of Pandas. <a href="https://logspace-ai.github.io/wavy/"><strong>Explore the docs 📖</strong></a>
+Wavy is a time series package designed to simplify the pre-processing steps and reliably avoid the problem of data leakage on time-series data. Its main structure is built on top of [pandas](https://pandas.pydata.org). <a href="https://logspace-ai.github.io/wavy/"><strong>Explore the docs 📖</strong></a>
     <a href="https://github.com/logspace-ai/wavy">
         <img width="50%" src="https://github.com/logspace-ai/wavy/blob/main/images/logo.png?raw=true" alt="Logo" width="419" height="235" align="right"></a>
-</div>
 
-    
-    
   
 
 <!-- PROJECT LOGO -->
