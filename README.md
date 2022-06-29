@@ -16,7 +16,7 @@
 
 
 <div align="left">
-`≋wavy≋` is a time series package designed to simplify the pre-processing steps and reliably avoid the problem of data leakage on time-series data. Its main structure is built on top of Pandas DataFrames. <a href="https://logspace-ai.github.io/wavy/"><strong>Explore the docs 📖</strong></a>
+`wavy` is a time series package designed to simplify the pre-processing steps and reliably avoid the problem of data leakage on time-series data. Its main structure is built on top of Pandas DataFrames. <a href="https://logspace-ai.github.io/wavy/"><strong>Explore the docs 📖</strong></a>
 
 <!-- Description -->
 
