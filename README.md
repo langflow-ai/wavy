@@ -16,7 +16,7 @@
 
 
 <div align="left">
-Wavy is a time series package designed to simplify the pre-processing steps and reliably avoid the problem of data leakage on time-series data. Its main structure is built on top of Pandas DataFrames. <a href="https://logspace-ai.github.io/wavy/"><strong>Explore the docs 📖</strong></a><p></p>
+Wavy is a time series package designed to simplify the pre-processing steps and reliably avoid the problem of data leakage on time-series data. Its main structure is built on top of Pandas. <a href="https://logspace-ai.github.io/wavy/"><strong>Explore the docs 📖</strong></a><p></p>
 
 <!-- Description -->
 
@@ -24,12 +24,11 @@ Wavy **is**:
 
 - A resourceful, high-level package with tools for time-series processing, visualization, and modeling.
 - A facilitator for time-series windowing that helps reduce boilerplate code and avoids shape confusion.
-- Model agnostic. From classical techniques to recurrent networks. Wavy focuses on the analysis.
 
 Wavy **is not**:
 
-- A super-efficient… performance-first framework (**yet!**).
-- Primarily focused on models. Processed data can be easily converted to numpy arrays for model exploration.
+- An efficient, performance-first framework (**yet!**).
+- Primarily focused on models. Processed data can be easily converted to numpy arrays for further exploration.
 
     <a href="https://github.com/logspace-ai/wavy">
     <img width="49%" src="https://github.com/logspace-ai/wavy/blob/main/images/logo.png?raw=true" alt="Logo" width="419" height="235" align="right">
