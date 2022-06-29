@@ -17,21 +17,21 @@
 
 <div align="left">
 Wavy is a time series package designed to simplify the pre-processing steps and reliably avoid the problem of data leakage on time-series data. Its main structure is built on top of Pandas. <a href="https://logspace-ai.github.io/wavy/"><strong>Explore the docs 📖</strong></a>
-    
-
+    <a href="https://github.com/logspace-ai/wavy">
+        <img width="50%" src="https://github.com/logspace-ai/wavy/blob/main/images/logo.png?raw=true" alt="Logo" width="419" height="235" align="right"></a>
 </div>
 
-<!--     <a href="https://github.com/logspace-ai/wavy">
-    <img width="50%" src="https://github.com/logspace-ai/wavy/blob/main/images/logo.png?raw=true" alt="Logo" width="419" height="235" align="right">
-  </a> -->
+    
+    
+  
 
 <!-- PROJECT LOGO -->
-<div align="right">
+<!-- <div align="right">
   <a href="https://github.com/logspace-ai/wavy">
     <img width="50%" src="https://github.com/logspace-ai/wavy/blob/main/images/logo.png?raw=true" alt="Logo" width="419" height="235">
   </a>
 
-</div>
+</div> -->
 
 <!-- GETTING STARTED -->
 ## 🚀 Quickstart
@@ -49,7 +49,7 @@ pip install wavyts
 Wavy **is**:
 
 - A **resourceful**, **high-level** package with tools for time-series processing, visualization, and modeling.
-- A facilitator for **time-series windowing** that helps **reduce boilerplate code and avoid shape confusion**.
+- A facilitator for **time-series windowing** that helps reduce boilerplate code and avoid shape confusion.
 
 Wavy **is not**:
 
