@@ -31,7 +31,7 @@ Wavy **is not**:
 - Primarily focused on models. Processed data can be easily converted to numpy arrays for further exploration.
 
     <a href="https://github.com/logspace-ai/wavy">
-    <img width="49%" src="https://github.com/logspace-ai/wavy/blob/main/images/logo.png?raw=true" alt="Logo" width="419" height="235" align="right">
+    <img width="50%" src="https://github.com/logspace-ai/wavy/blob/main/images/logo.png?raw=true" alt="Logo" width="419" height="235" align="right">
   </a>
 </div>
 
