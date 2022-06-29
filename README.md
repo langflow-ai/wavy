@@ -24,7 +24,7 @@ Wavy is a time series package designed to simplify the pre-processing steps and 
 <!-- PROJECT LOGO -->
 <!-- <div align="right">
   <a href="https://github.com/logspace-ai/wavy">
-    <img width="50%" src="https://github.com/logspace-ai/wavy/blob/main/images/logo.png?raw=true" alt="Logo" width="419" height="235">
+    <img width="49%" src="https://github.com/logspace-ai/wavy/blob/main/images/logo.png?raw=true" alt="Logo" width="419" height="235">
   </a>
 
 </div> -->
