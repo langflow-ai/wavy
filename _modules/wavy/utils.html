@@ -118,6 +118,19 @@
     <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="is_series"><a class="viewcode-back" href="../../api/wavy.utils.is_series.html#wavy.utils.is_series">[docs]</a><span class="k">def</span> <span class="nf">is_series</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if x is a pd.Series.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x (object): Object to check</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bool: True if x is pd.Series, False otherwise</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span></div>
+
+
 <span class="c1"># def last_max(x):</span>
 <span class="c1">#     &quot;&quot;&quot;</span>
 <span class="c1">#     Return True if last element is the biggest one</span>

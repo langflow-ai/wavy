@@ -1,0 +1,6 @@
+is_series
+=========
+
+.. currentmodule:: wavy.utils
+
+.. autofunction:: is_series

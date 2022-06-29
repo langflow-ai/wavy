@@ -152,14 +152,8 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#wavy.panel.Panel.countna" title="wavy.panel.Panel.countna"><code class="xref py py-obj docutils literal notranslate"><span class="pre">countna</span></code></a>([verbose])</p></td>
 <td><p>Count NaN cells for each Dataframe.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#wavy.panel.Panel.diffw" title="wavy.panel.Panel.diffw"><code class="xref py py-obj docutils literal notranslate"><span class="pre">diffw</span></code></a>([window])</p></td>
-<td><p>Difference between frames.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#wavy.panel.Panel.dropna" title="wavy.panel.Panel.dropna"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dropna</span></code></a>([axis, how, thresh, subset, verbose])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wavy.panel.Panel.dropna" title="wavy.panel.Panel.dropna"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dropna</span></code></a>([axis, how, thresh, subset, verbose])</p></td>
 <td><p>Drop rows or columns with missing values.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#wavy.panel.Panel.dropnaw" title="wavy.panel.Panel.dropnaw"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dropnaw</span></code></a>()</p></td>
-<td><p>Drop frames with missing values from the panel.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#wavy.panel.Panel.findinf" title="wavy.panel.Panel.findinf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">findinf</span></code></a>()</p></td>
 <td><p>Find Inf values index.</p></td>
@@ -173,20 +167,14 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#wavy.panel.Panel.match" title="wavy.panel.Panel.match"><code class="xref py py-obj docutils literal notranslate"><span class="pre">match</span></code></a>(other[, verbose])</p></td>
 <td><p>Modify using values from another Panel.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#wavy.panel.Panel.pct_changew" title="wavy.panel.Panel.pct_changew"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pct_changew</span></code></a>([window])</p></td>
-<td><p>Percentage change between the current and a prior frame.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#wavy.panel.Panel.plot" title="wavy.panel.Panel.plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot</span></code></a>([add_annotation, max])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#wavy.panel.Panel.plot" title="wavy.panel.Panel.plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot</span></code></a>([add_annotation, max])</p></td>
 <td><p>Plot the panel.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#wavy.panel.Panel.sample" title="wavy.panel.Panel.sample"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sample</span></code></a>([samples, how])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wavy.panel.Panel.sample" title="wavy.panel.Panel.sample"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sample</span></code></a>([samples, how])</p></td>
 <td><p>Sample panel returning a subset of frames.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#wavy.panel.Panel.set_training_split" title="wavy.panel.Panel.set_training_split"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_training_split</span></code></a>([test_size, val_split])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#wavy.panel.Panel.set_training_split" title="wavy.panel.Panel.set_training_split"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_training_split</span></code></a>([test_size, val_split])</p></td>
 <td><p>Time series split into training, validation, and test sets, avoiding data leakage.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#wavy.panel.Panel.shiftw" title="wavy.panel.Panel.shiftw"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shiftw</span></code></a>([window])</p></td>
-<td><p>Shift panel by desired number of frames.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#wavy.panel.Panel.tail" title="wavy.panel.Panel.tail"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tail</span></code></a>([n])</p></td>
 <td><p>Return the last n frames of the panel.</p></td>
@@ -365,49 +353,6 @@ the parameters given in the ‘set_train_val_test_sets’ function.
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wavy.panel.Panel.diffw">
-<span class="sig-name descname"><span class="pre">diffw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.diffw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.diffw" title="Permalink to this definition"></a></dt>
-<dd><p>Difference between frames.</p>
-<p>Similar to <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.diff.html">Pandas diff</a></p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>window</strong> (<em>int</em>) – Number of frames to diff</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Result of diff function.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">Panel</span></code></p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">panel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="go">                  Open        High         Low       Close</span>
-<span class="go">Date</span>
-<span class="go">2022-05-06  274.809998  279.250000  271.269989  274.730011</span>
-<span class="go">2022-05-09  270.059998  272.359985  263.320007  264.579987</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">panel</span> <span class="o">=</span> <span class="n">panel</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">window</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">panel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="go">           Open  High  Low Close</span>
-<span class="go">Date</span>
-<span class="go">2022-05-06  NaN   NaN  NaN   NaN</span>
-<span class="go">2022-05-09  NaN   NaN  NaN   NaN</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">panel</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-<span class="go">                Open      High       Low      Close</span>
-<span class="go">Date</span>
-<span class="go">2022-05-09 -4.750000 -6.890015 -7.949982 -10.150024</span>
-<span class="go">2022-05-10  1.630005  1.390015  1.750000   4.920013</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="wavy.panel.Panel.dropna">
 <span class="sig-name descname"><span class="pre">dropna</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">how</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'any'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thresh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.dropna"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.dropna" title="Permalink to this definition"></a></dt>
 <dd><p>Drop rows or columns with missing values.</p>
@@ -427,20 +372,6 @@ the parameters given in the ‘set_train_val_test_sets’ function.
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">Panel</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="wavy.panel.Panel.dropnaw">
-<span class="sig-name descname"><span class="pre">dropnaw</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.dropnaw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.dropnaw" title="Permalink to this definition"></a></dt>
-<dd><p>Drop frames with missing values from the panel.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Panel with missing values dropped.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">Panel</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -508,49 +439,6 @@ the parameters given in the ‘set_train_val_test_sets’ function.
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="wavy.panel.Panel.pct_changew">
-<span class="sig-name descname"><span class="pre">pct_changew</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.pct_changew"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.pct_changew" title="Permalink to this definition"></a></dt>
-<dd><p>Percentage change between the current and a prior frame.</p>
-<p>Similar to <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.pct_change.html">Pandas pct_change</a></p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>window</strong> (<em>int</em>) – Number of frames to calculate percent change</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Result of pct_change function.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">Panel</span></code></p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">panel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="go">                  Open        High         Low       Close</span>
-<span class="go">Date</span>
-<span class="go">2022-05-06  274.809998  279.250000  271.269989  274.730011</span>
-<span class="go">2022-05-09  270.059998  272.359985  263.320007  264.579987</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">panel</span> <span class="o">=</span> <span class="n">panel</span><span class="o">.</span><span class="n">pct_change</span><span class="p">(</span><span class="n">window</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">panel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="go">            Open  High  Low  Close</span>
-<span class="go">Date</span>
-<span class="go">2022-05-06   NaN   NaN  NaN    NaN</span>
-<span class="go">2022-05-09   NaN   NaN  NaN    NaN</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">panel</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-<span class="go">                Open      High       Low     Close</span>
-<span class="go">Date</span>
-<span class="go">2022-05-09 -0.017285 -0.024673 -0.029307 -0.036945</span>
-<span class="go">2022-05-10  0.006036  0.005104  0.006646  0.018596</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="wavy.panel.Panel.plot">
 <span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">add_annotation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.plot" title="Permalink to this definition"></a></dt>
 <dd><p>Plot the panel.</p>
@@ -605,49 +493,6 @@ Splits the panel in training, validation, and test panels, accessed with the pro
 &gt;&gt;&gt; train = panel.train
 &gt;&gt;&gt; val = panel.val
 &gt;&gt;&gt; test = panel.test</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="wavy.panel.Panel.shiftw">
-<span class="sig-name descname"><span class="pre">shiftw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">window</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.shiftw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.shiftw" title="Permalink to this definition"></a></dt>
-<dd><p>Shift panel by desired number of frames.</p>
-<p>Similar to <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.shift.html">Pandas shift</a></p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>window</strong> (<em>int</em>) – Number of frames to shift</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Result of shift function.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">Panel</span></code></p>
-</dd>
-</dl>
-<p>Example:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">panel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="go">                  Open        High         Low       Close</span>
-<span class="go">Date</span>
-<span class="go">2022-05-06  274.809998  279.250000  271.269989  274.730011</span>
-<span class="go">2022-05-09  270.059998  272.359985  263.320007  264.579987</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">panel</span> <span class="o">=</span> <span class="n">panel</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="n">window</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">panel</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="go">           Open  High  Low Close</span>
-<span class="go">Date</span>
-<span class="go">2022-05-06  NaN   NaN  NaN   NaN</span>
-<span class="go">2022-05-09  NaN   NaN  NaN   NaN</span>
-</pre></div>
-</div>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">panel</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-<span class="go">                  Open        High         Low       Close</span>
-<span class="go">Date</span>
-<span class="go">2022-05-06  274.809998  279.250000  271.269989  274.730011</span>
-<span class="go">2022-05-09  270.059998  272.359985  263.320007  264.579987</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py method">
