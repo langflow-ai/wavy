@@ -44,7 +44,7 @@ pip install wavyts
 
 
 <!-- Description -->
-## ✨ Features
+## Features
 
 Wavy **is**:
 
@@ -58,7 +58,7 @@ Wavy **is not**:
 
 
 <!-- CONTRIBUTING -->
-## 💫 Contributing
+## Contributing
 
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make to `wavy` are **greatly appreciated**.
 
@@ -73,7 +73,7 @@ Don't forget to give the project a star! Thanks again!
 
 
 <!-- LICENSE -->
-## 📚 License
+## License
 
 Distributed under the MIT License. See `LICENSE.txt` for more information.
 
