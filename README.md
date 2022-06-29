@@ -42,12 +42,12 @@ pip install wavyts
 <!-- Description -->
 ## Features
 
-Wavy **is**:
+💡 Wavy **is**:
 
 - A **resourceful**, **high-level** package with tools for time-series processing, visualization, and modeling.
 - A facilitator for **time-series windowing** that helps reduce boilerplate code and avoid shape confusion.
 
-Wavy **is not**:
+❗ Wavy **is not**:
 
 - An efficient, performance-first framework (**yet!**).
 - Primarily focused on models. Processed data can be easily converted to numpy arrays for further exploration.
