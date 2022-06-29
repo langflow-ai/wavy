@@ -16,12 +16,35 @@
 
 
 <div align="left">
-Wavy is a time series package designed to simplify the pre-processing steps and reliably avoid the problem of data leakage on time-series data. Its main structure is built on top of Pandas. <a href="https://logspace-ai.github.io/wavy/"><strong>Explore the docs 📖</strong></a><p></p>
+Wavy is a time series package designed to simplify the pre-processing steps and reliably avoid the problem of data leakage on time-series data. Its main structure is built on top of Pandas. <a href="https://logspace-ai.github.io/wavy/"><strong>Explore the docs 📖</strong></a>
+    
+
+</div>
+
+<!--     <a href="https://github.com/logspace-ai/wavy">
+    <img width="50%" src="https://github.com/logspace-ai/wavy/blob/main/images/logo.png?raw=true" alt="Logo" width="419" height="235" align="right">
+  </a> -->
+
+<!-- PROJECT LOGO -->
+<div align="right">
+  <a href="https://github.com/logspace-ai/wavy">
+    <img width="50%" src="https://github.com/logspace-ai/wavy/blob/main/images/logo.png?raw=true" alt="Logo" width="419" height="235">
+  </a>
+
+</div>
+
+<!-- GETTING STARTED -->
+## 🚀 Quickstart
+
+You can install Wavy from pip:
+
+```bash
+pip install wavyts
+```
+
 
 <!-- Description -->
-<a href="https://github.com/logspace-ai/wavy">
-    <img width="50%" src="https://github.com/logspace-ai/wavy/blob/main/images/logo.png?raw=true" alt="Logo" width="419" height="235" align="right">
-  </a>
+## ✨ Features
 
 Wavy **is**:
 
@@ -32,26 +55,6 @@ Wavy **is not**:
 
 - An efficient, performance-first framework (**yet!**).
 - Primarily focused on models. Processed data can be easily converted to numpy arrays for further exploration.
-
-    
-</div>
-
-<!-- PROJECT LOGO -->
-<!-- <div align="right">
-  <a href="https://github.com/logspace-ai/wavy">
-    <img src="https://github.com/logspace-ai/wavy/blob/main/images/logo.png?raw=true" alt="Logo" width="419" height="235">
-  </a> -->
-
-<!-- </div> -->
-
-<!-- GETTING STARTED -->
-## 🚀 Quickstart
-
-You can install Wavy from pip:
-
-```bash
-pip install wavyts
-```
 
 
 <!-- CONTRIBUTING -->
