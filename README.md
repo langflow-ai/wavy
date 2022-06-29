@@ -44,7 +44,7 @@ pip install wavyts
 
 
 <!-- Description -->
-## 🤖 Features
+## ✨ Features
 
 Wavy **is**:
 
@@ -72,8 +72,8 @@ Don't forget to give the project a star! Thanks again!
 5. Open a Pull Request
 
 
-<!-- 📚 LICENSE -->
-## License
+<!-- LICENSE -->
+## 📚 License
 
 Distributed under the MIT License. See `LICENSE.txt` for more information.
 
