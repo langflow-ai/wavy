@@ -1,94 +1,65 @@
-<!-- PROJECT LOGO -->
-<br />
-<div align="center">
-  <a href="https://github.com/logspace-ai/wavy">
-    <img src="https://github.com/logspace-ai/wavy/blob/main/images/logo.png?raw=true" alt="Logo" width="419" height="235">
-  </a>
+<!-- Title -->
+## ≋ Wavy: Time-Series Simplified ≋
 
-  <h3 align="center">Wavy</h3>
-
-  <p align="center">
-    Time Series windowing made easy
-    <br />
-    <a href="https://logspace-ai.github.io/wavy/"><strong>Explore the docs</strong></a>
-    <br />
-    <br />
-    <a href="https://github.com/logspace-ai/wavy">View Demo</a>
-    ·
-    <a href="https://github.com/logspace-ai/wavy/issues">Report Bug</a>
-    ·
-    <a href="https://github.com/logspace-ai/wavy/issues">Request Feature</a>
-  </p>
-</div>
-
-<p align="center">
+<p>
 <img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/logspace-ai/wavy" />
 <img alt="GitHub Last Commit" src="https://img.shields.io/github/last-commit/logspace-ai/wavy" />
-<img alt="GitHub Language Count" src="https://img.shields.io/github/languages/count/logspace-ai/wavy" />
+<!-- <img alt="GitHub Language Count" src="https://img.shields.io/github/languages/count/logspace-ai/wavy" /> -->
 <img alt="" src="https://img.shields.io/github/repo-size/logspace-ai/wavy" />
-<img alt="GitHub Issues" src="https://img.shields.io/github/issues/logspace-ai/wavy" />
-<img alt="GitHub Closed Issues" src="https://img.shields.io/github/issues-closed/logspace-ai/wavy" />
-<img alt="GitHub Pull Requests" src="https://img.shields.io/github/issues-pr/logspace-ai/wavy" />
-<img alt="GitHub Closed Pull Requests" src="https://img.shields.io/github/issues-pr-closed/logspace-ai/wavy" /> 
-<img alt="GitHub Commit Activity (Year)" src="https://img.shields.io/github/commit-activity/y/logspace-ai/wavy" />
+<!-- <img alt="GitHub Issues" src="https://img.shields.io/github/issues/logspace-ai/wavy" /> -->
+<!-- <img alt="GitHub Closed Issues" src="https://img.shields.io/github/issues-closed/logspace-ai/wavy" /> -->
+<!-- <img alt="GitHub Pull Requests" src="https://img.shields.io/github/issues-pr/logspace-ai/wavy" /> -->
+<!-- <img alt="GitHub Closed Pull Requests" src="https://img.shields.io/github/issues-pr-closed/logspace-ai/wavy" />  -->
+<!-- <img alt="GitHub Commit Activity (Year)" src="https://img.shields.io/github/commit-activity/y/logspace-ai/wavy" /> -->
 <img alt="Github License" src="https://img.shields.io/github/license/logspace-ai/wavy" />  
 </p>
 
 
-<!-- ABOUT THE PROJECT -->
-## About The Project
+Wavy is a time series package designed to simplify the pre-processing steps and reliably avoid the problem of data leakage on time-series data. <a href="https://logspace-ai.github.io/wavy/"><strong>Explore the docs 📖</strong></a>
+    <a href="https://github.com/logspace-ai/wavy">
+        <img width="50%" src="https://github.com/logspace-ai/wavy/blob/main/images/logo.png?raw=true" alt="Logo" width="419" height="235" align="right"></a>
 
-Wavy is a library to facilitate time series analysis.
+  
 
+<!-- PROJECT LOGO -->
+<!-- <div align="right">
+  <a href="https://github.com/logspace-ai/wavy">
+    <img width="49%" src="https://github.com/logspace-ai/wavy/blob/main/images/logo.png?raw=true" alt="Logo" width="419" height="235">
+  </a>
 
-### Built With
-
-* [Python](https://www.python.org/)
-* [TensorFlow](https://www.tensorflow.org/)
-* [Pandas](https://pandas.pydata.org/)
-* [scikit-learn](https://scikit-learn.org/stable/index.html)
-* [Plotly](https://plotly.com/python/)
-* [NumPy](https://numpy.org/)
-
+</div> -->
 
 <!-- GETTING STARTED -->
-## Installation
+## 🚀 Quickstart
 
+You can install Wavy from pip:
 
-```sh
+```bash
 pip install wavyts
 ```
 
 
-<!-- USAGE EXAMPLES
-## Usage
+<!-- Description -->
+## Features
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+💡 Wavy **is**:
 
-_For more examples, please refer to the [Documentation](https://logspace-ai.github.io/wavy/)_ -->
+- A **resourceful**, **high-level** package with tools for time-series processing, visualization, and modeling.
+- A facilitator for **time-series windowing** that helps reduce boilerplate code and avoid shape confusion.
 
+❗ Wavy **is not**:
 
-<!-- ROADMAP -->
-## Roadmap
-
-- [ ] Finish documentation
-- [ ] Migrate models to pytorch
-- [ ] Add Tutorials
-    - [ ] Bovespa
-    - [ ] S&P
-    - [ ] Bitcoin
-
-
-See the [open issues](https://github.com/logspace-ai/wavy/issues) for a full list of proposed features (and known issues).
+- An efficient, performance-first framework (**yet!**).
+- Primarily focused on models. Processed data can be easily converted to numpy arrays for further exploration.
 
 
 <!-- CONTRIBUTING -->
 ## Contributing
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make to `wavy` are **greatly appreciated**.
 
 If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-Don't forget to give the project a star! Thanks again!
+Don't forget to give the project a star! ⭐
 
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)

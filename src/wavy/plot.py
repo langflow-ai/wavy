@@ -3,6 +3,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotlab import Figure
 
+from wavy.utils import is_dataframe
+
 # TODO: Set plotting configs and add kwargs to functions
 # TODO: Check if kwargs would overwrite fig.add_trace if same params are used
 
@@ -69,7 +71,7 @@ class PanelFigure(Figure):
             args = list(args)
             data = args.pop(0)
 
-            if not isinstance(data, pd.DataFrame):
+            if not is_dataframe(data):
                 data = data.as_dataframe()
 
             for col in data.columns:

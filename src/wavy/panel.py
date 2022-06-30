@@ -8,6 +8,7 @@ import pandas as pd
 from tqdm.auto import tqdm
 
 from wavy.plot import plot
+from wavy.utils import is_dataframe, is_series
 
 _ARG_0_METHODS = [
     "__abs__",
@@ -110,7 +111,7 @@ def shallow_copy(panel, frames=None, train_size=None, test_size=None, val_size=N
 
     if frames is None:
         frames = []
-    elif isinstance(frames[0], pd.Series):
+    elif is_series(frames[0]):
         frames = [pd.DataFrame(frame).T for frame in frames]
     new_panel = Panel(frames)
     new_panel.train_size = train_size if train_size is not None else panel.train_size
@@ -491,7 +492,7 @@ class Panel:
 
         return new_panel
 
-    def dropnaw(self):
+    def dropna_(self):
         """
         Drop frames with missing values from the panel.
 
@@ -587,7 +588,7 @@ class Panel:
 
             return dataframe
 
-    def shiftw(self, window: int = 1):
+    def shift_(self, window: int = 1):
         """
         Shift panel by desired number of frames.
 
@@ -641,7 +642,7 @@ class Panel:
 
         return shallow_copy(self, new_panel)
 
-    def diffw(self, window: int = 1):
+    def diff_(self, window: int = 1):
         """
         Difference between frames.
 
@@ -676,9 +677,10 @@ class Panel:
         2022-05-10  1.630005  1.390015  1.750000   4.920013
         """
 
-        return self - self.shiftw(window)
+        return self - self.shift_(window)
 
-    def pct_changew(self, window: int = 1):
+    def pct_change_(self, window: int = 1):
+        # TODO: Rename window to periods to be consistent with pandas
         """
         Percentage change between the current and a prior frame.
 
@@ -712,7 +714,7 @@ class Panel:
         2022-05-09 -0.017285 -0.024673 -0.029307 -0.036945
         2022-05-10  0.006036  0.005104  0.006646  0.018596
         """
-        a = self.shiftw(window)
+        a = self.shift_(window)
         return (self - a) / a
 
     def match(self, other, verbose=False):
@@ -775,7 +777,7 @@ class Panel:
 
         df = panel.as_dataframe()
         if len(df) != len(other):
-            if not isinstance(other, pd.DataFrame):
+            if not is_dataframe(other):
                 raise ValueError("If using different sizes, other must be a DataFrame")
 
             assert not all(other.index.duplicated())
