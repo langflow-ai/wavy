@@ -71,7 +71,7 @@ class _BaseModel:
         if x.findna():
             raise ValueError("Panel x has NaN values.")
         if y.findna():
-            raise ValueError("Panel x has NaN values.")
+            raise ValueError("Panel y has NaN values.")
 
         # Convert boolean in x and y to int
         for col in x[0].columns:

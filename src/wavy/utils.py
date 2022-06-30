@@ -1,19 +1,24 @@
 import pandas as pd
 
 
-def reverse_pct_change(panel, df):
+def reverse_pct_change(changed_panel, initial_panel, periods=1):
     """
     Reverse the pct_change function.
 
     Args:
-        panel (wavy.Panel): Panel to reverse
-        df (pd.DataFrame): Dataframe to reverse
+        panel_change (wavy.Panel): Panel to reverse
+        ref_panel (wavy.Panel): Reference Panel
 
     Returns:
         pd.DataFrame: Reversed dataframe
     """
-    df = df.shift() * (1 + panel.as_dataframe())
-    return panel.update(df)
+
+    # TODO: Reference must come from columns.name
+    # Just shifting the panel is dangerous.
+    # e.g. say that panel skips 10 and 11 indices, and just has 9, 12, 13, 14...
+    # Shifting will skip from 9 to 12, unless there's a parameter to shift based on the indices (columns.name).
+    initial_shifted = initial_panel.shift_(periods)
+    return initial_shifted * (changed_panel + 1)
 
 
 def is_dataframe(x):

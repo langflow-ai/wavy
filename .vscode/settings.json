@@ -1,40 +1,40 @@
-{
-    // Interpreter and env file
-    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
-    "python.envFile": "${workspaceFolder}/.env",
+// {
+//     // Interpreter and env file
+//     "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+//     "python.envFile": "${workspaceFolder}/.env",
 
-    // Language Server
-    "python.languageServer": "Pylance",
+//     // Language Server
+//     "python.languageServer": "Pylance",
+
+//     // Black-flake8 compatibility
+//     "python.linting.flake8Enabled": true,
+//     "python.linting.enabled": true,
+//     "python.linting.flake8Args": ["--ignore=E203, W503", "--max-line-length=88"],
+
+//     // Add black formatter and organize imports on save
+//     "python.formatting.provider": "black",
+//     "[python]" : {
+//         "editor.formatOnSave": true,
+//         "editor.codeActionsOnSave": {
+//             "source.organizeImports": true
+//         }
+//     },
+
+//     // Black-isort compatibility
+//     // "python.sortImports.args": ["-m3", "--tc", "-fgw 0", "--up", "-n", "-l 88"],
+
+//     // Black-Pylint compatibility
+//     "python.linting.pylintEnabled": true,
+//     "python.linting.pylintArgs": [
+//         "--disable=all",
+//         "--enable=F,E,unreachable,duplicate-key,unnecessary-semicolon,global-variable-not-assigned,unused-variable,binary-op-exception,bad-format-string,anomalous-backslash-in-string,bad-open-mode",
+//         "--max-line-length=88",
+//     ],
     
-    // Black-flake8 compatibility
-    "python.linting.flake8Enabled": true,
-    "python.linting.enabled": true,
-    "python.linting.flake8Args": ["--ignore=E203, W503", "--max-line-length=88"],
-
-    // Add black formatter and organize imports on save
-    "python.formatting.provider": "black",
-    "[python]" : {
-        "editor.formatOnSave": true,
-        "editor.codeActionsOnSave": {
-            "source.organizeImports": true
-        }
-    },
-
-    // Black-isort compatibility
-    "python.sortImports.args": ["-m3", "--tc", "-fgw 0", "--up", "-n", "-l 88"],
-
-    // Black-Pylint compatibility
-    "python.linting.pylintEnabled": true,
-    "python.linting.pylintArgs": [
-        "--disable=all",
-        "--enable=F,E,unreachable,duplicate-key,unnecessary-semicolon,global-variable-not-assigned,unused-variable,binary-op-exception,bad-format-string,anomalous-backslash-in-string,bad-open-mode",
-        "--max-line-length=88",
-    ],
-    
-    "restructuredtext.confPath": "",
-    "typescript.tsc.autoDetect": "off",
-    "grunt.autoDetect": "off",
-    "jake.autoDetect": "off",
-    "gulp.autoDetect": "off",
-    "npm.autoDetect": "off"
-}
+//     "restructuredtext.confPath": "",
+//     "typescript.tsc.autoDetect": "off",
+//     "grunt.autoDetect": "off",
+//     "jake.autoDetect": "off",
+//     "gulp.autoDetect": "off",
+//     "npm.autoDetect": "off"
+// }

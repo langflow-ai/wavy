@@ -115,7 +115,12 @@ def shallow_copy(panel, frames=None, train_size=None, test_size=None, val_size=N
         frames = []
     elif is_series(frames[0]):
         frames = [pd.DataFrame(frame).T for frame in frames]
+
     new_panel = Panel(frames)
+
+    # TODO: Refactor logic below
+    # Note: ```train_size or panel.train_size``` does not work.
+    # Neither do: ```train_size if train_size else panel.train_size````
     new_panel.train_size = train_size if train_size is not None else panel.train_size
     new_panel.test_size = test_size if test_size is not None else panel.test_size
     new_panel.val_size = val_size if val_size is not None else panel.val_size
@@ -153,7 +158,7 @@ def reset_index(x, y, verbose=False):
 class Panel:
     def __init__(self, frames):
         # ? What about duplicated indices?
-        # ? Would it make sense to have the panel as only one dataframe with index references per frame window?
+        # ? Would it make sense to have the panel as just dataframe references per frame?
 
         class _IXIndexer:
             def __init__(self, outer):
@@ -248,7 +253,6 @@ class Panel:
 
     def __getattr__(self, name):
         try:
-
             def wrapper(*args, **kwargs):
                 frames = []
                 for frame in self.frames:
@@ -575,6 +579,7 @@ class Panel:
         return values[values].index.tolist()
 
     def as_dataframe(self, flatten=False, frame=False):
+        # TODO: Remove ID from the returned dataframe.
         """
         Convert panel to DataFrame.
 
@@ -636,14 +641,14 @@ class Panel:
 
             return dataframe
 
-    def shift_(self, window: int = 1):
+    def shift_(self, periods: int = 1):
         """
         Shift panel by desired number of frames.
 
         Similar to `Pandas shift <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.shift.html>`__
 
         Args:
-            window (int): Number of frames to shift
+            periods (int): Number of frames to shift
 
         Returns:
             ``Panel``: Result of shift function.
@@ -656,7 +661,7 @@ class Panel:
         2022-05-06  274.809998  279.250000  271.269989  274.730011
         2022-05-09  270.059998  272.359985  263.320007  264.579987
 
-        >>> panel = panel.shift(window = 1)
+        >>> panel = panel.shift(periods = 1)
 
         >>> panel[0]
                    Open  High  Low Close
@@ -674,7 +679,7 @@ class Panel:
         new_panel = []
 
         for i, frame in enumerate(self.frames):
-            new_index = i - window
+            new_index = i - periods
             new_index = (
                 new_index if new_index >= 0 and new_index < len(self.frames) else None
             )
@@ -690,14 +695,14 @@ class Panel:
 
         return shallow_copy(self, new_panel)
 
-    def diff_(self, window: int = 1):
+    def diff_(self, periods: int = 1):
         """
         Difference between frames.
 
         Similar to `Pandas diff <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.diff.html>`__
 
         Args:
-            window (int): Number of frames to diff
+            periods (int): Number of frames to diff
 
         Returns:
             ``Panel``: Result of diff function.
@@ -710,7 +715,7 @@ class Panel:
         2022-05-06  274.809998  279.250000  271.269989  274.730011
         2022-05-09  270.059998  272.359985  263.320007  264.579987
 
-        >>> panel = panel.diff(window = 1)
+        >>> panel = panel.diff(periods = 1)
 
         >>> panel[0]
                    Open  High  Low Close
@@ -725,7 +730,7 @@ class Panel:
         2022-05-10  1.630005  1.390015  1.750000   4.920013
         """
         indexes = [frame.index for frame in self.frames]
-        diff = self - self.shift_(window)
+        diff = self - self.shift_(periods)
         return diff.set_index_(indexes)
 
     def set_index_(self, indexes):
@@ -743,15 +748,14 @@ class Panel:
         frames = [frame.set_index(index) for frame, index in zip(self.frames, indexes)]
         return shallow_copy(self, frames)
 
-    def pct_change_(self, window: int = 1):
-        # TODO: Rename window to periods to be consistent with pandas
+    def pct_change_(self, periods: int = 1):
         """
         Percentage change between the current and a prior frame.
 
         Similar to `Pandas pct_change <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.pct_change.html>`__
 
         Args:
-            window (int): Number of frames to calculate percent change
+            periods (int): Number of frames to calculate percent change
 
         Returns:
             ``Panel``: Result of pct_change function.
@@ -764,7 +768,7 @@ class Panel:
         2022-05-06  274.809998  279.250000  271.269989  274.730011
         2022-05-09  270.059998  272.359985  263.320007  264.579987
 
-        >>> panel = panel.pct_change(window = 1)
+        >>> panel = panel.pct_change(periods = 1)
 
         >>> panel[0]
                     Open  High  Low  Close
@@ -779,7 +783,7 @@ class Panel:
         2022-05-10  0.006036  0.005104  0.006646  0.018596
         """
         indexes = [frame.index for frame in self.frames]
-        a = self.shift_(window)
+        a = self.shift_(periods)
         diff = (self - a) / a
         return diff.set_index_(indexes)
 
@@ -825,6 +829,8 @@ class Panel:
         self.test_size = test_size
         self.val_size = val_split * self.train_size
         self.train_size = self.train_size - self.val_size
+
+        # ? Should assert comes after previous assignments?
         assert math.isclose(
             self.train_size + self.val_size + self.test_size, 1, abs_tol=1e-6
         )
