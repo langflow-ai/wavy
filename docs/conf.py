@@ -38,13 +38,14 @@ release = version
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "sphinxcontrib.napoleon",
     "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
     "sphinx.ext.todo",
-    "sphinxcontrib.napoleon",
     "sphinx.ext.autosectionlabel",
     "sphinx.ext.autosummary",
     "sphinx_automodapi.automodapi",
+    "nbsphinx",
 ]
 numpydoc_show_class_members = False
 

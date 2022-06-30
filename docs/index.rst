@@ -17,15 +17,14 @@ Wavy
 
    manual/installation.rst
    manual/introduction.rst
-   manual/quickstart.rst
-   manual/basics.rst
+   notebooks/quickstart2.ipynb
    manual/models.rst
    manual/tutorials.rst
 
 .. toctree::
    :glob:
    :maxdepth: 1
-   :caption: Library
+   :caption: API
 
    api/panel.rst
    api/models.rst

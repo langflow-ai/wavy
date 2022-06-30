@@ -38,6 +38,8 @@ Sphinx = "^5.0.1"
 sphinx-rtd-theme = "^1.0.0"
 sphinxcontrib-napoleon = "^0.7"
 sphinx-automodapi = "^0.14.1"
+nbsphinx = "^0.8.9"
+pandoc = "^2.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
