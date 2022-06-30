@@ -18,7 +18,9 @@ _ARG_0_METHODS = [
 ]
 _ARG_1_METHODS = [
     "__add__",
+    "__radd__",
     "__sub__",
+    "__rsub__",
     "__mul__",
     "__rmul__",
     "__truediv__",
@@ -34,8 +36,8 @@ _ARG_1_METHODS = [
     "__rfloordiv__",
     "__matmul__",
     "__rmatmul__",
-    "__rmod__",
     "__mod__",
+    "__rmod__",
 ]
 
 # Plot
@@ -73,7 +75,7 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0, verbose=False):
     x_timesteps = len(df.index)
 
     if x_timesteps - lookback - horizon - gap <= -1:
-        raise ValueError("Not enough timesteps to build")
+        raise ValueError("Not enough timesteps to build.")
 
     end = x_timesteps - horizon - gap + 1
 
@@ -119,6 +121,33 @@ def shallow_copy(panel, frames=None, train_size=None, test_size=None, val_size=N
     new_panel.val_size = val_size if val_size is not None else panel.val_size
 
     return new_panel
+
+
+def reset_index(x, y, verbose=False):
+    """
+    Reset index of a panel.
+
+    Args:
+        x (Panel): Panel to reset index of
+        y (Panel): Panel to reset index of
+        verbose (bool): Whether to print progress
+
+    Returns:
+        ``Panel``: Reset index of panel
+    """
+
+    # Check if index in x and y are the same
+    if not np.array_equal(x.indices, y.indices):
+        raise ValueError(
+            "Indices for x and y are not the same. Try using match function first."
+        )
+
+    # Reset index
+    for index in tqdm(range(len(x)), disable=not verbose):
+        x[index].columns.name = index
+        y[index].columns.name = index
+
+    return x, y
 
 
 class Panel:
@@ -422,6 +451,25 @@ class Panel:
 
         return (len(self),) + self[0].shape
 
+    def get_frame_by_index(self, index):
+        """
+        Get a frame by index.
+
+        Args:
+            index (int): Index of the frame to return.
+
+        Returns:
+            pd.DataFrame: Frame at index.
+
+        Example:
+
+        >>> panel.get_frame_by_index(0)
+        <DataFrame>
+        """
+        return next(
+            (frame for frame in self.frames if frame.columns.name == index), None
+        )
+
     def rename_columns(self, columns: dict):
         """
         Rename columns.
@@ -676,8 +724,24 @@ class Panel:
         2022-05-09 -4.750000 -6.890015 -7.949982 -10.150024
         2022-05-10  1.630005  1.390015  1.750000   4.920013
         """
+        indexes = [frame.index for frame in self.frames]
+        diff = self - self.shift_(window)
+        return diff.set_index_(indexes)
 
-        return self - self.shift_(window)
+    def set_index_(self, indexes):
+        """
+        Set index of panel.
+
+        Similar to `Pandas set_index <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.set_index.html>`__
+
+        Args:
+            indexes (list): List of indexes to set.
+
+        Returns:
+            ``Panel``: Result of set index function.
+        """
+        frames = [frame.set_index(index) for frame, index in zip(self.frames, indexes)]
+        return shallow_copy(self, frames)
 
     def pct_change_(self, window: int = 1):
         # TODO: Rename window to periods to be consistent with pandas
@@ -714,8 +778,10 @@ class Panel:
         2022-05-09 -0.017285 -0.024673 -0.029307 -0.036945
         2022-05-10  0.006036  0.005104  0.006646  0.018596
         """
+        indexes = [frame.index for frame in self.frames]
         a = self.shift_(window)
-        return (self - a) / a
+        diff = (self - a) / a
+        return diff.set_index_(indexes)
 
     def match(self, other, verbose=False):
         """
