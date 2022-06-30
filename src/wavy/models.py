@@ -50,7 +50,7 @@ class _BaseModel:
             "regression": {
                 "loss": "MSE",
                 "optimizer": "adam",
-                "metrics": ["MAE"],
+                "metrics": ["mae"],
                 "last_activation": "linear",
             },
             "classification": {
@@ -223,7 +223,7 @@ class _BaseModel:
                 self.x_val, self.y_val, verbose=0, **kwargs
             )
 
-        indexes = [self.model.metrics_names.index(metric) for metric in self.metrics]
+        indexes = [self.model.metrics_names.index(metric.lower()) for metric in self.metrics]
 
         return pd.DataFrame(
             {key: [value[index] for index in indexes] for key, value in dic.items()},
@@ -736,6 +736,7 @@ class ShallowModel:
 
 
 def compute_score_per_model(*models, on="val"):
+    # BUG
     """
     Compute score per model
 
@@ -754,6 +755,7 @@ def compute_score_per_model(*models, on="val"):
 
 
 def compute_default_scores(x, y, model_type, epochs=10, verbose=0, **kwargs):
+    # BUG
     """
     Compute default scores for a model.
 
@@ -768,7 +770,7 @@ def compute_default_scores(x, y, model_type, epochs=10, verbose=0, **kwargs):
     Returns:
         pd.DataFrame: Scores
     """
-    models = [BaselineShift, DenseModel, ConvModel]
+    models = [BaselineConstant, BaselineShift, DenseModel]
     models = [model(x=x, y=y, model_type=model_type) for model in models]
     for model in models:
         model.fit(epochs=epochs, verbose=verbose, **kwargs)
