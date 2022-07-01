@@ -886,31 +886,32 @@ class Panel:
         """
         return self[-n:]
 
-    def sample(self, samples: int = 5, how: str = "first"):
+    def sample_(self, samples: int = 5, how: str = "random"):
         """
         Sample panel returning a subset of frames.
 
         Args:
             samples (int): Number of samples to keep
-            how (str): Resempling how, 'first', 'last', 'spaced' or 'random'
+            how (str): Sampling method, 'spaced' or 'random'
 
         Returns:
             ``Panel``: Result of sample function.
         """
+        # ! Needs to check if panel has train, test and val split first
+        # if panel.is_split():
+            # do something else
+            # ! Should sample train, val and test separately
 
-        if how == "first":
-            return self[:samples]
-        elif how == "last":
-            return self[-samples:]
-        elif how == "random":
-            indexes = np.random.choice(len(self.frames), samples, replace=False)
-            indexes = sorted(indexes)
-            return self[indexes]
-        elif how == "spaced":
-            indexes = np.linspace(
-                0, len(self.frames), samples, dtype=int, endpoint=False
-            )
-            return self[indexes]
+        # ! Better not to use below and focus on ids
+        # if how == "random":
+        #     indexes = np.random.choice(len(self.frames), samples, replace=False)
+        #     indexes = sorted(indexes)
+        #     return self[indexes]
+        # elif how == "spaced":
+        #     indexes = np.linspace(
+        #         0, len(self.frames), samples, dtype=int, endpoint=False
+        #     )
+        #     return self[indexes]
 
     @property
     def train(self):
