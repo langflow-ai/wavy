@@ -8,7 +8,7 @@ import pandas as pd
 from tqdm.auto import tqdm
 
 from wavy.plot import plot
-from wavy.utils import is_dataframe, is_series
+from wavy.utils import is_dataframe, is_series, is_iterable
 
 from wavy.validations import _validate_training_split
 
@@ -170,21 +170,25 @@ def create_panel(frames: list):
     Returns:
         ``Panel``: Data Panel
     """
+    # ! Validate 
 
     return Panel(frames)
 
-def concat_(panels: list):
+def concat_(panels: list, reset_ids=False):
     """
     Concatenate panels.
 
     Args:
         panels (list): List of panels
+        reset_ids (bool): Whether to reset ids
 
     Returns:
         ``Panel``: Concatenated panels
     """
     # TODO: check panel ids (should we sort and reset_index?)
     # TODO: should we do any validation before?
+    # ! Do not accept duplicated ids
+    # Warning that panel will reset ids
 
     return Panel([panel.frames for panel in panels])
 
@@ -287,6 +291,8 @@ class Panel:
         self.test_size = None
         self.val_size = None
 
+        # TODO Create ids here
+
     def __getattr__(self, name):
         try:
             def wrapper(*args, **kwargs):
@@ -305,16 +311,25 @@ class Panel:
 
     # Function to map all dunder functions
     def _1_arg(self, other, __f):
-        if isinstance(other, Panel):
+        def _self_vs_iterable(self, other, __f):
 
-            return shallow_copy(
-                self,
-                [
-                    getattr(frame, __f)(other_frame)
+            if len(self) != len(other):
+                raise ValueError(
+                    "test_size and val_size cannot be None"
+                )
+
+            return shallow_copy(self,[getattr(frame, __f)(other_frame)
                     for frame, other_frame in zip(self, other)
                 ],
             )
-        return shallow_copy(self, [getattr(frame, __f)(other) for frame in self.frames])
+        
+        def _self_vs_scalar(self, other, __f):
+            shallow_copy(self, [getattr(frame, __f)(other) for frame in self.frames])
+
+        if is_iterable(other):
+            return _self_vs_iterable(self, other, __f)
+
+        return _self_vs_scalar
 
     for _dunder in _ARG_1_METHODS:
         locals()[_dunder] = lambda self, other, __f=_dunder: self._1_arg(other, __f)
@@ -530,7 +545,8 @@ class Panel:
         if not self.train_size:
             return None
 
-        panel = self[: int(self.train_size * len(self))]
+        # panel = self[: int(self.train_size * len(self))]
+        panel = self[: self.train_size]
 
         return shallow_copy(
             None, frames=panel.frames, train_size=len(panel), test_size=0, val_size=0
@@ -548,11 +564,12 @@ class Panel:
         if not self.val_size:
             return None
 
-        panel = self[
-            int(self.train_size * len(self)) : int(
-                (self.train_size + self.val_size) * len(self)
-            )
-        ]
+        # panel = self[
+        #     int(self.train_size * len(self)) : int(
+        #         (self.train_size + self.val_size) * len(self)
+        #     )
+        # ]
+        panel = self[self.train_size: self.train_size + self.val_size]
 
         return shallow_copy(
             None, frames=panel.frames, train_size=0, test_size=0, val_size=len(panel)
@@ -571,11 +588,14 @@ class Panel:
         if not self.test_size:
             return None
 
-        panel = self[int((self.train_size + self.val_size) * len(self)) :]
+        # panel = self[int((self.train_size + self.val_size) * len(self)) :]
+        panel = self[self.train_size + self.val_size :]
         
         return shallow_copy(
             None, frames=panel.frames, train_size=0, test_size=len(panel), val_size=0
         )
+
+    # TODO function to set_ids and only accept int or date 
 
     def get_frame_by_id(self, id: int):
         """
@@ -762,6 +782,23 @@ class Panel:
 
             return dataframe
 
+    def set_index_(self, indexes):
+        """
+        Set index of panel.
+
+        Similar to `Pandas set_index <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.set_index.html>`__
+
+        Args:
+            indexes (list): List of indexes to set.
+
+        Returns:
+            ``Panel``: Result of set index function.
+        """
+        # TODO add validation of sizes
+        
+        frames = [frame.set_index(index) for frame, index in zip(self.frames, indexes)]
+        return shallow_copy(self, frames)
+
     def shift_(self, periods: int = 1):
         """
         Shift panel by desired number of frames.
@@ -851,21 +888,6 @@ class Panel:
         2022-05-10  1.630005  1.390015  1.750000   4.920013
         """
         return self - self.shift_(periods)
-
-    def set_index_(self, indexes):
-        """
-        Set index of panel.
-
-        Similar to `Pandas set_index <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.set_index.html>`__
-
-        Args:
-            indexes (list): List of indexes to set.
-
-        Returns:
-            ``Panel``: Result of set index function.
-        """
-        frames = [frame.set_index(index) for frame, index in zip(self.frames, indexes)]
-        return shallow_copy(self, frames)
 
     def pct_change_(self, periods: int = 1):
         """
@@ -960,6 +982,8 @@ class Panel:
         #     self.train_size + self.val_size + self.test_size, 1, abs_tol=1e-6
         # )
 
+
+    # TODO check this function
     def update(self, other):
         """
         Update the panel with values from another panel.
@@ -987,7 +1011,7 @@ class Panel:
             i.iloc[:, :] = j
         return panel
 
-    def head(self, n: int = 5):
+    def head_(self, n: int = 5):
         """
         Return the first n frames of the panel.
 
@@ -999,7 +1023,7 @@ class Panel:
         """
         return self[:n]
 
-    def tail(self, n: int = 5):
+    def tail_(self, n: int = 5):
         """
         Return the last n frames of the panel.
 
@@ -1011,7 +1035,9 @@ class Panel:
         """
         return self[-n:]
 
-    def sample_(self, samples: int = 5, how: str = "random"):
+    # TODO Add function sort_
+
+    def sample_(self, samples: int = 5, how: str = "spaced"):
         """
         Sample panel returning a subset of frames.
 
@@ -1022,21 +1048,19 @@ class Panel:
         Returns:
             ``Panel``: Result of sample function.
         """
-        # ! Needs to check if panel has train, test and val split first
-        # if panel.is_split():
-            # do something else
-            # ! Should sample train, val and test separately
 
-        # ! Better not to use below and focus on ids
-        # if how == "random":
-        #     indexes = np.random.choice(len(self.frames), samples, replace=False)
-        #     indexes = sorted(indexes)
-        #     return self[indexes]
-        # elif how == "spaced":
-        #     indexes = np.linspace(
-        #         0, len(self.frames), samples, dtype=int, endpoint=False
-        #     )
-        #     return self[indexes]
+        if how == "random":
+            indexes = np.random.choice(len(self.frames), samples, replace=False)
+            indexes = sorted(indexes)
+            return self[indexes]
+        elif how == "spaced":
+            indexes = np.linspace(
+                0, len(self.frames), samples, dtype=int, endpoint=False
+            )
+            return self[indexes]
+
+    # TODO add shuffle_ function and add warnings about data leakage
+    # TODO check if match match the order of the second panel
 
     def plot(self, add_annotation=True, max=10_000, **kwargs):
         """
@@ -1049,6 +1073,8 @@ class Panel:
         Returns:
             ``plot``: Result of plot function.
         """
+        # TODO consider plotting with id instead of index
+
         if max and len(self) > max:
             return plot(
                 self.sample(max, how="spaced"), add_annotation=add_annotation, **kwargs

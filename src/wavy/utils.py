@@ -1,4 +1,5 @@
 import pandas as pd
+from collections.abc import Iterable
 
 
 # -------------------
@@ -102,3 +103,15 @@ def is_series(x):
         bool: True if x is pd.Series, False otherwise
     """
     return isinstance(x, pd.Series)
+
+def is_iterable(x):
+    """
+    Check if x is iterable.
+
+    Args:
+        x (object): Object to check
+
+    Returns:
+        bool: True if x is iterable, False otherwise
+    """
+    return isinstance(x, Iterable)
