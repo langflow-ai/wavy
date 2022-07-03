@@ -899,7 +899,8 @@ class Panel:
 
     def match(self, other, verbose=False):
         """
-        Match panel with other panel. This function will match the ids and id order of self based on the ids of other.
+        Match panel with other panel. This function will match the ids and id
+        order of self based on the ids of other.
 
         Args:
             other: (Panel)
@@ -911,13 +912,21 @@ class Panel:
         if [i for i in other.ids if i not in self.ids]:
             raise ValueError("There are elements in other that are not in self.")
 
-        return create_panel(
+        other_ids = other.ids
+
+        panel = create_panel(
             [
                 frame
                 for frame in tqdm(self.frames, disable=not verbose)
                 if frame.columns.name in other.ids
             ]
         )
+
+        panel_ids = panel.ids
+
+        indices = [int(np.where(panel_ids == id)[0]) for id in other_ids]
+
+        return panel[indices]
 
     def set_training_split(
         self,
