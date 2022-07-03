@@ -72,13 +72,18 @@ class PanelFigure(Figure):
             data = args.pop(0)
 
             if not is_dataframe(data):
-                data = data.as_dataframe()
+                df = data.as_dataframe()
 
-            for col in data.columns:
+            if "use_ids" in kwargs:
+                use_ids = kwargs.pop("use_ids")
+                if use_ids:
+                    df = df.set_index(data.ids)
+
+            for col in df.columns:
                 kwargs["color"] = self.colors[self.color_index]
                 self.color_index = (self.color_index + 1) % len(self.colors)
                 if col != "frame":
-                    func(self, data[col], *tuple(args), **kwargs)
+                    func(self, df[col], *tuple(args), **kwargs)
 
         return inner
 
@@ -134,13 +139,14 @@ class PanelFigure(Figure):
         self.dotline(col, *args, **kwargs)  # color=color, opacity=opacity)
 
 
-def plot(panel, add_annotation=False, **kwargs):
+def plot(panel, use_ids=False, add_annotation=False, **kwargs):
     # TODO: Add "kind" parameter to chose between plot types
     """
     Plot a panel.
 
     Args:
         panel (Panel): Panel object
+        use_ids (bool): Use ids instead of index
         add_annotation (bool): If True, plot vertical lines showing train, val, and test periods
 
     Returns:
@@ -148,7 +154,7 @@ def plot(panel, add_annotation=False, **kwargs):
     """
     fig = PanelFigure()
 
-    fig.add_line(panel, **kwargs)
+    fig.add_line(panel, use_ids=use_ids, **kwargs)
 
     if add_annotation:
         fig.add_annotation(panel)

@@ -1,18 +1,18 @@
 import itertools
 import math
+import random
 import warnings
 from copy import deepcopy
+from itertools import chain
+from typing import Union
 
 import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm
 
 from wavy.plot import plot
-from wavy.utils import is_dataframe, is_series, is_iterable
-
+from wavy.utils import is_dataframe, is_iterable, is_series
 from wavy.validations import _validate_training_split
-
-from typing import Union
 
 _ARG_0_METHODS = [
     "__abs__",
@@ -86,55 +86,16 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0, verbose=False):
     ids = np.arange(lookback, end)
     xframes, yframes = [], []
 
-    for id, i in enumerate(tqdm(ids, disable=not verbose)):
+    for i in tqdm(ids, disable=not verbose):
         # ? functions that create a new panel might keep old frame ids
-        frame = df.iloc[i - lookback : i].copy()
-        frame.columns.name = id
-        xframes.append(frame)
+        xframes.append(df.iloc[i - lookback : i].copy())
 
-        frame = df.iloc[i + gap : i + gap + horizon].copy()
-        frame.columns.name = id
-        yframes.append(frame)
+        yframes.append(df.iloc[i + gap : i + gap + horizon].copy())
 
-    a, b = Panel(xframes), Panel(yframes)
-    return a, b
+    return create_panel(xframes, reset_ids=True), create_panel(yframes, reset_ids=True)
 
 
-def shallow_copy(panel, frames=None, train_size=None, test_size=None, val_size=None):
-    """
-    Shallow copy of a panel.
-
-    Args:
-        panel (Panel): Panel to use as base
-        frames (DataFrame): DataFrame to copy
-        train_size (int): Train size
-        test_size (int): Test size
-        val_size (int): Validation size
-
-    Returns:
-        ``Panel``: Shallow copy of panel
-    """
-    # TODO: should we remove this function and have a create_panel function?
-    # TODO: panel is only used to get train, test and val sizes, maybe this function should only receive frames and maybe train, test and val sizes should be passed as arguments
-
-    if frames is None:
-        frames = []
-    elif is_series(frames[0]):
-        frames = [pd.DataFrame(frame).T for frame in frames]
-
-    new_panel = Panel(frames)
-
-    # TODO: Refactor logic below
-    # Note: ```train_size or panel.train_size``` does not work.
-    # Neither do: ```train_size if train_size else panel.train_size````
-    new_panel.train_size = train_size if train_size is not None else panel.train_size
-    new_panel.test_size = test_size if test_size is not None else panel.test_size
-    new_panel.val_size = val_size if val_size is not None else panel.val_size
-
-    return new_panel
-
-
-def reset_ids(x, y, verbose=False):
+def reset_ids(x, y):
     """
     Reset ids of a panel.
 
@@ -153,48 +114,77 @@ def reset_ids(x, y, verbose=False):
             "Ids for x and y are not the same. Try using match function first."
         )
 
-    # Reset ids
-    for id in tqdm(range(len(x)), disable=not verbose):
-        x[id].columns.name = id
-        y[id].columns.name = id
+    x.reset_ids()
+    y.reset_ids()
 
     return x, y
 
-def create_panel(frames: list):
+
+def create_panel(
+    frames: list, reset_ids=False, val_size=None, train_size=None, test_size=None
+):
     """
     Create a panel from a list of dataframes.
 
     Args:
         frames (list): List of dataframes
+        reset_ids (bool): Whether to reset ids
+        val_size (int): Size of validation set
+        train_size (int): Size of training set
+        test_size (int): Size of test set
 
     Returns:
         ``Panel``: Data Panel
     """
-    # ! Validate 
 
-    return Panel(frames)
+    if frames is None:
+        raise ValueError("Frames cannot be None.")
 
-def concat_(panels: list, reset_ids=False):
+    if is_series(frames[0]):
+        frames = [pd.DataFrame(frame).T for frame in frames]
+
+    panel = Panel(frames, reset_ids=reset_ids)
+
+    if train_size is not None and test_size is not None and val_size is not None:
+        panel.set_training_split(
+            train_size=train_size, val_size=val_size, test_size=test_size
+        )
+
+    return panel
+
+
+def concat_(panels: list, reset_ids=False, sort=False):
     """
     Concatenate panels.
 
     Args:
         panels (list): List of panels
         reset_ids (bool): Whether to reset ids
+        sort (bool): Whether to sort by id
 
     Returns:
         ``Panel``: Concatenated panels
     """
-    # TODO: check panel ids (should we sort and reset_index?)
-    # TODO: should we do any validation before?
-    # ! Do not accept duplicated ids
-    # Warning that panel will reset ids
 
-    return Panel([panel.frames for panel in panels])
+    # Get ids of all panels
+    ids = list(chain(*[panel.ids for panel in panels]))
+
+    # Check duplicated ids in list
+    if len(ids) != len(set(ids)):
+        raise ValueError("There are duplicated ids in the list.")
+
+    frames = list(chain(*[panel.frames for panel in panels]))
+
+    if sort:
+        frames = sorted(frames, key=lambda x: x.columns.name)
+
+    panel = create_panel(frames, reset_ids=reset_ids)
+
+    return panel
 
 
 class Panel:
-    def __init__(self, frames):
+    def __init__(self, frames, reset_ids=False):
         # ? What about duplicated indices?
         # ? Would it make sense to have the panel as just dataframe references per frame?
 
@@ -203,82 +193,35 @@ class Panel:
                 self.outer = outer
 
             def __getitem__(self, item):
-                return shallow_copy(self.outer, [i.ix[item] for i in self.outer.frames])
+                return create_panel([i.ix[item] for i in self.outer.frames])
 
         class _iLocIndexer:
             def __init__(self, outer):
                 self.outer = outer
 
             def __getitem__(self, item):
-                return shallow_copy(
-                    self.outer, [i.iloc[item] for i in self.outer.frames]
-                )
+                return create_panel([i.iloc[item] for i in self.outer.frames])
 
         class _LocIndexer:
             def __init__(self, outer):
                 self.outer = outer
 
             def __getitem__(self, item):
-                return shallow_copy(
-                    self.outer, [i.loc[item] for i in self.outer.frames]
-                )
+                return create_panel([i.loc[item] for i in self.outer.frames])
 
         class _AtIndexer:
             def __init__(self, outer):
                 self.outer = outer
 
             def __getitem__(self, item):
-                return shallow_copy(self.outer, [i.at[item] for i in self.outer.frames])
+                return create_panel([i.at[item] for i in self.outer.frames])
 
         class _iAtIndexer:
             def __init__(self, outer):
                 self.outer = outer
 
             def __getitem__(self, item):
-                return shallow_copy(
-                    self.outer, [i.iat[item] for i in self.outer.frames]
-                )
-
-        class _IXIndexer:
-            def __init__(self, outer):
-                self.outer = outer
-
-            def __getitem__(self, item):
-                return shallow_copy(self.outer, [i.ix[item] for i in self.outer.frames])
-
-        class _iLocIndexer:
-            def __init__(self, outer):
-                self.outer = outer
-
-            def __getitem__(self, item):
-                return shallow_copy(
-                    self.outer, [i.iloc[item] for i in self.outer.frames]
-                )
-
-        class _LocIndexer:
-            def __init__(self, outer):
-                self.outer = outer
-
-            def __getitem__(self, item):
-                return shallow_copy(
-                    self.outer, [i.loc[item] for i in self.outer.frames]
-                )
-
-        class _AtIndexer:
-            def __init__(self, outer):
-                self.outer = outer
-
-            def __getitem__(self, item):
-                return shallow_copy(self.outer, [i.at[item] for i in self.outer.frames])
-
-        class _iAtIndexer:
-            def __init__(self, outer):
-                self.outer = outer
-
-            def __getitem__(self, item):
-                return shallow_copy(
-                    self.outer, [i.iat[item] for i in self.outer.frames]
-                )
+                return create_panel([i.iat[item] for i in self.outer.frames])
 
         self.ix = _IXIndexer(self)
         self.iloc = _iLocIndexer(self)
@@ -291,10 +234,12 @@ class Panel:
         self.test_size = None
         self.val_size = None
 
-        # TODO Create ids here
+        if reset_ids:
+            self.reset_ids()
 
     def __getattr__(self, name):
         try:
+
             def wrapper(*args, **kwargs):
                 frames = []
                 for frame in self.frames:
@@ -314,17 +259,25 @@ class Panel:
         def _self_vs_iterable(self, other, __f):
 
             if len(self) != len(other):
-                raise ValueError(
-                    "test_size and val_size cannot be None"
-                )
+                raise ValueError("test_size and val_size cannot be None")
 
-            return shallow_copy(self,[getattr(frame, __f)(other_frame)
+            return create_panel(
+                [
+                    getattr(frame, __f)(other_frame)
                     for frame, other_frame in zip(self, other)
                 ],
+                train_size=self.train_size,
+                val_size=self.val_size,
+                test_size=self.test_size,
             )
-        
+
         def _self_vs_scalar(self, other, __f):
-            shallow_copy(self, [getattr(frame, __f)(other) for frame in self.frames])
+            create_panel(
+                [getattr(frame, __f)(other) for frame in self.frames],
+                train_size=self.train_size,
+                val_size=self.val_size,
+                test_size=self.test_size,
+            )
 
         if is_iterable(other):
             return _self_vs_iterable(self, other, __f)
@@ -335,7 +288,12 @@ class Panel:
         locals()[_dunder] = lambda self, other, __f=_dunder: self._1_arg(other, __f)
 
     def _0_arg(self, __f):
-        return shallow_copy(self, [getattr(frame, __f)() for frame in self.frames])
+        return create_panel(
+            [getattr(frame, __f)() for frame in self.frames],
+            train_size=self.train_size,
+            val_size=self.val_size,
+            test_size=self.test_size,
+        )
 
     for _dunder in _ARG_0_METHODS:
         locals()[_dunder] = lambda self, __f=_dunder: self._0_arg(__f)
@@ -379,11 +337,9 @@ class Panel:
             if isinstance(index, (int, np.integer)):
                 return self.frames[index].loc[:, columns]
             elif isinstance(index, slice):
-                return shallow_copy(self, self.frames[index]).loc[:, columns]
+                return create_panel(self.frames[index]).loc[:, columns]
             elif isinstance(index, (list, np.ndarray)):
-                return shallow_copy(self, [self.frames[i] for i in index]).loc[
-                    :, columns
-                ]
+                return create_panel([self.frames[i] for i in index]).loc[:, columns]
 
         # Columns
         if isinstance(key, (list, np.ndarray)) and all(isinstance(k, str) for k in key):
@@ -395,11 +351,11 @@ class Panel:
         if isinstance(key, (int, np.integer)):
             return self.frames[key]
         elif isinstance(key, slice):
-            return shallow_copy(self, self.frames[key])
+            return create_panel(self.frames[key])
         elif isinstance(key, (list, np.ndarray)) and all(
             isinstance(k, (int, np.integer)) for k in key
         ):
-            return shallow_copy(self, [self.frames[i] for i in key])
+            return create_panel([self.frames[i] for i in key])
 
     def __len__(self):
         return len(self.frames)
@@ -434,10 +390,18 @@ class Panel:
             ids (list): List of ids.
         """
         if len(ids) != len(self):
-            raise ValueError(f"Length of ids must match length of panel. Got {len(ids)} and {len(self)}")
+            raise ValueError(
+                f"Length of ids must match length of panel. Got {len(ids)} and {len(self)}"
+            )
 
         for frame, id in zip(self.frames, ids):
             frame.columns.name = id
+
+    def reset_ids(self):
+        """
+        Reset the ids of the panel.
+        """
+        self.ids = list(range(len(self)))
 
     @property
     def columns(self):
@@ -483,6 +447,7 @@ class Panel:
         3   2022-05-09
         dtype: datetime64[ns]
         """
+        # TODO: Check function
 
         return pd.Series([frame.index[-1] for frame in self.frames])
 
@@ -548,9 +513,7 @@ class Panel:
         # panel = self[: int(self.train_size * len(self))]
         panel = self[: self.train_size]
 
-        return shallow_copy(
-            None, frames=panel.frames, train_size=len(panel), test_size=0, val_size=0
-        )
+        return create_panel(frames=panel.frames)
 
     @property
     def val(self):
@@ -564,16 +527,9 @@ class Panel:
         if not self.val_size:
             return None
 
-        # panel = self[
-        #     int(self.train_size * len(self)) : int(
-        #         (self.train_size + self.val_size) * len(self)
-        #     )
-        # ]
-        panel = self[self.train_size: self.train_size + self.val_size]
+        panel = self[self.train_size : self.train_size + self.val_size]
 
-        return shallow_copy(
-            None, frames=panel.frames, train_size=0, test_size=0, val_size=len(panel)
-        )
+        return create_panel(frames=panel.frames)
 
     @property
     def test(self):
@@ -588,14 +544,11 @@ class Panel:
         if not self.test_size:
             return None
 
-        # panel = self[int((self.train_size + self.val_size) * len(self)) :]
         panel = self[self.train_size + self.val_size :]
-        
-        return shallow_copy(
-            None, frames=panel.frames, train_size=0, test_size=len(panel), val_size=0
-        )
 
-    # TODO function to set_ids and only accept int or date 
+        return create_panel(frames=panel.frames)
+
+    # TODO function to set_ids and only accept int or date
 
     def get_frame_by_id(self, id: int):
         """
@@ -612,9 +565,7 @@ class Panel:
         >>> panel.get_frame_by_id(0)
         <DataFrame>
         """
-        return next(
-            (frame for frame in self.frames if frame.columns.name == id), None
-        )
+        return next((frame for frame in self.frames if frame.columns.name == id), None)
 
     def rename_columns(self, columns: dict):
         """
@@ -631,7 +582,12 @@ class Panel:
         >>> panel.rename_columns({"Open": "open", "High": "high"})
         """
 
-        return Panel([frame.rename(columns=columns) for frame in self.frames])
+        return create_panel(
+            [frame.rename(columns=columns) for frame in self.frames],
+            train_size=self.train_size,
+            val_size=self.val_size,
+            test_size=self.test_size,
+        )
 
     def countna(self, verbose=False):
         """
@@ -655,11 +611,10 @@ class Panel:
         ]
         return pd.DataFrame(values, index=range(len(self.frames)), columns=["nan"])
 
+    # TODO Check function
     def dropna(self, axis=0, how="any", thresh=None, subset=None, verbose=False):
         """
         Drop rows or columns with missing values.
-
-        Similar to `Pandas dropna <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.drop.html>`__
 
         Args:
             axis (int): The axis to drop on.
@@ -786,18 +741,24 @@ class Panel:
         """
         Set index of panel.
 
-        Similar to `Pandas set_index <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.set_index.html>`__
-
         Args:
             indexes (list): List of indexes to set.
 
         Returns:
             ``Panel``: Result of set index function.
         """
-        # TODO add validation of sizes
-        
+
+        if len(indexes) != self.shape[0]:
+            raise ValueError("Number of indexes must be equal to number of frames")
+
         frames = [frame.set_index(index) for frame, index in zip(self.frames, indexes)]
-        return shallow_copy(self, frames)
+
+        return create_panel(
+            frames,
+            train_size=self.train_size,
+            val_size=self.val_size,
+            test_size=self.test_size,
+        )
 
     def shift_(self, periods: int = 1):
         """
@@ -851,7 +812,12 @@ class Panel:
             )
             new_panel.append(new_frame)
 
-        return shallow_copy(self, new_panel)
+        return create_panel(
+            new_panel,
+            train_size=self.train_size,
+            val_size=self.val_size,
+            test_size=self.test_size,
+        )
 
     def diff_(self, periods: int = 1):
         """
@@ -887,6 +853,8 @@ class Panel:
         2022-05-09 -4.750000 -6.890015 -7.949982 -10.150024
         2022-05-10  1.630005  1.390015  1.750000   4.920013
         """
+
+        # TODO check if train, test split is correct
         return self - self.shift_(periods)
 
     def pct_change_(self, periods: int = 1):
@@ -924,12 +892,14 @@ class Panel:
         2022-05-10  0.006036  0.005104  0.006646  0.018596
         """
 
+        # TODO check if train, test split is correct
+
         a = self.shift_(periods)
         return (self - a) / a
 
     def match(self, other, verbose=False):
         """
-        Modify using values from another Panel. Aligns on ids.
+        Match panel with other panel. This function will match the ids and id order of self based on the ids of other.
 
         Args:
             other: (Panel)
@@ -941,47 +911,40 @@ class Panel:
         if [i for i in other.ids if i not in self.ids]:
             raise ValueError("There are elements in other that are not in self.")
 
-        panel = shallow_copy(
-            self,
+        return create_panel(
             [
                 frame
                 for frame in tqdm(self.frames, disable=not verbose)
                 if frame.columns.name in other.ids
-            ],
+            ]
         )
-        panel.test_size = other.test_size
-        panel.val_size = other.val_size
-        panel.train_size = other.train_size
-        return panel
 
-    def set_training_split(self, test_size: Union[float, int] = 0.1, val_size: Union[float, int] = 0.2):
+    def set_training_split(
+        self,
+        train_size: Union[float, int],
+        val_size: Union[float, int] = 0.2,
+        test_size: Union[float, int] = 0.1,
+    ):
         """
-        Splits the panel in training, validation, and test panels, accessed with the properties
-        .train, .val and .test.
+        Splits the panel in training, validation, and test, accessed with the
+        properties .train, .val and .test.
 
         Args:
-            test_size (float, int): Percentage of data used for the test set.
-            val_size (float, int): Percentage of data used for the validation set.
-            
+            train_size (float, int): Fraction of data to use for training.
+            test_size (float, int): Fraction of data to use for testing.
+            val_size (float, int): Fraction of data to use for validation.
+
         Example:
         >>> panel.set_training_split(val_size=0.2, test_size=0.1)
         """
 
-        n_val, n_test, n_train = _validate_training_split(len(self), test_size=test_size, val_size=val_size)
+        n_train, n_val, n_test = _validate_training_split(
+            len(self), train_size=train_size, val_size=val_size, test_size=test_size
+        )
 
         self.train_size = n_train
         self.val_size = n_val
         self.test_size = n_test
-        # self.train_size = 1 - test_size
-        # self.test_size = test_size
-        # self.val_size = val_split * self.train_size
-        # self.train_size = self.train_size - self.val_size
-
-        # # TODO: do we need assert, once it is calculated correctly above?
-        # assert math.isclose(
-        #     self.train_size + self.val_size + self.test_size, 1, abs_tol=1e-6
-        # )
-
 
     # TODO check this function
     def update(self, other):
@@ -1059,10 +1022,24 @@ class Panel:
             )
             return self[indexes]
 
-    # TODO add shuffle_ function and add warnings about data leakage
+    def shuffle_(self):
+        """
+        Shuffle the panel.
+
+        Returns:
+            ``Panel``: Result of shuffle function.
+        """
+
+        # Warning about data leakage
+        warnings.warn("Shuffling the panel can result in data leakage.")
+
+        indexes = list(range(len(self)))
+        random.shuffle(indexes)
+        return self[indexes]
+
     # TODO check if match match the order of the second panel
 
-    def plot(self, add_annotation=True, max=10_000, **kwargs):
+    def plot(self, add_annotation=True, max=10_000, use_ids=False, **kwargs):
         """
         Plot the panel.
 
@@ -1073,10 +1050,12 @@ class Panel:
         Returns:
             ``plot``: Result of plot function.
         """
-        # TODO consider plotting with id instead of index
 
         if max and len(self) > max:
             return plot(
-                self.sample(max, how="spaced"), add_annotation=add_annotation, **kwargs
+                self.sample(max, how="spaced"),
+                use_ids=use_ids,
+                add_annotation=add_annotation,
+                **kwargs,
             )
-        return plot(self, add_annotation=add_annotation, **kwargs)
+        return plot(self, use_ids=use_ids, add_annotation=add_annotation, **kwargs)
