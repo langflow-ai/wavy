@@ -1007,7 +1007,19 @@ class Panel:
         """
         return self[-n:]
 
-    # TODO Add function sort_
+    def sort_(self):
+        """
+        Sort panel by ids.
+
+        Returns:
+            ``Panel``: Result of sort function.
+        """
+
+        self_ids = self.ids
+        sorted_ids = sorted(self_ids)
+        indices = [int(np.where(self_ids == id)[0]) for id in sorted_ids]
+
+        return self[indices]
 
     def sample_(self, samples: int = 5, how: str = "spaced"):
         """
@@ -1045,8 +1057,6 @@ class Panel:
         indexes = list(range(len(self)))
         random.shuffle(indexes)
         return self[indexes]
-
-    # TODO check if match match the order of the second panel
 
     def plot(self, add_annotation=True, max=10_000, use_ids=False, **kwargs):
         """
