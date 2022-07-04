@@ -44,6 +44,14 @@ _ARG_1_METHODS = [
     "__rmod__",
 ]
 
+# TODO
+# 1. erro se só um por ex for series
+# 5. Mudar td q usa primeiro index pra id
+# 7. checar todos os exclamacao e todos e finalizar! (lol)
+# 8. One function for both dunder functions
+# 9. Check keras.preprocessing.timeseries_dataset_from_array
+
+
 # Plot
 pd.set_option("multi_sparse", True)  # To see multilevel indexes
 pd.options.plotting.backend = "plotly"
@@ -242,7 +250,7 @@ class Panel:
 
             def wrapper(*args, **kwargs):
                 frames = []
-                for frame in self.frames:
+                for frame in self:
                     new_frame = getattr(frame.copy(), name)(*args, **kwargs)
                     if isinstance(new_frame, pd.Series):
                         new_frame = pd.DataFrame(new_frame).T
@@ -273,7 +281,7 @@ class Panel:
 
         def _self_vs_scalar(self, other, __f):
             create_panel(
-                [getattr(frame, __f)(other) for frame in self.frames],
+                [getattr(frame, __f)(other) for frame in self],
                 train_size=self.train_size,
                 val_size=self.val_size,
                 test_size=self.test_size,
@@ -289,7 +297,7 @@ class Panel:
 
     def _0_arg(self, __f):
         return create_panel(
-            [getattr(frame, __f)() for frame in self.frames],
+            [getattr(frame, __f)() for frame in self],
             train_size=self.train_size,
             val_size=self.val_size,
             test_size=self.test_size,
@@ -394,7 +402,7 @@ class Panel:
         """
         Return the ids of the panel.
         """
-        return np.array([frame.columns.name for frame in self.frames])
+        return np.array([frame.columns.name for frame in self])
 
     @ids.setter
     def ids(self, ids):
@@ -409,7 +417,7 @@ class Panel:
                 f"Length of ids must match length of panel. Got {len(ids)} and {len(self)}"
             )
 
-        for frame, id in zip(self.frames, ids):
+        for frame, id in zip(self, ids):
             frame.columns.name = id
 
     def reset_ids(self):
@@ -440,12 +448,12 @@ class Panel:
             columns (list): List of columns.
         """
 
-        if len(columns) != len(self[0].colums):
+        if len(columns) != len(self[0].columns):
             raise ValueError(
                 f"Length of columns must match length of panel. Got {len(columns)} and {len(self[0].columns)}"
             )
 
-        for frame in self.frames:
+        for frame in self:
             frame.columns = columns
 
     @property
@@ -482,9 +490,7 @@ class Panel:
                 [270.05999756, 272.35998535, 263.32000732, 264.57998657]]])
         """
 
-        return np.array(
-            [frame.values for frame in tqdm(self.frames, disable=not verbose)]
-        )
+        return np.array([frame.values for frame in tqdm(self, disable=not verbose)])
 
     @property
     def timesteps(self):
@@ -578,7 +584,7 @@ class Panel:
         >>> panel.get_frame_by_id(0)
         <DataFrame>
         """
-        return next((frame for frame in self.frames if frame.columns.name == id), None)
+        return next((frame for frame in self if frame.columns.name == id), None)
 
     def rename_columns(self, columns: dict):
         """
@@ -596,7 +602,7 @@ class Panel:
         """
 
         return create_panel(
-            [frame.rename(columns=columns) for frame in self.frames],
+            [frame.rename(columns=columns) for frame in self],
             train_size=self.train_size,
             val_size=self.val_size,
             test_size=self.test_size,
@@ -619,10 +625,9 @@ class Panel:
         3    0
         """
         values = [
-            frame.isnull().values.sum()
-            for frame in tqdm(self.frames, disable=not verbose)
+            frame.isnull().values.sum() for frame in tqdm(self, disable=not verbose)
         ]
-        return pd.DataFrame(values, index=range(len(self.frames)), columns=["nan"])
+        return pd.DataFrame(values, index=range(len(self)), columns=["nan"])
 
     def dropna(self, axis=0, how="any", thresh=None, subset=None, verbose=False):
         """
@@ -690,6 +695,7 @@ class Panel:
 
     def as_dataframe(self, flatten=False, frame=False):
         # TODO: Remove ID from the returned dataframe.
+        # It seems to be working fine, and has no id.
         """
         Convert panel to DataFrame.
 
@@ -725,14 +731,15 @@ class Panel:
         """
 
         # TODO check what to do when calculating diff() from pandas and later as_dataframe()
+        # TODO check index (use last or first?) and how to handle it when flattening
 
         if flatten:
             columns = [
                 f"{str(i)}-{col}"
                 for i, col in itertools.product(range(self.shape[1]), self[0].columns)
             ]
-            values = np.array([i.values.flatten() for i in self.frames])
-            index = [i.index[-1] for i in self.frames]
+            values = np.array([i.values.flatten() for i in self])
+            index = [i.index[-1] for i in self]
             return pd.DataFrame(values, index=index, columns=columns)
 
         else:
@@ -766,7 +773,7 @@ class Panel:
         if len(indexes) != self.shape[0]:
             raise ValueError("Number of indexes must be equal to number of frames")
 
-        frames = [frame.set_index(index) for frame, index in zip(self.frames, indexes)]
+        frames = [frame.set_index(index) for frame, index in zip(self, indexes)]
 
         return create_panel(
             frames,
@@ -812,15 +819,13 @@ class Panel:
 
         new_panel = []
 
-        for i, frame in enumerate(self.frames):
+        for i, frame in enumerate(self):
             new_index = i - periods
-            new_index = (
-                new_index if new_index >= 0 and new_index < len(self.frames) else None
-            )
+            new_index = new_index if new_index >= 0 and new_index < len(self) else None
             new_values = (
-                self.frames[new_index].values
+                self[new_index].values
                 if new_index is not None
-                else np.ones(self.frames[0].shape) * np.nan
+                else np.ones(self[0].shape) * np.nan
             )
             new_frame = pd.DataFrame(
                 data=new_values, index=frame.index, columns=frame.columns
@@ -929,7 +934,7 @@ class Panel:
         panel = create_panel(
             [
                 frame
-                for frame in tqdm(self.frames, disable=not verbose)
+                for frame in tqdm(self, disable=not verbose)
                 if frame.columns.name in other.ids
             ]
         )
@@ -1047,13 +1052,11 @@ class Panel:
 
         if how == "random":
             warnings.warn("Random sampling can result in data leakage.")
-            indexes = np.random.choice(len(self.frames), samples, replace=False)
+            indexes = np.random.choice(len(self), samples, replace=False)
             indexes = sorted(indexes)
             return self[indexes]
         elif how == "spaced":
-            indexes = np.linspace(
-                0, len(self.frames), samples, dtype=int, endpoint=False
-            )
+            indexes = np.linspace(0, len(self), samples, dtype=int, endpoint=False)
             return self[indexes]
 
     def shuffle_(self):
@@ -1070,12 +1073,12 @@ class Panel:
         random.shuffle(indexes)
         return self[indexes]
 
-    def plot(self, add_annotation=True, max=10_000, use_ids=False, **kwargs):
+    def plot(self, add_annotation=True, max=10_000, use_ids=True, **kwargs):
         """
         Plot the panel.
 
         Args:
-            add_annotation (bool): If True, plot the training, validation, and test sets.
+            add_annotation (bool): If True, plot the training, validation, and test annotation.
             **kwargs: Additional arguments to pass to the plot function.
 
         Returns:
