@@ -1,9 +1,12 @@
-import pandas as pd
 from collections.abc import Iterable
 
+import pandas as pd
+
+# from wavy.panel import Panel
 
 # -------------------
 # DataFrame utils
+
 
 def reverse_pct_change(change_df, original_df, periods=1):
     """
@@ -75,9 +78,9 @@ def reverse_diff(diff_df, original_df, periods=1):
 #     return x[-1] < np.min(x[:-1])
 
 
-
 # -------------------
 # Other utils
+
 
 def is_dataframe(x):
     """
@@ -104,6 +107,7 @@ def is_series(x):
     """
     return isinstance(x, pd.Series)
 
+
 def is_iterable(x):
     """
     Check if x is iterable.
@@ -115,3 +119,16 @@ def is_iterable(x):
         bool: True if x is iterable, False otherwise
     """
     return isinstance(x, Iterable)
+
+
+# def is_panel(x):
+#     """
+#     Check if x is a panel.
+
+#     Args:
+#         x (object): Object to check
+
+#     Returns:
+#         bool: True if x is a panel, False otherwise
+#     """
+#     return isinstance(x, Panel)

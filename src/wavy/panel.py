@@ -57,6 +57,19 @@ pd.set_option("multi_sparse", True)  # To see multilevel indexes
 pd.options.plotting.backend = "plotly"
 
 
+def is_panel(x):
+    """
+    Check if x is a panel.
+
+    Args:
+        x (object): Object to check
+
+    Returns:
+        bool: True if x is a panel, False otherwise
+    """
+    return isinstance(x, Panel)
+
+
 def create_panels(df, lookback: int, horizon: int, gap: int = 0, verbose=False):
     """
     Create a panel from a dataframe.
@@ -280,14 +293,18 @@ class Panel:
             )
 
         def _self_vs_scalar(self, other, __f):
-            create_panel(
+
+            if is_iterable(other) and len(other) != len(self[0]):
+                raise ValueError("Length of other must be the same as length of frame.")
+
+            return create_panel(
                 [getattr(frame, __f)(other) for frame in self],
                 train_size=self.train_size,
                 val_size=self.val_size,
                 test_size=self.test_size,
             )
 
-        if is_iterable(other):
+        if is_panel(other):
             return _self_vs_iterable(self, other, __f)
 
         return _self_vs_scalar(self, other, __f)
