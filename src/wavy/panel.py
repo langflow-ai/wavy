@@ -297,6 +297,10 @@ class Panel:
             if is_iterable(other) and len(other) != len(self[0]):
                 raise ValueError("Length of other must be the same as length of frame.")
 
+            if is_dataframe(other):
+                warnings.warn("Dataframe index will be discarded.")
+                other = other.values
+
             return create_panel(
                 [getattr(frame, __f)(other) for frame in self],
                 train_size=self.train_size,
