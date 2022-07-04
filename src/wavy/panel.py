@@ -449,22 +449,20 @@ class Panel:
             frame.columns = columns
 
     @property
-    def index(self):
+    def last_index(self):
         """
         Returns the last index of each frame in the panel.
-
-        Example:
-
-        >>> panel.index
-        0   2022-05-04
-        1   2022-05-05
-        2   2022-05-06
-        3   2022-05-09
-        dtype: datetime64[ns]
         """
-        # TODO: Check function
 
-        return pd.Series([frame.index[-1] for frame in self.frames])
+        return pd.Series([frame.index[-1] for frame in self])
+
+    @property
+    def first_index(self):
+        """
+        Returns the first index of each frame in the panel.
+        """
+
+        return pd.Series([frame.index[0] for frame in self])
 
     @property
     def values(self, verbose=False):
