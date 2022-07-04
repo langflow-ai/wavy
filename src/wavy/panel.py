@@ -626,7 +626,6 @@ class Panel:
         ]
         return pd.DataFrame(values, index=range(len(self.frames)), columns=["nan"])
 
-    # TODO Check function
     def dropna(self, axis=0, how="any", thresh=None, subset=None, verbose=False):
         """
         Drop rows or columns with missing values.
@@ -641,20 +640,21 @@ class Panel:
         Returns:
             ``Panel``: Dropped panel.
         """
-        new_panel = shallow_copy(self)
-        new_panel.frames = [
+
+        frames = [
             frame.dropna(axis=axis, how=how, thresh=thresh, subset=subset)
-            for frame in self.frames
+            for frame in self
         ]
 
-        different = any(
-            new_panel[i].shape != self[i].shape for i in range(len(new_panel))
-        )
-
-        if different:
+        if len({frame.shape for frame in frames}) > 1:
             warnings.warn("Dropped frames have different shape")
 
-        return new_panel
+        return create_panel(
+            frames,
+            train_size=self.train_size,
+            val_size=self.val_size,
+            test_size=self.test_size,
+        )
 
     def dropna_(self):
         """
@@ -725,6 +725,8 @@ class Panel:
         2022-05-11  271.690002  273.750000  265.070007  269.500000  265.679993  271.359985  259.299988  260.549988
         2022-05-12  265.679993  271.359985  259.299988  260.549988  257.690002  259.880005  250.020004  255.350006
         """
+
+        # TODO check what to do when calculating diff() from pandas and later as_dataframe()
 
         if flatten:
             columns = [
@@ -1046,6 +1048,7 @@ class Panel:
         """
 
         if how == "random":
+            warnings.warn("Random sampling can result in data leakage.")
             indexes = np.random.choice(len(self.frames), samples, replace=False)
             indexes = sorted(indexes)
             return self[indexes]
@@ -1063,7 +1066,6 @@ class Panel:
             ``Panel``: Result of shuffle function.
         """
 
-        # Warning about data leakage
         warnings.warn("Shuffling the panel can result in data leakage.")
 
         indexes = list(range(len(self)))
