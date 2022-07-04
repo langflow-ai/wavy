@@ -259,7 +259,7 @@ class Panel:
         def _self_vs_iterable(self, other, __f):
 
             if len(self) != len(other):
-                raise ValueError("test_size and val_size cannot be None")
+                raise ValueError("Length of self and other must be the same.")
 
             return create_panel(
                 [
@@ -282,7 +282,7 @@ class Panel:
         if is_iterable(other):
             return _self_vs_iterable(self, other, __f)
 
-        return _self_vs_scalar
+        return _self_vs_scalar(self, other, __f)
 
     for _dunder in _ARG_1_METHODS:
         locals()[_dunder] = lambda self, other, __f=_dunder: self._1_arg(other, __f)
@@ -373,6 +373,21 @@ class Panel:
 
         print(summary)
         return f"<Panel, size {self.__len__()}>"
+
+    def __iter__(self):
+        self._index = 0
+        return self
+
+    def __next__(self):
+        """
+        Returns the next frame in the panel.
+        """
+        if self._index < len(self):
+            result = self[self._index]
+            self._index += 1
+            return result
+
+        raise StopIteration
 
     @property
     def ids(self):
@@ -854,7 +869,6 @@ class Panel:
         2022-05-10  1.630005  1.390015  1.750000   4.920013
         """
 
-        # TODO check if train, test split is correct
         return self - self.shift_(periods)
 
     def pct_change_(self, periods: int = 1):
@@ -891,8 +905,6 @@ class Panel:
         2022-05-09 -0.017285 -0.024673 -0.029307 -0.036945
         2022-05-10  0.006036  0.005104  0.006646  0.018596
         """
-
-        # TODO check if train, test split is correct
 
         a = self.shift_(periods)
         return (self - a) / a
