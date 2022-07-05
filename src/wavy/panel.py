@@ -14,13 +14,13 @@ from wavy.plot import plot
 from wavy.utils import is_dataframe, is_iterable, is_series
 from wavy.validations import _validate_training_split
 
-_ARG_0_METHODS = [
+_DUNDER_0 = [
     "__abs__",
     "__pos__",
     "__neg__",
     "__invert__",
 ]
-_ARG_1_METHODS = [
+_DUNDER_1 = [
     "__add__",
     "__radd__",
     "__sub__",
@@ -48,9 +48,6 @@ _ARG_1_METHODS = [
 # 1. erro se só um por ex for series
 # 5. Mudar td q usa primeiro index pra id
 # 7. checar todos os exclamacao e todos e finalizar! (lol)
-# 8. One function for both dunder functions
-# 9. Check keras.preprocessing.timeseries_dataset_from_array
-
 
 # Plot
 pd.set_option("multi_sparse", True)  # To see multilevel indexes
@@ -276,8 +273,8 @@ class Panel:
             raise AttributeError(f"'Panel' object has no attribute '{name}'")
 
     # Function to map all dunder functions
-    def _1_arg(self, other, __f):
-        def _self_vs_iterable(self, other, __f):
+    def _dunder_map(self, __f, other=None):
+        def _self_vs_iterable(self, __f, other):
 
             if len(self) != len(other):
                 raise ValueError("Length of self and other must be the same.")
@@ -292,7 +289,7 @@ class Panel:
                 test_size=self.test_size,
             )
 
-        def _self_vs_scalar(self, other, __f):
+        def _self_vs_scalar(self, __f, other):
 
             if is_iterable(other) and len(other) != len(self[0]):
                 raise ValueError("Length of other must be the same as length of frame.")
@@ -308,24 +305,29 @@ class Panel:
                 test_size=self.test_size,
             )
 
-        if is_panel(other):
-            return _self_vs_iterable(self, other, __f)
+        def _self(self, __f):
+            return create_panel(
+                [getattr(frame, __f)() for frame in self],
+                train_size=self.train_size,
+                val_size=self.val_size,
+                test_size=self.test_size,
+            )
 
-        return _self_vs_scalar(self, other, __f)
+        if other is None:
+            return _self(self, __f)
 
-    for _dunder in _ARG_1_METHODS:
-        locals()[_dunder] = lambda self, other, __f=_dunder: self._1_arg(other, __f)
+        elif is_panel(other):
+            return _self_vs_iterable(self, __f, other)
 
-    def _0_arg(self, __f):
-        return create_panel(
-            [getattr(frame, __f)() for frame in self],
-            train_size=self.train_size,
-            val_size=self.val_size,
-            test_size=self.test_size,
+        return _self_vs_scalar(self, __f, other)
+
+    # Call all dunder functions
+    for _dunder in _DUNDER_1:
+        locals()[_dunder] = lambda self, other, __f=_dunder: self._dunder_map(
+            __f, other
         )
-
-    for _dunder in _ARG_0_METHODS:
-        locals()[_dunder] = lambda self, __f=_dunder: self._0_arg(__f)
+    for _dunder in _DUNDER_0:
+        locals()[_dunder] = lambda self, __f=_dunder: self._dunder_map(__f)
 
     def __getitem__(self, key):
         # TODO: add support for dates x['2016':] (reference pandas)
