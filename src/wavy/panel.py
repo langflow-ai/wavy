@@ -47,7 +47,6 @@ _DUNDER_1 = [
 # TODO
 # 1. erro se só um por ex for series
 # 5. Mudar td q usa primeiro index pra id
-# 7. checar todos os exclamacao e todos e finalizar! (lol)
 
 # Plot
 pd.set_option("multi_sparse", True)  # To see multilevel indexes
@@ -262,11 +261,16 @@ class Panel:
                 frames = []
                 for frame in self:
                     new_frame = getattr(frame.copy(), name)(*args, **kwargs)
-                    if isinstance(new_frame, pd.Series):
+                    if is_series(new_frame):
                         new_frame = pd.DataFrame(new_frame).T
                         new_frame.index = frame.index[: len(new_frame.index)]
                     frames.append(new_frame)
-                return Panel(frames)
+                return create_panel(
+                    frames,
+                    train_size=self.train_size,
+                    val_size=self.val_size,
+                    test_size=self.test_size,
+                )
 
             return wrapper
         except AttributeError:
