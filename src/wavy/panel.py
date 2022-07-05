@@ -1,3 +1,4 @@
+import datetime
 import itertools
 import math
 import random
@@ -46,7 +47,6 @@ _DUNDER_1 = [
 
 # TODO
 # 1. erro se só um por ex for series
-# 5. Mudar td q usa primeiro index pra id
 
 # Plot
 pd.set_option("multi_sparse", True)  # To see multilevel indexes
@@ -254,6 +254,7 @@ class Panel:
         if reset_ids:
             self.reset_ids()
 
+    # Function to call pandas methods on all frames
     def __getattr__(self, name):
         try:
 
@@ -444,6 +445,14 @@ class Panel:
                 f"Length of ids must match length of panel. Got {len(ids)} and {len(self)}"
             )
 
+        assert all(
+            isinstance(
+                k,
+                (int, np.integer, datetime.datetime),
+            )
+            for k in ids
+        ), "Panel ids must be integer or datetime"
+
         for frame, id in zip(self, ids):
             frame.columns.name = id
 
@@ -593,8 +602,6 @@ class Panel:
         panel = self[self.train_size + self.val_size :]
 
         return create_panel(frames=panel.frames)
-
-    # TODO function to set_ids and only accept int or date
 
     def get_frame_by_id(self, id: int):
         """
