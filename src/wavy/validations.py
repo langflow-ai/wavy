@@ -78,17 +78,17 @@ def _validate_training_split(n_samples, train_size, val_size, test_size):
         )
 
     if train_size_type == "f":
-        n_train = floor(train_size * n_samples)
+        n_train = round(train_size * n_samples)
     elif train_size_type == "i":
         n_train = float(train_size)
 
     if val_size_type == "f":
-        n_val = floor(val_size * n_samples)
+        n_val = round(val_size * n_samples)
     elif val_size_type == "i":
         n_val = float(val_size)
 
     if test_size_type == "f":
-        n_test = ceil(test_size * n_samples)
+        n_test = round(test_size * n_samples)
     elif test_size_type == "i":
         n_test = float(test_size)
 

@@ -4,7 +4,8 @@ import pkg_resources
 import toml
 
 from wavy.models import *
-from wavy.panel import *
+
+# from wavy.panel2 import *
 
 
 def get_version():
