@@ -1,4 +1,6 @@
+import random
 import warnings
+from itertools import chain
 from typing import Union
 
 import numpy as np
@@ -79,10 +81,12 @@ def reset_ids(x, y):
     Returns:
         ``Panel``: Reset id of panel
     """
-    pass
+    x.reset_ids()
+    y.reset_ids()
+    return x, y
 
 
-def concat_panel(panels: list, reset_ids=False, sort=False):
+def concat_panels(panels: list, reset_ids=False, sort=False):
     """
     Concatenate panels.
 
@@ -94,7 +98,24 @@ def concat_panel(panels: list, reset_ids=False, sort=False):
     Returns:
         ``Panel``: Concatenated panels
     """
-    pass
+
+    # Get ids of all panels
+    ids = list(chain(*[panel.ids for panel in panels]))
+
+    # Check duplicated ids in list
+    if len(ids) != len(set(ids)):
+        raise ValueError("There are duplicated ids in the list.")
+
+    panel = Panel2(pd.concat(panels, axis=0))
+
+    if sort:
+        panel = panel.sort_ids()
+
+    if reset_ids:
+        # TODO add inplace in this function
+        panel.reset_ids()
+
+    return panel
 
 
 def set_training_split(
@@ -145,6 +166,7 @@ class Panel2(pd.DataFrame):
     def panel_shape(self):
         return (len(self.ids), int(self.shape[0] / len(self.ids)), self.shape[1])
 
+    # TODO change ID functions to accept inplace using set_index
     @ids.setter
     def ids(self, ids):
         """
@@ -212,7 +234,9 @@ class Panel2(pd.DataFrame):
         >>> panel.get_frame_by_id(0)
         <DataFrame>
         """
-        return self.xs(id, level=0, axis=0, drop_level=drop_level)
+        if isinstance(id, int):
+            return type(self)(self.xs(id, level=0, axis=0, drop_level=drop_level))
+        return type(self)(self.loc[id])
 
     def drop_frames(self, ids: Union[list, int]):
         """
@@ -519,7 +543,7 @@ class Panel2(pd.DataFrame):
             key=key,
         )
 
-    def sample_(self, samples: int = 5, how: str = "spaced"):
+    def sample_panel(self, samples: int = 5, how: str = "spaced"):
         """
         Sample panel returning a subset of frames.
 
@@ -538,4 +562,18 @@ class Panel2(pd.DataFrame):
             return self[indexes]
         elif how == "spaced":
             indexes = np.linspace(0, len(self), samples, dtype=int, endpoint=False)
-            return self[indexes]
+            return self.get_frame_by_id(indexes)
+
+    def shuffle_panel(self):
+        """
+        Shuffle the panel.
+
+        Returns:
+            ``Panel``: Result of shuffle function.
+        """
+
+        warnings.warn("Shuffling the panel can result in data leakage.")
+
+        indexes = list(range(len(self)))
+        random.shuffle(indexes)
+        return self[indexes]
