@@ -218,13 +218,14 @@ class Panel2(pd.DataFrame):
         """
         return np.reshape(self.to_numpy(), self.panel_shape)
 
-    def get_frame_by_id(self, id: Union[int, list], drop_level=True):
+    def get_frame_by_ids(self, id: Union[int, list], drop_level=True):
         """
         Get a frame by id.
 
         Args:
             id (int): Id of the frame to return.
-            drop_level (bool): Whether to drop the id level.
+            drop_level (bool): Whether to drop the level of the index (only if
+                the id is an int).
 
         Returns:
             pd.DataFrame: Frame at id.
@@ -557,12 +558,14 @@ class Panel2(pd.DataFrame):
 
         if how == "random":
             warnings.warn("Random sampling can result in data leakage.")
-            indexes = np.random.choice(len(self), samples, replace=False)
+            indexes = np.random.choice(self.ids, samples, replace=False)
             indexes = sorted(indexes)
-            return self[indexes]
+            return self.get_frame_by_ids(indexes)
         elif how == "spaced":
-            indexes = np.linspace(0, len(self), samples, dtype=int, endpoint=False)
-            return self.get_frame_by_id(indexes)
+            indexes = np.linspace(
+                self.ids[0], self.ids[-1], samples, dtype=int, endpoint=False
+            )
+            return self.get_frame_by_ids(indexes)
 
     def shuffle_panel(self):
         """
@@ -574,6 +577,6 @@ class Panel2(pd.DataFrame):
 
         warnings.warn("Shuffling the panel can result in data leakage.")
 
-        indexes = list(range(len(self)))
+        indexes = list(self.ids)
         random.shuffle(indexes)
-        return self[indexes]
+        return self.get_frame_by_ids(indexes)
