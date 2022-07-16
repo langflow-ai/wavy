@@ -6,6 +6,7 @@ from typing import Union
 import numpy as np
 import pandas as pd
 
+from wavy.plot import plot
 from wavy.validations import _validate_training_split
 
 
@@ -69,6 +70,7 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0):
     )
 
 
+# TODO test and fix this
 def reset_ids(x, y):
     """
     Reset ids of a panel.
@@ -143,27 +145,121 @@ def set_training_split(
 
 
 class Panel2(pd.DataFrame):
+    # _attributes_ = "train_size,test_size,val_size"
+
+    # def __init__(self, *args, **kw):
+    #     super(Panel2, self).__init__(*args, **kw)
+    #     if len(args) == 1 and isinstance(args[0], Panel2):
+    #         args[0]._copy_attrs(self)
+
+    # def _copy_attrs(self, df):
+    #     for attr in self._attributes_.split(","):
+    #         df.__dict__[attr] = getattr(self, attr, None)
+
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(Panel2, self).__init__(*args, **kwargs)
 
         self.train_size = None
         self.test_size = None
         self.val_size = None
 
+    # def __str__(self):
+    #     return "ibis str"
+    # return self.head(20)
+
+    # def __repr__(self):
+    #     return "ibis repr"
+    # return self.head(20)
+
+    # train_size = None
+    # test_size = None
+    # val_size = None
+
+    # normal properties
+    # _metadata = ["train_size", "test_size", "val_size"]
+
+    # @property
+    # def _constructor(self):
+    #     # return Panel2
+
+    #     def f(*args, **kw):
+    #         df = Panel2(*args, **kw)
+    #         # self._copy_attrs(df)
+    #         return df
+
+    #     return f
+
+    # @property
+    # def _constructor_sliced(self):
+    #     # return Panel2
+
+    #     def f(*args, **kw):
+    #         df = Panel2(*args, **kw)
+    #         # self._copy_attrs(df)
+    #         return df
+
+    # return f
+
     def __getitem__(self, key):
-        return type(self)(super().__getitem__(key))
+        return super(Panel2, self).__getitem__(key)
+
+    # ----------------------------------------------------------------------
 
     def __len__(self):
         return len(self.ids)
 
-    # TODO add iter to frame in panel??
+    # def __iter__(self):
+    #     self._index = 0
+    #     return self
+
+    # def __next__(self):
+    #     """
+    #     Returns the next frame in the panel.
+    #     """
+    #     if self._index < len(self):
+    #         ids = self.ids
+    #         result = self.get_frame_by_ids(ids[self._index])
+    #         self._index += 1
+    #         return result
+
+    #     raise StopIteration
+
+    def frames(self):
+        index = 0
+        ids = self.ids
+        while index < len(self):
+            yield self.xs(ids[index], level=0, axis=0)
+            index += 1
+
+    # Function to call pandas methods on all frames
+    def __getattr__(self, name):
+        try:
+            name = name.replace("_panel", "")
+
+            def wrapper(*args, **kwargs):
+                panel = self.groupby(level=0).apply(name, *args, **kwargs)
+
+                # Update ids
+                ids = panel.index.get_level_values(0)
+                timestamp = self.index.get_level_values(1)
+
+                if len(ids) != len(timestamp):
+                    timestamp = self.first_index
+
+                panel.index = pd.MultiIndex.from_arrays((ids, timestamp))
+
+                return type(self)(panel)
+
+            return wrapper
+        except AttributeError:
+            raise AttributeError(f"'Panel' object has no attribute '{name}'")
 
     @property
     def ids(self):
         return self.index.get_level_values(0).drop_duplicates()
 
     @property
-    def panel_shape(self):
+    def shape_panel(self):
         return (len(self.ids), int(self.shape[0] / len(self.ids)), self.shape[1])
 
     # TODO change ID functions to accept inplace using set_index
@@ -200,7 +296,7 @@ class Panel2(pd.DataFrame):
         return self.groupby(level=0).head(1).index.get_level_values(1)
 
     @property
-    def values(self):
+    def values_panel(self):
         """
         3D matrix with Panel value.
 
@@ -216,9 +312,9 @@ class Panel2(pd.DataFrame):
                [[274.80999756, 279.25      , 271.26998901, 274.73001099],
                 [270.05999756, 272.35998535, 263.32000732, 264.57998657]]])
         """
-        return np.reshape(self.to_numpy(), self.panel_shape)
+        return np.reshape(self.to_numpy(), self.shape_panel)
 
-    def get_frame_by_ids(self, id: Union[int, list], drop_level=True):
+    def get_frame_by_ids(self, id: Union[int, list], drop_level=False):
         """
         Get a frame by id.
 
@@ -235,8 +331,8 @@ class Panel2(pd.DataFrame):
         >>> panel.get_frame_by_id(0)
         <DataFrame>
         """
-        if isinstance(id, int):
-            return type(self)(self.xs(id, level=0, axis=0, drop_level=drop_level))
+        if isinstance(id, (int, np.integer)):
+            return self.xs(id, level=0, axis=0, drop_level=drop_level)
         return type(self)(self.loc[id])
 
     def drop_frames(self, ids: Union[list, int]):
@@ -271,136 +367,30 @@ class Panel2(pd.DataFrame):
         """
         return self[self.isna().any(axis=1)].index.get_level_values(0).drop_duplicates()
 
-    # TODO fix
-    # def set_index_frames(self, indexes, inplace=False):
-    #     """
-    #     Set index of panel.
+    # # TODO fix
+    # # def set_index_frames(self, indexes, inplace=False):
+    # #     """
+    # #     Set index of panel.
 
-    #     Args:
-    #         indexes (list): List of indexes to set.
-    #         inplace (bool): Whether to set the index inplace.
+    # #     Args:
+    # #         indexes (list): List of indexes to set.
+    # #         inplace (bool): Whether to set the index inplace.
 
-    #     Returns:
-    #         ``Panel``: Result of set index function.
-    #     """
+    # #     Returns:
+    # #         ``Panel``: Result of set index function.
+    # #     """
 
-    #     if len(self.index.get_level_values(1)) != len(indexes):
-    #         raise ValueError("Number of indexes must be equal to number of frames")
+    # #     if len(self.index.get_level_values(1)) != len(indexes):
+    # #         raise ValueError("Number of indexes must be equal to number of frames")
 
-    #     new_frame = self.reset_index(drop=True)
+    # #     new_frame = self.reset_index(drop=True)
 
-    #     return create_panel(
-    #         frames,
-    #         train_size=self.train_size,
-    #         val_size=self.val_size,
-    #         test_size=self.test_size,
-    #     )
-
-    def shift_panel(self, periods: int = 1):
-        """
-        Shift panel by desired number of frames.
-
-        Args:
-            periods (int): Number of frames to shift
-
-        Returns:
-            ``Panel``: Result of shift function.
-
-        Example:
-
-        >>> panel[0]
-                          Open        High         Low       Close
-        Date
-        2022-05-06  274.809998  279.250000  271.269989  274.730011
-        2022-05-09  270.059998  272.359985  263.320007  264.579987
-
-        >>> panel = panel.shift(periods = 1)
-
-        >>> panel[0]
-                   Open  High  Low Close
-        Date
-        2022-05-06  NaN   NaN  NaN   NaN
-        2022-05-09  NaN   NaN  NaN   NaN
-
-        >>> panel[1]
-                          Open        High         Low       Close
-        Date
-        2022-05-06  274.809998  279.250000  271.269989  274.730011
-        2022-05-09  270.059998  272.359985  263.320007  264.579987
-        """
-
-        return self.shift(periods * self.panel_shape[1])
-
-    def diff_panel(self, periods: int = 1):
-        """
-        Difference between frames.
-
-        Args:
-            periods (int): Number of frames to diff
-
-        Returns:
-            ``Panel``: Result of diff function.
-
-        Example:
-
-        >>> panel[0]
-                          Open        High         Low       Close
-        Date
-        2022-05-06  274.809998  279.250000  271.269989  274.730011
-        2022-05-09  270.059998  272.359985  263.320007  264.579987
-
-        >>> panel = panel.diff(periods = 1)
-
-        >>> panel[0]
-                   Open  High  Low Close
-        Date
-        2022-05-06  NaN   NaN  NaN   NaN
-        2022-05-09  NaN   NaN  NaN   NaN
-
-        >>> panel[1]
-                        Open      High       Low      Close
-        Date
-        2022-05-09 -4.750000 -6.890015 -7.949982 -10.150024
-        2022-05-10  1.630005  1.390015  1.750000   4.920013
-        """
-
-        return self - self.shift_panel(periods)
-
-    def pct_change_panel(self, periods: int = 1):
-        """
-        Percentage change between the current and a prior frame.
-
-        Args:
-            periods (int): Number of frames to calculate percent change
-
-        Returns:
-            ``Panel``: Result of pct_change function.
-
-        Example:
-
-        >>> panel[0]
-                          Open        High         Low       Close
-        Date
-        2022-05-06  274.809998  279.250000  271.269989  274.730011
-        2022-05-09  270.059998  272.359985  263.320007  264.579987
-
-        >>> panel = panel.pct_change(periods = 1)
-
-        >>> panel[0]
-                    Open  High  Low  Close
-        Date
-        2022-05-06   NaN   NaN  NaN    NaN
-        2022-05-09   NaN   NaN  NaN    NaN
-
-        >>> panel[1]
-                        Open      High       Low     Close
-        Date
-        2022-05-09 -0.017285 -0.024673 -0.029307 -0.036945
-        2022-05-10  0.006036  0.005104  0.006646  0.018596
-        """
-
-        a = self.shift_panel(periods)
-        return (self - a) / a
+    # #     return create_panel(
+    # #         frames,
+    # #         train_size=self.train_size,
+    # #         val_size=self.val_size,
+    # #         test_size=self.test_size,
+    # #     )
 
     def match_frame(self, other):
         """
@@ -491,7 +481,7 @@ class Panel2(pd.DataFrame):
 
         return self[self.train_size + self.val_size :] if self.test_size else None
 
-    def head_frame(self, n: int = 5):
+    def head_panel(self, n: int = 5):
         """
         Return the first n frames of the panel.
 
@@ -501,9 +491,9 @@ class Panel2(pd.DataFrame):
         Returns:
             ``Panel``: Result of head function.
         """
-        return self[: n * self.panel_shape[1]]
+        return self[: n * self.shape_panel[1]]
 
-    def tail_frame(self, n: int = 5):
+    def tail_panel(self, n: int = 5):
         """
         Return the last n frames of the panel.
 
@@ -513,7 +503,7 @@ class Panel2(pd.DataFrame):
         Returns:
             ``Panel``: Result of tail function.
         """
-        return self[-n * self.panel_shape[1] :]
+        return self[-n * self.shape_panel[1] :]
 
     def sort_ids(
         self,
@@ -580,3 +570,24 @@ class Panel2(pd.DataFrame):
         indexes = list(self.ids)
         random.shuffle(indexes)
         return self.get_frame_by_ids(indexes)
+
+    def plot(self, add_annotation=True, max=10_000, use_ids=True, **kwargs):
+        """
+        Plot the panel.
+
+        Args:
+            add_annotation (bool): If True, plot the training, validation, and test annotation.
+            **kwargs: Additional arguments to pass to the plot function.
+
+        Returns:
+            ``plot``: Result of plot function.
+        """
+
+        if max and len(self) > max:
+            return plot(
+                self.sample(max, how="spaced"),
+                use_ids=use_ids,
+                add_annotation=add_annotation,
+                **kwargs,
+            )
+        return plot(self, use_ids=use_ids, add_annotation=add_annotation, **kwargs)
