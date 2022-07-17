@@ -150,23 +150,38 @@ def set_training_split(
 
 
 class Panel2(pd.DataFrame):
-    def __init__(self, *args, **kwargs):
-        super(Panel2, self).__init__(*args, **kwargs)
+    # def __init__(self, *args, **kwargs):
+    #     super(Panel2, self).__init__(*args, **kwargs)
 
-        self.train_size = None
-        self.test_size = None
-        self.val_size = None
+    #     self.train_size = None
+    #     self.test_size = None
+    #     self.val_size = None
 
-    def __getitem__(self, key):
-        return super(Panel2, self).__getitem__(key)
+    _metadata = ["train_size", "test_size", "val_size"]
 
-    def __len__(self):
-        return len(self.ids)
+    @property
+    def _constructor(self):
+        return Panel2
+
+    @property
+    def num_frames(self):
+        """Returns the number of frames in the panel."""
+        return self.shape[0]
+
+    @property
+    def num_timesteps(self):
+        """Returns the number of timesteps in the panel."""
+        return self.shape[1]
+
+    @property
+    def num_columns(self):
+        """Returns the number of columns in the panel."""
+        return self.shape[2]
 
     def frames(self):
         index = 0
         ids = self.ids
-        while index < len(self):
+        while index < self.num_frames:
             yield self.xs(ids[index], level=0, axis=0)
             index += 1
 
@@ -193,13 +208,11 @@ class Panel2(pd.DataFrame):
         except AttributeError:
             raise AttributeError(f"'Panel' object has no attribute '{name}'")
 
+    # -----------------------------------IDS-----------------------------------
+
     @property
     def ids(self):
         return self.index.get_level_values(0).drop_duplicates()
-
-    @property
-    def shape_panel(self):
-        return (len(self.ids), int(self.shape[0] / len(self.ids)), self.shape[1])
 
     # TODO change ID functions to accept inplace using set_index
     @ids.setter
@@ -224,7 +237,38 @@ class Panel2(pd.DataFrame):
         """
         Reset the ids of the panel.
         """
-        self.ids = np.arange(len(self))
+        self.ids = np.arange(self.num_frames)
+
+    # # TODO fix
+    # # def set_index_frames(self, indexes, inplace=False):
+    # #     """
+    # #     Set index of panel.
+
+    # #     Args:
+    # #         indexes (list): List of indexes to set.
+    # #         inplace (bool): Whether to set the index inplace.
+
+    # #     Returns:
+    # #         ``Panel``: Result of set index function.
+    # #     """
+
+    # #     if len(self.index.get_level_values(1)) != len(indexes):
+    # #         raise ValueError("Number of indexes must be equal to number of frames")
+
+    # #     new_frame = self.reset_index(drop=True)
+
+    # #     return create_panel(
+    # #         frames,
+    # #         train_size=self.train_size,
+    # #         val_size=self.val_size,
+    # #         test_size=self.test_size,
+    # #     )
+
+    # --------------------------------------------------------------------------
+
+    @property
+    def shape_panel(self):
+        return (len(self.ids), int(self.shape[0] / len(self.ids)), self.shape[1])
 
     @property
     def last_index(self):
@@ -280,7 +324,7 @@ class Panel2(pd.DataFrame):
         """
         if isinstance(id, (int, np.integer)):
             return self.xs(id, level=0, axis=0, drop_level=drop_level)
-        return type(self)(self.loc[id, :])
+        return self.loc[id, :]
 
     def drop_frames(self, ids: Union[list, int]):
         """
@@ -313,31 +357,6 @@ class Panel2(pd.DataFrame):
             ``List``: List with index of NaN values.
         """
         return self[self.isna().any(axis=1)].index.get_level_values(0).drop_duplicates()
-
-    # # TODO fix
-    # # def set_index_frames(self, indexes, inplace=False):
-    # #     """
-    # #     Set index of panel.
-
-    # #     Args:
-    # #         indexes (list): List of indexes to set.
-    # #         inplace (bool): Whether to set the index inplace.
-
-    # #     Returns:
-    # #         ``Panel``: Result of set index function.
-    # #     """
-
-    # #     if len(self.index.get_level_values(1)) != len(indexes):
-    # #         raise ValueError("Number of indexes must be equal to number of frames")
-
-    # #     new_frame = self.reset_index(drop=True)
-
-    # #     return create_panel(
-    # #         frames,
-    # #         train_size=self.train_size,
-    # #         val_size=self.val_size,
-    # #         test_size=self.test_size,
-    # #     )
 
     def match_frame(self, other):
         """
@@ -381,7 +400,10 @@ class Panel2(pd.DataFrame):
         """
 
         n_train, n_val, n_test = _validate_training_split(
-            len(self), train_size=train_size, val_size=val_size, test_size=test_size
+            self.num_frames,
+            train_size=train_size,
+            val_size=val_size,
+            test_size=test_size,
         )
 
         self.train_size = n_train
@@ -452,7 +474,7 @@ class Panel2(pd.DataFrame):
         """
         return self[-n * self.shape_panel[1] :]
 
-    def sort_ids(
+    def sort_panel(
         self,
         ascending=True,
         inplace=False,
@@ -504,9 +526,12 @@ class Panel2(pd.DataFrame):
             )
             return self.get_frame_by_ids(indexes)
 
-    def shuffle_panel(self):
+    def shuffle_panel(self, seed: int = None):
         """
         Shuffle the panel.
+
+        Args:
+            seed (int): Random seed.
 
         Returns:
             ``Panel``: Result of shuffle function.
@@ -515,10 +540,11 @@ class Panel2(pd.DataFrame):
         warnings.warn("Shuffling the panel can result in data leakage.")
 
         indexes = list(self.ids)
+        random.seed(seed)
         random.shuffle(indexes)
         return self.get_frame_by_ids(indexes)
 
-    def plot(self, add_annotation=True, max=10_000, use_ids=True, **kwargs):
+    def plot_panel(self, add_annotation=True, max=10_000, use_ids=True, **kwargs):
         """
         Plot the panel.
 
@@ -530,9 +556,9 @@ class Panel2(pd.DataFrame):
             ``plot``: Result of plot function.
         """
 
-        if max and len(self) > max:
+        if max and self.num_frames > max:
             return plot(
-                self.sample(max, how="spaced"),
+                self.sample_panel(max, how="spaced"),
                 use_ids=use_ids,
                 add_annotation=add_annotation,
                 **kwargs,
