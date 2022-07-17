@@ -82,43 +82,43 @@ def reverse_diff(diff_df, original_df, periods=1):
 # Other utils
 
 
-def is_dataframe(x):
-    """
-    Check if x is a dataframe.
+# def is_dataframe(x):
+#     """
+#     Check if x is a dataframe.
 
-    Args:
-        x (object): Object to check
+#     Args:
+#         x (object): Object to check
 
-    Returns:
-        bool: True if x is a dataframe, False otherwise
-    """
-    return isinstance(x, pd.DataFrame)
-
-
-def is_series(x):
-    """
-    Check if x is a pd.Series.
-
-    Args:
-        x (object): Object to check
-
-    Returns:
-        bool: True if x is pd.Series, False otherwise
-    """
-    return isinstance(x, pd.Series)
+#     Returns:
+#         bool: True if x is a dataframe, False otherwise
+#     """
+#     return isinstance(x, pd.DataFrame)
 
 
-def is_iterable(x):
-    """
-    Check if x is iterable.
+# def is_series(x):
+#     """
+#     Check if x is a pd.Series.
 
-    Args:
-        x (object): Object to check
+#     Args:
+#         x (object): Object to check
 
-    Returns:
-        bool: True if x is iterable, False otherwise
-    """
-    return isinstance(x, Iterable)
+#     Returns:
+#         bool: True if x is pd.Series, False otherwise
+#     """
+#     return isinstance(x, pd.Series)
+
+
+# def is_iterable(x):
+#     """
+#     Check if x is iterable.
+
+#     Args:
+#         x (object): Object to check
+
+#     Returns:
+#         bool: True if x is iterable, False otherwise
+#     """
+#     return isinstance(x, Iterable)
 
 
 # def is_panel(x):
