@@ -65,7 +65,7 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0):
         yindex[0][(i - lookback) * horizon : (i - lookback + 1) * horizon] = (
             i - lookback
         ) * np.ones(horizon, dtype=int)
-        yindex[0][
+        yindex[1][
             (i - lookback) * horizon : (i - lookback + 1) * horizon
         ] = frame.index.values
 
