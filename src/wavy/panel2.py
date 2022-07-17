@@ -70,7 +70,6 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0):
     )
 
 
-# TODO test and fix this
 def reset_ids(x, y):
     """
     Reset ids of a panel.
@@ -78,11 +77,17 @@ def reset_ids(x, y):
     Args:
         x (Panel): Panel to reset id of
         y (Panel): Panel to reset id of
-        verbose (bool): Whether to print progress
 
     Returns:
         ``Panel``: Reset id of panel
     """
+
+    # Check if id in x and y are the same
+    if not np.array_equal(x.ids, y.ids):
+        raise ValueError(
+            "Ids for x and y are not the same. Try using match function first."
+        )
+
     x.reset_ids()
     y.reset_ids()
     return x, y
@@ -145,17 +150,6 @@ def set_training_split(
 
 
 class Panel2(pd.DataFrame):
-    # _attributes_ = "train_size,test_size,val_size"
-
-    # def __init__(self, *args, **kw):
-    #     super(Panel2, self).__init__(*args, **kw)
-    #     if len(args) == 1 and isinstance(args[0], Panel2):
-    #         args[0]._copy_attrs(self)
-
-    # def _copy_attrs(self, df):
-    #     for attr in self._attributes_.split(","):
-    #         df.__dict__[attr] = getattr(self, attr, None)
-
     def __init__(self, *args, **kwargs):
         super(Panel2, self).__init__(*args, **kwargs)
 
@@ -163,66 +157,11 @@ class Panel2(pd.DataFrame):
         self.test_size = None
         self.val_size = None
 
-    # def __str__(self):
-    #     return "ibis str"
-    # return self.head(20)
-
-    # def __repr__(self):
-    #     return "ibis repr"
-    # return self.head(20)
-
-    # train_size = None
-    # test_size = None
-    # val_size = None
-
-    # normal properties
-    # _metadata = ["train_size", "test_size", "val_size"]
-
-    # @property
-    # def _constructor(self):
-    #     # return Panel2
-
-    #     def f(*args, **kw):
-    #         df = Panel2(*args, **kw)
-    #         # self._copy_attrs(df)
-    #         return df
-
-    #     return f
-
-    # @property
-    # def _constructor_sliced(self):
-    #     # return Panel2
-
-    #     def f(*args, **kw):
-    #         df = Panel2(*args, **kw)
-    #         # self._copy_attrs(df)
-    #         return df
-
-    # return f
-
     def __getitem__(self, key):
         return super(Panel2, self).__getitem__(key)
 
-    # ----------------------------------------------------------------------
-
     def __len__(self):
         return len(self.ids)
-
-    # def __iter__(self):
-    #     self._index = 0
-    #     return self
-
-    # def __next__(self):
-    #     """
-    #     Returns the next frame in the panel.
-    #     """
-    #     if self._index < len(self):
-    #         ids = self.ids
-    #         result = self.get_frame_by_ids(ids[self._index])
-    #         self._index += 1
-    #         return result
-
-    #     raise StopIteration
 
     def frames(self):
         index = 0
@@ -271,7 +210,15 @@ class Panel2(pd.DataFrame):
         Args:
             ids (list): List of ids.
         """
-        self.index = self.index.set_levels(ids, level=0)
+
+        ids = np.repeat(np.arange(len(self)), self.shape_panel[1])
+        timestamp = self.index.get_level_values(1)
+
+        index = pd.MultiIndex.from_arrays(
+            [ids, timestamp], names=["id", timestamp.name]
+        )
+
+        self.index = index
 
     def reset_ids(self):
         """
@@ -333,7 +280,7 @@ class Panel2(pd.DataFrame):
         """
         if isinstance(id, (int, np.integer)):
             return self.xs(id, level=0, axis=0, drop_level=drop_level)
-        return type(self)(self.loc[id])
+        return type(self)(self.loc[id, :])
 
     def drop_frames(self, ids: Union[list, int]):
         """
@@ -412,7 +359,7 @@ class Panel2(pd.DataFrame):
 
         drop_ids = self_ids - other_ids
 
-        return self.drop_frames(drop_ids)
+        return type(self)(self.drop_frames(drop_ids))
 
     def set_training_split(
         self,
