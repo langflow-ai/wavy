@@ -166,17 +166,17 @@ class Panel2(pd.DataFrame):
     @property
     def num_frames(self):
         """Returns the number of frames in the panel."""
-        return self.shape[0]
+        return self.shape_panel[0]
 
     @property
     def num_timesteps(self):
         """Returns the number of timesteps in the panel."""
-        return self.shape[1]
+        return self.shape_panel[1]
 
     @property
     def num_columns(self):
         """Returns the number of columns in the panel."""
-        return self.shape[2]
+        return self.shape_panel[2]
 
     def frames(self):
         index = 0
@@ -198,7 +198,7 @@ class Panel2(pd.DataFrame):
                 timestamp = self.index.get_level_values(1)
 
                 if len(ids) != len(timestamp):
-                    timestamp = self.first_index
+                    timestamp = self.first_timestamp
 
                 panel.index = pd.MultiIndex.from_arrays((ids, timestamp))
 
@@ -270,21 +270,47 @@ class Panel2(pd.DataFrame):
     def shape_panel(self):
         return (len(self.ids), int(self.shape[0] / len(self.ids)), self.shape[1])
 
-    @property
-    def last_index(self):
+    # @property
+    # def first_row(self):
+    #     """
+    #     Returns the first row of each frame.
+    #     """
+
+    #     return self.groupby(level=0).head(1)
+
+    # @property
+    # def last_row(self):
+    #     """
+    #     Returns the last row of each frame.
+    #     """
+
+    #     return self.groupby(level=0).tail(1)
+
+    def row_panel(self, n: int = 0):
         """
-        Returns the last index of each frame in the panel.
+        Returns the nth row of each frame.
         """
 
-        return self.groupby(level=0).tail(1).index.get_level_values(1)
+        if n < 0 or n >= self.num_timesteps:
+            raise ValueError("n must be between 0 and the number of timesteps")
+
+        return self.groupby(level=0, as_index=False).nth(n)
 
     @property
-    def first_index(self):
+    def first_timestamp(self):
         """
-        Returns the first index of each frame in the panel.
+        Returns the first timestamp of each frame in the panel.
         """
 
         return self.groupby(level=0).head(1).index.get_level_values(1)
+
+    @property
+    def last_timestamp(self):
+        """
+        Returns the last timestamp of each frame in the panel.
+        """
+
+        return self.groupby(level=0).tail(1).index.get_level_values(1)
 
     @property
     def values_panel(self):
@@ -544,7 +570,7 @@ class Panel2(pd.DataFrame):
         random.shuffle(indexes)
         return self.get_frame_by_ids(indexes)
 
-    def plot_panel(self, add_annotation=True, max=10_000, use_ids=True, **kwargs):
+    def plot(self, add_annotation=True, max=10_000, use_timestep=False, **kwargs):
         """
         Plot the panel.
 
@@ -559,8 +585,10 @@ class Panel2(pd.DataFrame):
         if max and self.num_frames > max:
             return plot(
                 self.sample_panel(max, how="spaced"),
-                use_ids=use_ids,
+                use_timestep=use_timestep,
                 add_annotation=add_annotation,
                 **kwargs,
             )
-        return plot(self, use_ids=use_ids, add_annotation=add_annotation, **kwargs)
+        return plot(
+            self, use_timestep=use_timestep, add_annotation=add_annotation, **kwargs
+        )

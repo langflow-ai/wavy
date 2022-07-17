@@ -29,16 +29,15 @@ class PanelFigure(Figure):
         """
         # BUG: Seems to break if using "ggplot2"
         # ! Won't take effect until next trace is added (no axis was added)
-        # TODO: Functions could accept both dataframe or panel
 
         ymax = max(
-            panel.train.as_dataframe().max().max() if panel.train_size else 0,
-            panel.val.as_dataframe().max().max() if panel.val_size else 0,
-            panel.test.as_dataframe().max().max() if panel.test_size else 0,
+            panel.train.max().max() if panel.train_size else 0,
+            panel.val.max().max() if panel.val_size else 0,
+            panel.test.max().max() if panel.test_size else 0,
         )
 
         if panel.train_size:
-            xtrain_min = panel.train[0].index[0]
+            xtrain_min = panel.train.index[0]
             self.fig.add_vline(
                 x=xtrain_min, line_dash="dot", line_color=color, opacity=opacity
             )
@@ -47,7 +46,7 @@ class PanelFigure(Figure):
             )
 
         if panel.val_size:
-            xval_min = panel.val[0].index[0]
+            xval_min = panel.val.index[0]
             self.fig.add_vline(
                 x=xval_min, line_dash="dot", line_color=color, opacity=opacity
             )
@@ -56,7 +55,7 @@ class PanelFigure(Figure):
             )
 
         if panel.test_size:
-            xtest_min = panel.test[0].index[0]
+            xtest_min = panel.test.index[0]
             self.fig.add_vline(
                 x=xtest_min, line_dash="dot", line_color=color, opacity=opacity
             )
@@ -69,15 +68,13 @@ class PanelFigure(Figure):
         def inner(self, *args, **kwargs):
 
             args = list(args)
-            data = args.pop(0)
+            df = args.pop(0)
 
-            if not is_dataframe(data):
-                df = data.as_dataframe()
-
-            if "use_ids" in kwargs:
-                use_ids = kwargs.pop("use_ids")
-                if use_ids:
-                    df = df.set_index(data.ids)
+            # if "use_timestep" in kwargs:
+            #     if _ := kwargs.pop("use_timestep"):
+            #         df = df.droplevel(0, axis=0)
+            #     else:
+            #         df = df.droplevel(1, axis=1)
 
             for col in df.columns:
                 kwargs["color"] = self.colors[self.color_index]
@@ -139,14 +136,14 @@ class PanelFigure(Figure):
         self.dotline(col, *args, **kwargs)  # color=color, opacity=opacity)
 
 
-def plot(panel, use_ids=False, add_annotation=False, **kwargs):
+def plot(panel, use_timestep=False, add_annotation=False, **kwargs):
     # TODO: Add "kind" parameter to chose between plot types
     """
     Plot a panel.
 
     Args:
         panel (Panel): Panel object
-        use_ids (bool): Use ids instead of index
+        use_timestep (bool): Use timestep instead of id
         add_annotation (bool): If True, plot vertical lines showing train, val, and test periods
 
     Returns:
@@ -154,7 +151,20 @@ def plot(panel, use_ids=False, add_annotation=False, **kwargs):
     """
     fig = PanelFigure()
 
-    fig.add_line(panel, use_ids=use_ids, **kwargs)
+    panel = panel.row_panel(n=0)
+
+    if use_timestep:
+        panel = panel.droplevel(0, axis=0)
+    else:
+        panel = panel.droplevel(1, axis=0)
+
+    # if "use_timestep" in kwargs:
+    #     if _ := kwargs.pop("use_timestep"):
+    #         df = df.droplevel(0, axis=0)
+    #     else:
+    #         df = df.droplevel(1, axis=1)
+
+    fig.add_line(panel, **kwargs)
 
     if add_annotation:
         fig.add_annotation(panel)
