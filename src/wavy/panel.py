@@ -33,10 +33,16 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0):
     ids = np.arange(lookback, end)
 
     xframes = np.zeros(shape=(len(ids) * lookback, df.shape[1]))
-    xindex = np.zeros(shape=(2, len(ids) * lookback), dtype=int)
+    xindex = [
+        np.zeros(shape=(len(ids) * lookback), dtype=int),
+        np.zeros(shape=(len(ids) * lookback), dtype=df.index.dtype),
+    ]
 
     yframes = np.zeros(shape=(len(ids) * horizon, df.shape[1]))
-    yindex = np.zeros(shape=(2, len(ids) * horizon), dtype=int)
+    yindex = [
+        np.zeros(shape=(len(ids) * horizon), dtype=int),
+        np.zeros(shape=(len(ids) * horizon), dtype=df.index.dtype),
+    ]
 
     for i in ids:
         # X
@@ -44,20 +50,28 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0):
         xframes[
             (i - lookback) * lookback : (i - lookback + 1) * lookback, :
         ] = frame.values
-        xindex[
-            :, (i - lookback) * lookback : (i - lookback + 1) * lookback
-        ] = np.vstack(
-            ((i - lookback) * np.ones(lookback, dtype=int), frame.index.values)
-        )
+        xindex[0][(i - lookback) * lookback : (i - lookback + 1) * lookback] = (
+            i - lookback
+        ) * np.ones(lookback, dtype=int)
+        xindex[1][
+            (i - lookback) * lookback : (i - lookback + 1) * lookback
+        ] = frame.index.values
 
         # Y
         frame = df.iloc[i + gap : i + gap + horizon]
         yframes[
             (i - lookback) * horizon : (i - lookback + 1) * horizon, :
         ] = frame.values
-        yindex[:, (i - lookback) * horizon : (i - lookback + 1) * horizon] = np.vstack(
-            ((i - lookback) * np.ones(horizon, dtype=int), frame.index.values)
-        )
+        yindex[0][(i - lookback) * horizon : (i - lookback + 1) * horizon] = (
+            i - lookback
+        ) * np.ones(horizon, dtype=int)
+        yindex[0][
+            (i - lookback) * horizon : (i - lookback + 1) * horizon
+        ] = frame.index.values
+
+        # yindex[:, (i - lookback) * horizon : (i - lookback + 1) * horizon] = np.array(
+        #     ((i - lookback) * np.ones(horizon, dtype=int), frame.index.values)
+        # )
 
     return Panel(
         xframes,

@@ -3,7 +3,7 @@ from pathlib import Path
 import pkg_resources
 import toml
 
-from wavy.models import *
+# from wavy.models import *
 from wavy.panel import *
 
 

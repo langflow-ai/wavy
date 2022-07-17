@@ -223,7 +223,9 @@ class _BaseModel:
                 self.x_val, self.y_val, verbose=0, **kwargs
             )
 
-        indexes = [self.model.metrics_names.index(metric.lower()) for metric in self.metrics]
+        indexes = [
+            self.model.metrics_names.index(metric.lower()) for metric in self.metrics
+        ]
 
         return pd.DataFrame(
             {key: [value[index] for index in indexes] for key, value in dic.items()},
