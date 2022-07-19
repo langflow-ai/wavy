@@ -4,6 +4,7 @@ from typing import List
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from sklearn.base import is_classifier
 from sklearn.metrics import auc, mean_squared_error, roc_curve
 from tensorflow.keras import Input, Model, Sequential
 from tensorflow.keras.layers import (
@@ -68,23 +69,21 @@ class _BaseModel:
         }
 
         # Raise error when panel has nan values
-        if x.findna():
+        if x.findna_frames().any():
             raise ValueError("Panel x has NaN values.")
-        if y.findna():
+        if y.findna_frames().any():
             raise ValueError("Panel y has NaN values.")
 
         # Convert boolean in x and y to int
-        for col in x[0].columns:
-            if x[0][col].dtype == bool:
-                for i in range(len(x)):
-                    x[i][col] = x[i][col].astype(int)
-        for col in y[0].columns:
-            if y[0][col].dtype == bool:
-                for i in range(len(y)):
-                    y[i][col] = y[i][col].astype(int)
+        for col in x.columns:
+            if x[col].dtype == bool:
+                x[col] = x[col].astype(int)
+        for col in y.columns:
+            if y[col].dtype == bool:
+                y[col] = y[col].astype(int)
 
         # Raise error if column is not numeric
-        for sample in [x[0], y[0]]:
+        for sample in [x, y]:
             for col in sample.columns:
                 if sample[col].dtype not in [np.float64, np.int64]:
                     raise ValueError(f"Column {col} is not numeric.")
@@ -105,13 +104,13 @@ class _BaseModel:
 
     def set_arrays(self):
         """Set the arrays."""
-        self.x_train = self.x.train.values
-        self.x_val = self.x.val.values
-        self.x_test = self.x.test.values
+        self.x_train = self.x.train.values_panel
+        self.x_val = self.x.val.values_panel
+        self.x_test = self.x.test.values_panel
 
-        self.y_train = self.y.train.values.squeeze(axis=2)
-        self.y_val = self.y.val.values.squeeze(axis=2)
-        self.y_test = self.y.test.values.squeeze(axis=2)
+        self.y_train = self.y.train.values_panel.squeeze(axis=2)
+        self.y_val = self.y.val.values_panel.squeeze(axis=2)
+        self.y_test = self.y.test.values_panel.squeeze(axis=2)
 
     def get_auc(self):
         """Get the AUC score."""
@@ -156,27 +155,22 @@ class _BaseModel:
         """
 
         if data is not None:
-            return Panel(
-                [
-                    pd.DataFrame(b, columns=self.y[0].columns)
-                    for b in self.model.predict(data.values, **kwargs)
-                ]
+            x = data.values_panel
+            index = pd.MultiIndex.from_arrays([data.ids, data.first_timestamp])
+        else:
+            x = np.concatenate([self.x_train, self.x_val, self.x_test], axis=0)
+            index = pd.MultiIndex.from_tuples(
+                np.concatenate(
+                    [self.y.train.index, self.y.val.index, self.y.test.index]
+                ),
+                names=self.y.index.names,
             )
 
-        pred_train = [
-            pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
-            for a, b in zip(self.model.predict(self.x_train, **kwargs), self.y.train)
-        ]
-        pred_val = [
-            pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
-            for a, b in zip(self.model.predict(self.x_val, **kwargs), self.y.val)
-        ]
-        pred_test = [
-            pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
-            for a, b in zip(self.model.predict(self.x_test, **kwargs), self.y.test)
-        ]
-
-        return Panel(pred_train + pred_val + pred_test)
+        return Panel(
+            self.model.predict(x),
+            columns=self.y.columns,
+            index=index,
+        )
 
     def predict(self, data: Panel = None, **kwargs):
         """Predict.
@@ -238,13 +232,7 @@ class _BaseModel:
         Returns:
             Panel of residuals.
         """
-        residuals = self.predict() - self.y
-        return Panel(
-            [
-                pd.DataFrame(a.values, columns=b.columns, index=b.index)
-                for a, b in zip(residuals, self.y)
-            ]
-        )
+        return self.predict() - self.y
 
 
 class _Baseline(_BaseModel):
@@ -264,7 +252,6 @@ class _Baseline(_BaseModel):
 
 
 class BaselineShift(_Baseline):
-    # ! VERY SLOW
     # ! Maybe shift should be y.horizon by default, to avoid leakage
     # TODO test with different gap and horizon values
 
@@ -284,20 +271,13 @@ class BaselineShift(_Baseline):
         super().__init__(x=x, y=y, model_type=model_type, loss=loss, metrics=metrics)
 
     def set_arrays(self):
-        # TODO: Replace as_dataframe w/ quicker function
-        self.x_train = (
-            self.y.train.as_dataframe().shift(self.shift).fillna(self.fillna).values
-        )
-        self.x_val = (
-            self.y.val.as_dataframe().shift(self.shift).fillna(self.fillna).values
-        )
-        self.x_test = (
-            self.y.test.as_dataframe().shift(self.shift).fillna(self.fillna).values
-        )
+        self.x_train = self.y.train.shift(self.shift).fillna(self.fillna).values
+        self.x_val = self.y.val.shift(self.shift).fillna(self.fillna).values
+        self.x_test = self.y.test.shift(self.shift).fillna(self.fillna).values
 
-        self.y_train = self.y.train.as_dataframe().values
-        self.y_val = self.y.val.as_dataframe().values
-        self.y_test = self.y.test.as_dataframe().values
+        self.y_train = self.y.train.values
+        self.y_val = self.y.val.values
+        self.y_test = self.y.test.values
 
     def build(self):
         self.model = _ConstantKerasModel()
@@ -424,9 +404,9 @@ class ConvModel(_BaseModel):
             ``DenseModel``: Constructed DenseModel
         """
 
-        if x.shape[1] < kernel_size:
+        if x.shape_panel[1] < kernel_size:
             raise ValueError(
-                f"Lookback ({x.shape[1]}) must be greater or equal to kernel_size ({kernel_size})"
+                f"Lookback ({x.shape_panel[1]}) must be greater or equal to kernel_size ({kernel_size})"
             )
 
         self.conv_layers = conv_layers
@@ -447,7 +427,7 @@ class ConvModel(_BaseModel):
         )
 
     def build(self):
-        if self.x.timesteps % self.kernel_size != 0:
+        if self.x.num_timesteps % self.kernel_size != 0:
             warnings.warn("Kernel size is not a divisor of lookback.")
 
         conv = Conv1D(
@@ -464,92 +444,7 @@ class ConvModel(_BaseModel):
         layers += [dense for _ in range(self.dense_layers)]
         layers += [
             Dense(
-                units=self.y.timesteps * len(self.y.columns),
-                activation=self.last_activation,
-            ),
-            Reshape(self.y_train.shape[1:]),
-        ]
-
-        self.model = Sequential(layers)
-
-
-class ConvModel(_BaseModel):
-    def __init__(
-        self,
-        x,
-        y,
-        model_type: str,
-        conv_layers: int = 1,
-        conv_filters: int = 32,
-        kernel_size: int = 3,
-        dense_layers: int = 1,
-        dense_units: int = 32,
-        activation: str = "relu",
-        loss: str = None,
-        optimizer: str = None,
-        metrics: List[str] = None,
-        last_activation: str = None,
-    ):
-        """
-        Convolution Model.
-        Args:
-            panel (Panel): Panel with data
-            model_type (str): Model type (regression, classification, multi_classification)
-            conv_layers (int): Number of convolution layers
-            conv_filters (int): Number of convolution filters
-            kernel_size (int): Kernel size of convolution layer
-            dense_layers (int): Number of dense layers
-            dense_units (int): Number of neurons in each dense layer
-            activation (str): Activation type of each dense layer
-            loss (str): Loss name
-            optimizer (str): Optimizer name
-            metrics (List[str]): Metrics list
-            last_activation (str): Activation type of the last layer
-        Returns:
-            ``DenseModel``: Constructed DenseModel
-        """
-
-        if x.shape[1] < kernel_size:
-            raise ValueError(
-                f"Lookback ({x.shape[1]}) must be greater or equal to kernel_size ({kernel_size})"
-            )
-
-        self.conv_layers = conv_layers
-        self.conv_filters = conv_filters
-        self.kernel_size = kernel_size
-        self.dense_layers = dense_layers
-        self.dense_units = dense_units
-        self.activation = activation
-
-        super().__init__(
-            x=x,
-            y=y,
-            model_type=model_type,
-            loss=loss,
-            optimizer=optimizer,
-            metrics=metrics,
-            last_activation=last_activation,
-        )
-
-    def build(self):
-        if self.x.timesteps % self.kernel_size != 0:
-            warnings.warn("Kernel size is not a divisor of lookback.")
-
-        conv = Conv1D(
-            filters=self.conv_filters,
-            kernel_size=self.kernel_size,
-            activation=self.activation,
-        )
-
-        dense = Dense(units=self.dense_units, activation=self.activation)
-
-        layers = [conv for _ in range(self.conv_layers)]
-        layers += [Flatten()]
-        layers += [conv for _ in range(self.conv_layers)]
-        layers += [dense for _ in range(self.dense_layers)]
-        layers += [
-            Dense(
-                units=self.y.timesteps * len(self.y.columns),
+                units=self.y.num_timesteps * self.y.num_columns,
                 activation=self.last_activation,
             ),
             Reshape(self.y_train.shape[1:]),
@@ -572,7 +467,6 @@ class LogisticRegression(DenseModel):
 
 class ShallowModel:
     def __init__(self, x, y, model, metrics, **kwargs):
-        # TODO: Fix shape issues
         """Shallow Model.
 
         Args:
@@ -601,14 +495,14 @@ class ShallowModel:
         Sets arrays for training, testing, and validation.
         """
 
-        self.x_train = self.x.train.as_dataframe(flatten=True)
-        self.y_train = self.y.train.as_dataframe(flatten=True)
+        self.x_train = self.x.train.flatten_panel
+        self.y_train = self.y.train.values
 
-        self.x_val = self.x.val.as_dataframe(flatten=True)
-        self.y_val = self.y.val.as_dataframe(flatten=True)
+        self.x_val = self.x.val.flatten_panel
+        self.y_val = self.y.val.values
 
-        self.x_test = self.x.test.as_dataframe(flatten=True)
-        self.y_test = self.y.test.as_dataframe(flatten=True)
+        self.x_test = self.x.test.flatten_panel
+        self.y_test = self.y.test.values
 
     def fit(self, **kwargs):
         """Fit the model.
@@ -637,27 +531,35 @@ class ShallowModel:
         Returns:
             ``ShallowModel``: The predicted probabilities.
         """
-        if data is not None:
-            return Panel(
-                [
-                    pd.DataFrame(b, columns=self.y[0].columns)
-                    for b in self.model.predict_proba(data.values)[:, 1]
-                ]
-            )
-        pred_train = [
-            pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
-            for a, b in zip(self.model.predict_proba(self.x_train)[:, 1], self.y.train)
-        ]
-        pred_val = [
-            pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
-            for a, b in zip(self.model.predict_proba(self.x_val)[:, 1], self.y.val)
-        ]
-        pred_test = [
-            pd.DataFrame(a, columns=self.y[0].columns, index=b.index)
-            for a, b in zip(self.model.predict_proba(self.x_test)[:, 1], self.y.test)
-        ]
 
-        return Panel(pred_train + pred_val + pred_test)
+        if data is not None:
+            x = data.flatten_panel
+            index = pd.MultiIndex.from_arrays([data.ids, data.first_timestamp])
+        else:
+            x = np.concatenate([self.x_train, self.x_val, self.x_test], axis=0)
+            index = pd.MultiIndex.from_tuples(
+                np.concatenate(
+                    [self.y.train.index, self.y.val.index, self.y.test.index]
+                ),
+                names=self.y.index.names,
+            )
+
+        output = self.model.predict_proba(x)
+
+        if output.shape[1] == 2:
+            output = output[:, 1]
+
+            return Panel(
+                output,
+                columns=self.y.columns,
+                index=index,
+            )
+
+        return Panel(
+            output,
+            columns=[f"{i}_prob" for i in range(output.shape[1])],
+            index=index,
+        )
 
     def predict(self, data: Panel = None):
         """Predict on data.
@@ -668,14 +570,29 @@ class ShallowModel:
         Returns:
             Panel: Predicted data
         """
+        if is_classifier(self.model):
+            threshold = self.get_auc()
+            panel = self.predict_proba(data)
+            return panel.apply(lambda x: (x > threshold) + 0)
 
-        threshold = self.get_auc()  # if self.model_type == "classification" else None
+        else:
+            if data is not None:
+                x = data.flatten_panel
+                index = pd.MultiIndex.from_arrays([data.ids, data.first_timestamp])
+            else:
+                x = np.concatenate([self.x_train, self.x_val, self.x_test], axis=0)
+                index = pd.MultiIndex.from_tuples(
+                    np.concatenate(
+                        [self.y.train.index, self.y.val.index, self.y.test.index]
+                    ),
+                    names=self.y.index.names,
+                )
 
-        panel = self.predict_proba(data=data)
-
-        return (
-            panel if threshold is None else panel.apply(lambda x: (x > threshold) + 0)
-        )
+            return Panel(
+                self.model.predict(x),
+                columns=self.y.columns,
+                index=index,
+            )
 
     def score(self, on=None):
         """Score the model.
@@ -693,8 +610,8 @@ class ShallowModel:
         if "train" in on:
             metrics_dict = {
                 a.__name__: a(
-                    self.y_train.values.squeeze(),
-                    self.predict(self.x_train).values.squeeze(),
+                    self.y.train.values.squeeze(),
+                    self.predict(self.x.train).values.squeeze(),
                 )
                 for a in self.metrics
             }
@@ -703,8 +620,8 @@ class ShallowModel:
         if "test" in on:
             metrics_dict = {
                 a.__name__: a(
-                    self.y_test.values.squeeze(),
-                    self.predict(self.x_test).values.squeeze(),
+                    self.y.test.values.squeeze(),
+                    self.predict(self.x.test).values.squeeze(),
                 )
                 for a in self.metrics
             }
@@ -713,8 +630,8 @@ class ShallowModel:
         if "val" in on:
             metrics_dict = {
                 a.__name__: a(
-                    self.y_val.values.squeeze(),
-                    self.predict(self.x_val).values.squeeze(),
+                    self.y.val.values.squeeze(),
+                    self.predict(self.x.val).values.squeeze(),
                 )
                 for a in self.metrics
             }
@@ -728,13 +645,7 @@ class ShallowModel:
         Returns:
             Panel: Residuals
         """
-        residuals = self.predict() - self.y
-        return Panel(
-            [
-                pd.DataFrame(a.values, columns=b.columns, index=b.index)
-                for a, b in zip(residuals, self.y)
-            ]
-        )
+        return self.predict() - self.y
 
 
 def compute_score_per_model(*models, on="val"):

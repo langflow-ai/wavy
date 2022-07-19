@@ -345,6 +345,15 @@ class Panel(pd.DataFrame):
         """
         return np.reshape(self.to_numpy(), self.shape_panel)
 
+    @property
+    def flatten_panel(self):
+        """
+        Flatten the panel.
+        """
+        return self.values_panel.reshape(
+            self.shape_panel[0], self.shape_panel[1] * self.shape_panel[2]
+        )
+
     def get_frame_by_ids(self, id: Union[int, list], drop_level=False):
         """
         Get a frame by id.
@@ -460,7 +469,7 @@ class Panel(pd.DataFrame):
             ``Panel``: Panel with the training set.
         """
 
-        return self[: self.train_size] if self.train_size else None
+        return self[: self.train_size * self.num_timesteps] if self.train_size else None
 
     @property
     def val(self):
@@ -473,7 +482,11 @@ class Panel(pd.DataFrame):
         """
 
         return (
-            self[self.train_size : self.train_size + self.val_size]
+            self[
+                self.train_size
+                * self.num_timesteps : (self.train_size + self.val_size)
+                * self.num_timesteps
+            ]
             if self.val_size
             else None
         )
@@ -488,7 +501,11 @@ class Panel(pd.DataFrame):
             ``Panel``: Panel with the testing set.
         """
 
-        return self[self.train_size + self.val_size :] if self.test_size else None
+        return (
+            self[(self.train_size + self.val_size) * self.num_timesteps :]
+            if self.test_size
+            else None
+        )
 
     def head_panel(self, n: int = 5):
         """
