@@ -131,8 +131,7 @@ def concat_panels(panels: list, reset_ids=False, sort=False):
         panel = panel.sort_ids()
 
     if reset_ids:
-        # TODO add inplace in this function
-        panel.reset_ids()
+        panel.reset_ids(inplace=True)
 
     return panel
 
