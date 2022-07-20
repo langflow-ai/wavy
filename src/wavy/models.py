@@ -5,18 +5,9 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from sklearn.base import is_classifier
-from sklearn.metrics import auc, mean_squared_error, roc_curve
-from tensorflow.keras import Input, Model, Sequential
-from tensorflow.keras.layers import (
-    Conv1D,
-    Dense,
-    Flatten,
-    Input,
-    MaxPooling1D,
-    Reshape,
-    SeparableConv1D,
-    concatenate,
-)
+from sklearn.metrics import auc, roc_curve
+from tensorflow.keras import Sequential
+from tensorflow.keras.layers import Conv1D, Dense, Flatten, Reshape
 
 from .panel import Panel
 

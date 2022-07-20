@@ -69,10 +69,6 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0):
             (i - lookback) * horizon : (i - lookback + 1) * horizon
         ] = frame.index.values
 
-        # yindex[:, (i - lookback) * horizon : (i - lookback + 1) * horizon] = np.array(
-        #     ((i - lookback) * np.ones(horizon, dtype=int), frame.index.values)
-        # )
-
     return Panel(
         xframes,
         columns=df.columns,
@@ -222,13 +218,10 @@ class Panel(pd.DataFrame):
         except AttributeError:
             raise AttributeError(f"'Panel' object has no attribute '{name}'")
 
-    # -----------------------------------IDS-----------------------------------
-
     @property
     def ids(self):
         return self.index.get_level_values(0).drop_duplicates()
 
-    # TODO change ID functions to accept inplace using set_index
     @ids.setter
     def ids(self, ids):
         """
@@ -247,58 +240,25 @@ class Panel(pd.DataFrame):
 
         self.index = index
 
-    def reset_ids(self):
+    def reset_ids(self, inplace=False):
         """
         Reset the ids of the panel.
+
+        Args:
+            inplace (bool): Whether to reset ids inplace.
         """
-        self.ids = np.arange(self.num_frames)
+        # self.ids = np.arange(self.num_frames)
+        new_ids = np.repeat(np.arange(self.num_frames), self.num_timesteps)
+        new_index = pd.MultiIndex.from_arrays(
+            [new_ids, self.index.get_level_values(1)],
+            names=self.index.names,
+        )
 
-    # # TODO fix
-    # # def set_index_frames(self, indexes, inplace=False):
-    # #     """
-    # #     Set index of panel.
-
-    # #     Args:
-    # #         indexes (list): List of indexes to set.
-    # #         inplace (bool): Whether to set the index inplace.
-
-    # #     Returns:
-    # #         ``Panel``: Result of set index function.
-    # #     """
-
-    # #     if len(self.index.get_level_values(1)) != len(indexes):
-    # #         raise ValueError("Number of indexes must be equal to number of frames")
-
-    # #     new_frame = self.reset_index(drop=True)
-
-    # #     return create_panel(
-    # #         frames,
-    # #         train_size=self.train_size,
-    # #         val_size=self.val_size,
-    # #         test_size=self.test_size,
-    # #     )
-
-    # --------------------------------------------------------------------------
+        return self.set_index(new_index, inplace=inplace)
 
     @property
     def shape_panel(self):
         return (len(self.ids), int(self.shape[0] / len(self.ids)), self.shape[1])
-
-    # @property
-    # def first_row(self):
-    #     """
-    #     Returns the first row of each frame.
-    #     """
-
-    #     return self.groupby(level=0).head(1)
-
-    # @property
-    # def last_row(self):
-    #     """
-    #     Returns the last row of each frame.
-    #     """
-
-    #     return self.groupby(level=0).tail(1)
 
     def row_panel(self, n: int = 0):
         """

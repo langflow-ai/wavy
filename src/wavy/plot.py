@@ -1,9 +1,5 @@
-import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 from plotlab import Figure
-
-from wavy.utils import is_dataframe
 
 # TODO: Set plotting configs and add kwargs to functions
 # TODO: Check if kwargs would overwrite fig.add_trace if same params are used
@@ -69,12 +65,6 @@ class PanelFigure(Figure):
 
             args = list(args)
             df = args.pop(0)
-
-            # if "use_timestep" in kwargs:
-            #     if _ := kwargs.pop("use_timestep"):
-            #         df = df.droplevel(0, axis=0)
-            #     else:
-            #         df = df.droplevel(1, axis=1)
 
             for col in df.columns:
                 kwargs["color"] = self.colors[self.color_index]
@@ -157,12 +147,6 @@ def plot(panel, use_timestep=False, add_annotation=False, **kwargs):
         panel = panel.droplevel(0, axis=0)
     else:
         panel = panel.droplevel(1, axis=0)
-
-    # if "use_timestep" in kwargs:
-    #     if _ := kwargs.pop("use_timestep"):
-    #         df = df.droplevel(0, axis=0)
-    #     else:
-    #         df = df.droplevel(1, axis=1)
 
     fig.add_line(panel, **kwargs)
 
