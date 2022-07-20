@@ -80,13 +80,14 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0):
     )
 
 
-def reset_ids(x, y):
+def reset_ids(x, y, inplace=False):
     """
     Reset ids of a panel.
 
     Args:
         x (Panel): Panel to reset id of
         y (Panel): Panel to reset id of
+        inplace (bool): Whether to reset ids inplace or not.
 
     Returns:
         ``Panel``: Reset id of panel
@@ -98,8 +99,9 @@ def reset_ids(x, y):
             "Ids for x and y are not the same. Try using match function first."
         )
 
-    x.reset_ids()
-    y.reset_ids()
+    x.reset_ids(inplace=inplace)
+    y.reset_ids(inplace=inplace)
+
     return x, y
 
 
