@@ -480,7 +480,7 @@ class Panel(pd.DataFrame):
             self.train_size
             * self.num_timesteps : (self.train_size + self.val_size)
             * self.num_timesteps
-        ] = value
+        ] = value.values
 
     @property
     def test(self):
@@ -509,7 +509,7 @@ class Panel(pd.DataFrame):
 
         if not self.test_size:
             raise ValueError("No testing set was set.")
-        self[(self.train_size + self.val_size) * self.num_timesteps :] = value
+        self[(self.train_size + self.val_size) * self.num_timesteps :] = value.values
 
     def head_panel(self, n: int = 5):
         """
