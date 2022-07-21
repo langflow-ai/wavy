@@ -432,6 +432,19 @@ class Panel(pd.DataFrame):
 
         return self[: self.train_size * self.num_timesteps] if self.train_size else None
 
+    @train.setter
+    def train(self, value):
+        """
+        Set the training set.
+
+        Args:
+            value (``Panel``): Panel with the training set.
+        """
+
+        if not self.train_size:
+            raise ValueError("No training set was set.")
+        self[: self.train_size * self.num_timesteps] = value.values
+
     @property
     def val(self):
         """
@@ -452,6 +465,23 @@ class Panel(pd.DataFrame):
             else None
         )
 
+    @val.setter
+    def val(self, value):
+        """
+        Set the validation set.
+
+        Args:
+            value (``Panel``): Panel with the validation set.
+        """
+
+        if not self.val_size:
+            raise ValueError("No validation set was set.")
+        self[
+            self.train_size
+            * self.num_timesteps : (self.train_size + self.val_size)
+            * self.num_timesteps
+        ] = value
+
     @property
     def test(self):
         """
@@ -467,6 +497,19 @@ class Panel(pd.DataFrame):
             if self.test_size
             else None
         )
+
+    @test.setter
+    def test(self, value):
+        """
+        Set the testing set.
+
+        Args:
+            value (``Panel``): Panel with the testing set.
+        """
+
+        if not self.test_size:
+            raise ValueError("No testing set was set.")
+        self[(self.train_size + self.val_size) * self.num_timesteps :] = value
 
     def head_panel(self, n: int = 5):
         """
