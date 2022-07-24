@@ -168,11 +168,30 @@ class Panel(pd.DataFrame):
     # test_size = None
     # val_size = None
 
-    _metadata = ["train_size", "test_size", "val_size"]
+    def __init__(self, *args, **kw):
+        super(Panel, self).__init__(*args, **kw)
+        if len(args) == 1 and isinstance(args[0], Panel):
+            args[0]._copy_attrs(self)
+
+    # _metadata = ["train_size", "test_size", "val_size"]
+    _attributes_ = "train_size,test_size,val_size"
+
+    def _copy_attrs(self, df):
+        for attr in self._attributes_.split(","):
+            df.__dict__[attr] = getattr(self, attr, None)
 
     @property
     def _constructor(self):
-        return Panel
+        def f(*args, **kw):
+            df = Panel(*args, **kw)
+            self._copy_attrs(df)
+            return df
+
+        return f
+
+    # @property
+    # def _constructor(self):
+    #     return Panel
 
     @property
     def num_frames(self):

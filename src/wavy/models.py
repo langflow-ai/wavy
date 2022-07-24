@@ -438,7 +438,7 @@ class ConvModel(_BaseModel):
                 units=self.y.num_timesteps * self.y.num_columns,
                 activation=self.last_activation,
             ),
-            Reshape(self.y_train.shape[1:]),
+            Reshape((self.y.num_columns,)),
         ]
 
         self.model = Sequential(layers)
