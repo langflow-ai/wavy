@@ -350,10 +350,10 @@ class DenseModel(_BaseModel):
         layers += [dense for _ in range(self.dense_layers)]
         layers += [
             Dense(
-                units=self.y.timesteps * len(self.y.columns),
+                units=self.y.num_timesteps * self.y.num_columns,
                 activation=self.last_activation,
             ),
-            Reshape(self.y_train.shape[1:]),
+            Reshape((self.y.num_columns,)),
         ]
 
         self.model = Sequential(layers)

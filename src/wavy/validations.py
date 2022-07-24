@@ -100,6 +100,9 @@ def _validate_training_split(n_samples, train_size, val_size, test_size):
     elif not test_size:
         n_test = max(n_samples - n_train - n_val, 0)
 
+    if abs(n_train + n_val + n_test - n_samples) == 1:
+        n_test = max(n_samples - n_train - n_val, 0)
+
     if n_train + n_val + n_test != n_samples:
         raise ValueError(
             f"""The sum of train_size, val_size and test_size = {n_train + n_val + n_test},

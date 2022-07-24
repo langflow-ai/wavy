@@ -150,7 +150,7 @@ def plot(panel, use_timestep=False, add_annotation=False, **kwargs):
 
     fig.add_line(panel, **kwargs)
 
-    if add_annotation:
+    if add_annotation and isinstance(panel.train_size, int):
         fig.add_annotation(panel)
 
     return fig()

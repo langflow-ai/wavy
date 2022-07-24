@@ -164,9 +164,9 @@ class Panel(pd.DataFrame):
     # def __init__(self, *args, **kwargs):
     #     super(Panel, self).__init__(*args, **kwargs)
 
-    #     self.train_size = None
-    #     self.test_size = None
-    #     self.val_size = None
+    # train_size = None
+    # test_size = None
+    # val_size = None
 
     _metadata = ["train_size", "test_size", "val_size"]
 
