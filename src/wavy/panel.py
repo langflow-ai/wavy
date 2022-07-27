@@ -81,6 +81,7 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0):
 
 
 def reset_ids(x, y, inplace=False):
+    # TODO check inplaces
     """
     Reset ids of a panel.
 
@@ -161,19 +162,11 @@ def set_training_split(
 
 
 class Panel(pd.DataFrame):
-    # def __init__(self, *args, **kwargs):
-    #     super(Panel, self).__init__(*args, **kwargs)
-
-    # train_size = None
-    # test_size = None
-    # val_size = None
-
     def __init__(self, *args, **kw):
         super(Panel, self).__init__(*args, **kw)
         if len(args) == 1 and isinstance(args[0], Panel):
             args[0]._copy_attrs(self)
 
-    # _metadata = ["train_size", "test_size", "val_size"]
     _attributes_ = "train_size,test_size,val_size"
 
     def _copy_attrs(self, df):
@@ -188,10 +181,6 @@ class Panel(pd.DataFrame):
             return df
 
         return f
-
-    # @property
-    # def _constructor(self):
-    #     return Panel
 
     @property
     def num_frames(self):
@@ -221,7 +210,14 @@ class Panel(pd.DataFrame):
             name = name.replace("_panel", "")
 
             def wrapper(*args, **kwargs):
-                panel = self.groupby(level=0).apply(name, *args, **kwargs)
+
+                if name != 'apply':
+                    panel = self.groupby(level=0).apply(name, *args, **kwargs)
+                else:
+                    args = list(args)
+                    new_name = args.pop(0)
+                    args = tuple(args)
+                    panel = self.groupby(level=0).apply(new_name, *args, **kwargs)
 
                 # Update ids
                 ids = panel.index.get_level_values(0)
@@ -240,6 +236,9 @@ class Panel(pd.DataFrame):
 
     @property
     def ids(self):
+        """
+        Returns the ids of the panel.
+        """
         return self.index.get_level_values(0).drop_duplicates()
 
     @ids.setter
@@ -267,7 +266,6 @@ class Panel(pd.DataFrame):
         Args:
             inplace (bool): Whether to reset ids inplace.
         """
-        # self.ids = np.arange(self.num_frames)
         new_ids = np.repeat(np.arange(self.num_frames), self.num_timesteps)
         new_index = pd.MultiIndex.from_arrays(
             [new_ids, self.index.get_level_values(1)],
@@ -279,6 +277,8 @@ class Panel(pd.DataFrame):
     @property
     def shape_panel(self):
         return (len(self.ids), int(self.shape[0] / len(self.ids)), self.shape[1])
+
+    # TODO add loc, iloc
 
     def row_panel(self, n: int = 0):
         """
@@ -636,6 +636,7 @@ class Panel(pd.DataFrame):
             ``plot``: Result of plot function.
         """
 
+        # TODO Fix annotation when size is higher than 10_000
         if max and self.num_frames > max:
             return plot(
                 self.sample_panel(max, how="spaced"),
