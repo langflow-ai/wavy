@@ -197,12 +197,16 @@ class Panel(pd.DataFrame):
         """Returns the number of columns in the panel."""
         return self.shape_panel[2]
 
+    @property
     def frames(self):
-        index = 0
-        ids = self.ids
-        while index < self.num_frames:
-            yield self.xs(ids[index], level=0, axis=0)
-            index += 1
+        return self.groupby(level=0)
+
+    # def iter_frames(self):
+    #     index = 0
+    #     ids = self.ids
+    #     while index < self.num_frames:
+    #         yield self.xs(ids[index], level=0, axis=0)
+    #         index += 1
 
     # Function to call pandas methods on all frames
     def __getattr__(self, name):
@@ -211,7 +215,7 @@ class Panel(pd.DataFrame):
 
             def wrapper(*args, **kwargs):
 
-                if name != 'apply':
+                if name != "apply":
                     panel = self.groupby(level=0).apply(name, *args, **kwargs)
                 else:
                     args = list(args)
