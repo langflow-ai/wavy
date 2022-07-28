@@ -80,14 +80,12 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0):
     )
 
 
-def reset_ids(x, y, inplace=False):
-    # TODO check inplaces
+def reset_ids(panels, inplace=False):
     """
     Reset ids of a panel.
 
     Args:
-        x (Panel): Panel to reset id of
-        y (Panel): Panel to reset id of
+        panels (list): List of panels
         inplace (bool): Whether to reset ids inplace or not.
 
     Returns:
@@ -95,15 +93,12 @@ def reset_ids(x, y, inplace=False):
     """
 
     # Check if id in x and y are the same
-    if not np.array_equal(x.ids, y.ids):
+    if not all(np.array_equal(panels[0].ids, panel.ids) for panel in panels):
         raise ValueError(
-            "Ids for x and y are not the same. Try using match function first."
+            "Ids for panels are not the same. Try using match function first."
         )
 
-    x.reset_ids(inplace=inplace)
-    y.reset_ids(inplace=inplace)
-
-    return x, y
+    return [panel.reset_ids(inplace=inplace) for panel in panels]
 
 
 def concat_panels(panels: list, reset_ids=False, sort=False):
@@ -199,14 +194,8 @@ class Panel(pd.DataFrame):
 
     @property
     def frames(self):
+        """Returns the frames in the panel."""
         return self.groupby(level=0)
-
-    # def iter_frames(self):
-    #     index = 0
-    #     ids = self.ids
-    #     while index < self.num_frames:
-    #         yield self.xs(ids[index], level=0, axis=0)
-    #         index += 1
 
     # Function to call pandas methods on all frames
     def __getattr__(self, name):
