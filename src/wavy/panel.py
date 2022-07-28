@@ -69,14 +69,16 @@ def create_panels(df, lookback: int, horizon: int, gap: int = 0):
             (i - lookback) * horizon : (i - lookback + 1) * horizon
         ] = frame.index.values
 
+    timesteps_name = df.index.name or "timesteps"
+
     return Panel(
         xframes,
         columns=df.columns,
-        index=pd.MultiIndex.from_arrays(xindex, names=["id", df.index.name]),
+        index=pd.MultiIndex.from_arrays(xindex, names=["id", timesteps_name]),
     ), Panel(
         yframes,
         columns=df.columns,
-        index=pd.MultiIndex.from_arrays(yindex, names=["id", df.index.name]),
+        index=pd.MultiIndex.from_arrays(yindex, names=["id", timesteps_name]),
     )
 
 
@@ -168,12 +170,21 @@ class Panel(pd.DataFrame):
         for attr in self._attributes_.split(","):
             df.__dict__[attr] = getattr(self, attr, None)
 
+    # TODO x.loc[0] should return a DataFrame
     @property
     def _constructor(self):
         def f(*args, **kw):
             df = Panel(*args, **kw)
+
+            # Workaround to fix pandas bug
+            if (df.index.nlevels > 1 and self.index.nlevels > 1) and len(
+                df.index.levels
+            ) > len(self.index.levels):
+                df = df.droplevel(0, axis="index")
+
             if len(df) == len(self):
                 self._copy_attrs(df)
+
             return df
 
         return f
@@ -196,37 +207,7 @@ class Panel(pd.DataFrame):
     @property
     def frames(self):
         """Returns the frames in the panel."""
-        return self.groupby(level=0)
-
-    # # Function to call pandas methods on all frames
-    # def __getattr__(self, name):
-    #     try:
-    #         name = name.replace("_panel", "")
-
-    #         def wrapper(*args, **kwargs):
-
-    #             if name != "apply":
-    #                 panel = self.groupby(level=0).apply(name, *args, **kwargs)
-    #             else:
-    #                 args = list(args)
-    #                 new_name = args.pop(0)
-    #                 args = tuple(args)
-    #                 panel = self.groupby(level=0).apply(new_name, *args, **kwargs)
-
-    #             # Update ids
-    #             ids = panel.index.get_level_values(0)
-    #             timestamp = self.index.get_level_values(1)
-
-    #             if len(ids) != len(timestamp):
-    #                 timestamp = self.first_timestamp
-
-    #             panel.index = pd.MultiIndex.from_arrays((ids, timestamp))
-
-    #             return type(self)(panel)
-
-    #         return wrapper
-    #     except AttributeError:
-    #         raise AttributeError(f"'Panel' object has no attribute '{name}'")
+        return self.groupby(level=0, as_index=True)
 
     @property
     def ids(self):
@@ -245,11 +226,9 @@ class Panel(pd.DataFrame):
         """
 
         ids = np.repeat(np.arange(len(self)), self.shape_panel[1])
-        timestamp = self.index.get_level_values(1)
+        timestep = self.index.get_level_values(1)
 
-        index = pd.MultiIndex.from_arrays(
-            [ids, timestamp], names=["id", timestamp.name]
-        )
+        index = pd.MultiIndex.from_arrays([ids, timestep], names=["id", timestep.name])
 
         self.index = index
 
@@ -272,8 +251,6 @@ class Panel(pd.DataFrame):
     def shape_panel(self):
         return (len(self.ids), int(self.shape[0] / len(self.ids)), self.shape[1])
 
-    # TODO add loc, iloc
-
     def row_panel(self, n: int = 0):
         """
         Returns the nth row of each frame.
@@ -284,21 +261,15 @@ class Panel(pd.DataFrame):
 
         return self.groupby(level=0, as_index=False).nth(n)
 
-    @property
-    def first_timestamp(self):
+    def get_timestep(self, n: int = 0):
         """
-        Returns the first timestamp of each frame in the panel.
+        Returns the first timestep of each frame in the panel.
+
+        Args:
+            n (int): Timestep to return.
         """
 
-        return self.groupby(level=0).head(1).index.get_level_values(1)
-
-    @property
-    def last_timestamp(self):
-        """
-        Returns the last timestamp of each frame in the panel.
-        """
-
-        return self.groupby(level=0).tail(1).index.get_level_values(1)
+        return self.frames.take(n).index.get_level_values(1)
 
     @property
     def values_panel(self):
@@ -328,40 +299,19 @@ class Panel(pd.DataFrame):
             self.shape_panel[0], self.shape_panel[1] * self.shape_panel[2]
         )
 
-    def get_frame_by_ids(self, id: Union[int, list], drop_level=False):
-        """
-        Get a frame by id.
-
-        Args:
-            id (int): Id of the frame to return.
-            drop_level (bool): Whether to drop the level of the index (only if
-                the id is an int).
-
-        Returns:
-            pd.DataFrame: Frame at id.
-
-        Example:
-
-        >>> panel.get_frame_by_id(0)
-        <DataFrame>
-        """
-        if isinstance(id, (int, np.integer)):
-            return self.xs(id, level=0, axis=0, drop_level=drop_level)
-        return self.loc[id, :]
-
-    def drop_frames(self, ids: Union[list, int]):
+    # TODO Add drop timesteps
+    def drop_ids(self, ids: Union[list, int], inplace=False):
         """
         Drop frames by id.
 
         Args:
             ids (list, int): List of ids to drop.
+            inplace (bool): Whether to drop ids inplace.
 
         Returns:
             ``Panel``: Panel with frames dropped.
         """
-        if isinstance(ids, int):
-            ids = [ids]
-        return self[~self.index.get_level_values(0).isin(ids)]
+        return self.drop(index=ids, inplace=inplace)
 
     def dropna_frames(self):
         """
@@ -381,7 +331,7 @@ class Panel(pd.DataFrame):
         """
         return self[self.isna().any(axis=1)].index.get_level_values(0).drop_duplicates()
 
-    def match_frame(self, other):
+    def match_frames(self, other):
         """
         Match panel with other panel. This function will match the ids and id
         order of self based on the ids of other.
@@ -399,9 +349,7 @@ class Panel(pd.DataFrame):
         if [i for i in other_ids if i not in self_ids]:
             raise ValueError("There are elements in other that are not in self.")
 
-        drop_ids = self_ids - other_ids
-
-        return type(self)(self.drop_frames(drop_ids))
+        return self.loc[other.ids]
 
     def set_training_split(
         self,
