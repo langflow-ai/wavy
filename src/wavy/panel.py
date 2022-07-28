@@ -172,7 +172,8 @@ class Panel(pd.DataFrame):
     def _constructor(self):
         def f(*args, **kw):
             df = Panel(*args, **kw)
-            self._copy_attrs(df)
+            if len(df) == len(self):
+                self._copy_attrs(df)
             return df
 
         return f
@@ -197,35 +198,35 @@ class Panel(pd.DataFrame):
         """Returns the frames in the panel."""
         return self.groupby(level=0)
 
-    # Function to call pandas methods on all frames
-    def __getattr__(self, name):
-        try:
-            name = name.replace("_panel", "")
+    # # Function to call pandas methods on all frames
+    # def __getattr__(self, name):
+    #     try:
+    #         name = name.replace("_panel", "")
 
-            def wrapper(*args, **kwargs):
+    #         def wrapper(*args, **kwargs):
 
-                if name != "apply":
-                    panel = self.groupby(level=0).apply(name, *args, **kwargs)
-                else:
-                    args = list(args)
-                    new_name = args.pop(0)
-                    args = tuple(args)
-                    panel = self.groupby(level=0).apply(new_name, *args, **kwargs)
+    #             if name != "apply":
+    #                 panel = self.groupby(level=0).apply(name, *args, **kwargs)
+    #             else:
+    #                 args = list(args)
+    #                 new_name = args.pop(0)
+    #                 args = tuple(args)
+    #                 panel = self.groupby(level=0).apply(new_name, *args, **kwargs)
 
-                # Update ids
-                ids = panel.index.get_level_values(0)
-                timestamp = self.index.get_level_values(1)
+    #             # Update ids
+    #             ids = panel.index.get_level_values(0)
+    #             timestamp = self.index.get_level_values(1)
 
-                if len(ids) != len(timestamp):
-                    timestamp = self.first_timestamp
+    #             if len(ids) != len(timestamp):
+    #                 timestamp = self.first_timestamp
 
-                panel.index = pd.MultiIndex.from_arrays((ids, timestamp))
+    #             panel.index = pd.MultiIndex.from_arrays((ids, timestamp))
 
-                return type(self)(panel)
+    #             return type(self)(panel)
 
-            return wrapper
-        except AttributeError:
-            raise AttributeError(f"'Panel' object has no attribute '{name}'")
+    #         return wrapper
+    #     except AttributeError:
+    #         raise AttributeError(f"'Panel' object has no attribute '{name}'")
 
     @property
     def ids(self):
@@ -278,8 +279,8 @@ class Panel(pd.DataFrame):
         Returns the nth row of each frame.
         """
 
-        if n < 0 or n >= self.num_timesteps:
-            raise ValueError("n must be between 0 and the number of timesteps")
+        if n < -1 or n >= self.num_timesteps:
+            raise ValueError("n must be -1 or between 0 and the number of timesteps")
 
         return self.groupby(level=0, as_index=False).nth(n)
 
@@ -629,7 +630,6 @@ class Panel(pd.DataFrame):
             ``plot``: Result of plot function.
         """
 
-        # TODO Fix annotation when size is higher than 10_000
         if max and self.num_frames > max:
             return plot(
                 self.sample_panel(max, how="spaced"),
