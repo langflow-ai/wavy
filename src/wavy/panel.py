@@ -170,10 +170,13 @@ class Panel(pd.DataFrame):
         for attr in self._attributes_.split(","):
             df.__dict__[attr] = getattr(self, attr, None)
 
-    # TODO x.loc[0] should return a DataFrame
     @property
     def _constructor(self):
         def f(*args, **kw):
+
+            if len(args[0].axes[1]) == self.num_timesteps:
+                return pd.DataFrame(*args, **kw)
+
             df = Panel(*args, **kw)
 
             # Workaround to fix pandas bug
@@ -249,6 +252,9 @@ class Panel(pd.DataFrame):
 
     @property
     def shape_panel(self):
+        """
+        Returns the shape of the panel.
+        """
         return (len(self.ids), int(self.shape[0] / len(self.ids)), self.shape[1])
 
     def row_panel(self, n: int = 0):
@@ -299,7 +305,6 @@ class Panel(pd.DataFrame):
             self.shape_panel[0], self.shape_panel[1] * self.shape_panel[2]
         )
 
-    # TODO Add drop timesteps
     def drop_ids(self, ids: Union[list, int], inplace=False):
         """
         Drop frames by id.
@@ -495,6 +500,18 @@ class Panel(pd.DataFrame):
             ``Panel``: Result of tail function.
         """
         return self[-n * self.shape_panel[1] :]
+
+    def shift_panel(self, n: int = 1):
+        """
+        Shift the panel by n timesteps.
+
+        Args:
+            n (int): Number of timesteps to shift.
+
+        Returns:
+            ``Panel``: Result of shift function.
+        """
+        return self.shift(periods=n * self.num_timesteps)
 
     def sort_panel(
         self,
