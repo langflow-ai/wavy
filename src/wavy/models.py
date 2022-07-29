@@ -108,8 +108,6 @@ class _BaseModel:
         y = self.y_test.squeeze()
         prediction = self.model.predict(self.x_test).squeeze()
         fpr, tpr, _ = roc_curve(y, prediction)
-        # optimal_idx = np.argmax(tpr - fpr)
-        # return thresholds[optimal_idx]
         fpr, tpr, _ = roc_curve(y, prediction)
         return auc(fpr, tpr)
 
@@ -127,11 +125,17 @@ class _BaseModel:
         )
 
     def compile(self, **kwargs):
+        """Compile the model.
+
+        Args:
+            **kwargs: Additional arguments to pass to the compile method.
+        """
         self.model.compile(
             loss=self.loss, optimizer=self.optimizer, metrics=self.metrics, **kwargs
         )
 
     def build(self):
+        """Build the model."""
         pass
 
     def predict_proba(self, data: Panel = None, **kwargs):
@@ -239,6 +243,7 @@ class _Baseline(_BaseModel):
         super().__init__(x=x, y=y, model_type=model_type, loss=loss, metrics=metrics)
 
     def build(self):
+        """Build the model."""
         self.model = _ConstantKerasModel()
 
 
@@ -262,6 +267,7 @@ class BaselineShift(_Baseline):
         super().__init__(x=x, y=y, model_type=model_type, loss=loss, metrics=metrics)
 
     def set_arrays(self):
+        """Set the arrays."""
         self.x_train = self.y.train.shift(self.shift).fillna(self.fillna).values
         self.x_val = self.y.val.shift(self.shift).fillna(self.fillna).values
         self.x_test = self.y.test.shift(self.shift).fillna(self.fillna).values
@@ -271,6 +277,7 @@ class BaselineShift(_Baseline):
         self.y_test = self.y.test.values
 
     def build(self):
+        """Build the model."""
         self.model = _ConstantKerasModel()
 
 
@@ -290,7 +297,7 @@ class BaselineConstant(_Baseline):
         super().__init__(x=x, y=y, model_type=model_type, loss=loss, metrics=metrics)
 
     def set_arrays(self):
-
+        """Set the arrays."""
         self.x_train = np.full(self.y.train.shape, self.constant)
         self.x_val = np.full(self.y.val.shape, self.constant)
         self.x_test = np.full(self.y.test.shape, self.constant)
@@ -316,6 +323,7 @@ class DenseModel(_BaseModel):
     ):
         """
         Dense Model.
+
         Args:
             panel (Panel): Panel with data
             model_type (str): Model type (regression, classification, multi_classification)
@@ -326,6 +334,7 @@ class DenseModel(_BaseModel):
             optimizer (str): Optimizer name
             metrics (List[str]): Metrics list
             last_activation (str): Activation type of the last layer
+
         Returns:
             ``DenseModel``: Constructed DenseModel
         """
@@ -345,6 +354,7 @@ class DenseModel(_BaseModel):
         )
 
     def build(self):
+        """Build the model."""
         dense = Dense(units=self.dense_units, activation=self.activation)
         layers = [Flatten()]  # (time, features) => (time*features)
         layers += [dense for _ in range(self.dense_layers)]
@@ -378,6 +388,7 @@ class ConvModel(_BaseModel):
     ):
         """
         Convolution Model.
+
         Args:
             panel (Panel): Panel with data
             model_type (str): Model type (regression, classification, multi_classification)
@@ -391,6 +402,7 @@ class ConvModel(_BaseModel):
             optimizer (str): Optimizer name
             metrics (List[str]): Metrics list
             last_activation (str): Activation type of the last layer
+
         Returns:
             ``DenseModel``: Constructed DenseModel
         """
@@ -418,6 +430,8 @@ class ConvModel(_BaseModel):
         )
 
     def build(self):
+        """Build the model."""
+
         if self.x.num_timesteps % self.kernel_size != 0:
             warnings.warn("Kernel size is not a divisor of lookback.")
 
@@ -508,6 +522,7 @@ class ShallowModel:
 
     def get_auc(self):
         """Get the AUC score."""
+
         y = self.y_test.squeeze()
         prediction = self.model.predict(self.x_test).squeeze()
         fpr, tpr, _ = roc_curve(y, prediction)
