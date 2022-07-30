@@ -26,11 +26,7 @@ class PanelFigure(Figure):
         # BUG: Seems to break if using "ggplot2"
         # ! Won't take effect until next trace is added (no axis was added)
 
-        ymax = max(
-            panel.train.max().max() if panel.train_size else 0,
-            panel.val.max().max() if panel.val_size else 0,
-            panel.test.max().max() if panel.test_size else 0,
-        )
+        ymax = panel.max().max() if panel.train_size else 0
 
         if panel.train_size:
             xtrain_min = panel.train.index[0]

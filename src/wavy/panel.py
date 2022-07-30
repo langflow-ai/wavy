@@ -174,8 +174,8 @@ class Panel(pd.DataFrame):
     def _constructor(self):
         def f(*args, **kw):
 
-            index = [a for a in args[0].axes if isinstance(a, pd.MultiIndex)][0]
-            if len(index) == self.num_timesteps:
+            index = [a for a in args[0].axes if isinstance(a, pd.MultiIndex)]
+            if index and len(index[0]) == self.num_timesteps:
                 return pd.DataFrame(*args, **kw)
 
             df = Panel(*args, **kw)
