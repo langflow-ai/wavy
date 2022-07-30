@@ -143,6 +143,10 @@ def plot(panel, use_timestep=False, add_annotation=False, **kwargs):
 
     panel = panel.row_panel(n=0)
 
+    for col in panel.columns:
+        if panel[col].dtype == bool:
+            panel[col] = panel[col].astype(int)
+
     if use_timestep:
         panel = panel.droplevel(0, axis=0)
     else:
