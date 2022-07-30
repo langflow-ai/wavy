@@ -151,7 +151,7 @@ class _BaseModel:
 
         if data is not None:
             x = data.values_panel
-            index = pd.MultiIndex.from_arrays([data.ids, data.first_timestamp])
+            index = pd.MultiIndex.from_arrays([data.ids, data.get_timesteps(0)])
         else:
             x = np.concatenate([self.x_train, self.x_val, self.x_test], axis=0)
             index = pd.MultiIndex.from_tuples(

@@ -174,9 +174,12 @@ class Panel(pd.DataFrame):
     def _constructor(self):
         def f(*args, **kw):
 
-            index = [a for a in args[0].axes if isinstance(a, pd.MultiIndex)]
-            if index and len(index[0]) == self.num_timesteps:
-                return pd.DataFrame(*args, **kw)
+            try:
+                index = [a for a in args[0].axes if isinstance(a, pd.MultiIndex)]
+                if index and len(index[0]) == self.num_timesteps:
+                    return pd.DataFrame(*args, **kw)
+            except:
+                pass
 
             df = Panel(*args, **kw)
 
@@ -268,7 +271,7 @@ class Panel(pd.DataFrame):
 
         return self.groupby(level=0, as_index=False).nth(n)
 
-    def get_timestep(self, n: int = 0):
+    def get_timesteps(self, n: Union[list, int] = 0):
         """
         Returns the first timestep of each frame in the panel.
 
@@ -276,7 +279,10 @@ class Panel(pd.DataFrame):
             n (int): Timestep to return.
         """
 
-        return self.frames.take(n).index.get_level_values(1)
+        if isinstance(n, int):
+            n = [n]
+
+        return self.frames.take(n).index.get_level_values(2)
 
     @property
     def values_panel(self):
