@@ -607,10 +607,11 @@ class Panel(pd.DataFrame):
                 endpoint=True,
             )
 
-        new_panel = concat_panels(
-            [self.loc[train_ids], self.loc[val_ids], self.loc[test_ids]],
-            reset_ids=reset_ids,
-        )
+        new_panel = self.loc[train_ids + val_ids + test_ids]
+
+        # Reset ids
+        if reset_ids:
+            new_panel.reset_ids(inplace=True)
 
         new_panel.train_size = train_samples
         new_panel.val_size = val_samples
@@ -618,23 +619,36 @@ class Panel(pd.DataFrame):
 
         return new_panel
 
-    def shuffle_panel(self, seed: int = None):
+    def shuffle_panel(self, seed: int = None, reset_ids: bool = False):
         """
         Shuffle the panel.
 
         Args:
             seed (int): Random seed.
+            reset_ids (bool): If True, reset the index of the shuffled panel.
 
         Returns:
             ``Panel``: Result of shuffle function.
         """
 
-        warnings.warn("Shuffling the panel can result in data leakage.")
+        # warnings.warn("Shuffling the panel can result in data leakage.")
 
-        indexes = list(self.ids)
+        train_ids = list(self.train.ids)
+        val_ids = list(self.val.ids)
+        test_ids = list(self.test.ids)
+
         random.seed(seed)
-        random.shuffle(indexes)
-        return self.get_frame_by_ids(indexes)
+        random.shuffle(train_ids)
+        random.shuffle(val_ids)
+        random.shuffle(test_ids)
+
+        new_panel = self.loc[train_ids + val_ids + test_ids]
+
+        # Reset ids
+        if reset_ids:
+            new_panel.reset_ids(inplace=True)
+
+        return new_panel
 
     def plot(self, add_annotation=True, max=10_000, use_timestep=False, **kwargs):
         """
