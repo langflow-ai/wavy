@@ -111,3 +111,38 @@ def _validate_training_split(n_samples, train_size, val_size, test_size):
         )
 
     return int(n_train), int(n_val), int(n_test)
+
+
+def _validate_sample_panel(samples, train_size, val_size, test_size):
+    """
+    Validation helper to check if the samples size is meaningful wrt to the
+    size of the data (n_samples)
+    """
+
+    n_samples = train_size + val_size + test_size
+    samples_type = np.asarray(samples).dtype.kind
+
+    # Check samples size
+    if (
+        samples_type == "i"
+        and (samples >= n_samples or samples <= 0)
+        or samples_type == "f"
+        and (samples <= 0 or samples >= 1)
+    ):
+        raise ValueError(
+            "samples={0} should be either positive and smaller"
+            " than the number of samples {1} or a float in the "
+            "(0, 1) range".format(samples, n_samples)
+        )
+
+    if samples is not None and samples_type not in ("i", "f"):
+        raise ValueError(f"Invalid value for samples: {samples}")
+
+    if samples_type == "i":
+        samples = samples / n_samples
+
+    train_samples = round(samples * train_size)
+    val_samples = round(samples * val_size)
+    test_samples = round(samples * test_size)
+
+    return train_samples, val_samples, test_samples
