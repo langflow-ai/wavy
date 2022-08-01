@@ -590,50 +590,67 @@ class Panel(pd.DataFrame):
             ``Panel``: Result of sample function.
         """
 
-        # TODO fix if no set train split
-        # TODO add seed
+        train_size = self.train_size if hasattr(self, "train_size") else self.num_frames
+        val_size = self.val_size if hasattr(self, "val_size") else 0
+        test_size = self.test_size if hasattr(self, "test_size") else 0
 
         train_samples, val_samples, test_samples = _validate_sample_panel(
             samples=samples,
-            train_size=self.train_size,
-            val_size=self.val_size,
-            test_size=self.test_size,
+            train_size=train_size,
+            val_size=val_size,
+            test_size=test_size,
         )
 
-        # Set seed
-        np.random.seed(seed)
-
         if how == "random":
-            train_ids = sorted(
-                np.random.choice(self.train.ids, train_samples, replace=False)
-            )
-            val_ids = sorted(np.random.choice(self.val.ids, val_samples, replace=False))
-            test_ids = sorted(
-                np.random.choice(self.test.ids, test_samples, replace=False)
-            )
+            # Set seed
+            np.random.seed(seed)
+
+            if hasattr(self, "train_size"):
+                train_ids = sorted(
+                    np.random.choice(self.train.ids, train_samples, replace=False)
+                )
+                val_ids = sorted(
+                    np.random.choice(self.val.ids, val_samples, replace=False)
+                )
+                test_ids = sorted(
+                    np.random.choice(self.test.ids, test_samples, replace=False)
+                )
+            else:
+                train_ids = sorted(
+                    np.random.choice(self.ids, train_samples, replace=False)
+                )
+                val_ids = []
+                test_ids = []
 
         elif how == "spaced":
-            train_ids = np.linspace(
-                self.train.ids[0],
-                self.train.ids[-1],
-                train_samples,
-                dtype=int,
-                endpoint=True,
-            )
-            val_ids = np.linspace(
-                self.val.ids[0],
-                self.val.ids[-1],
-                val_samples,
-                dtype=int,
-                endpoint=True,
-            )
-            test_ids = np.linspace(
-                self.test.ids[0],
-                self.test.ids[-1],
-                test_samples,
-                dtype=int,
-                endpoint=True,
-            )
+            if hasattr(self, "train_size"):
+                train_ids = np.linspace(
+                    self.train.ids[0],
+                    self.train.ids[-1],
+                    train_samples,
+                    dtype=int,
+                    endpoint=True,
+                )
+                val_ids = np.linspace(
+                    self.val.ids[0],
+                    self.val.ids[-1],
+                    val_samples,
+                    dtype=int,
+                    endpoint=True,
+                )
+                test_ids = np.linspace(
+                    self.test.ids[0],
+                    self.test.ids[-1],
+                    test_samples,
+                    dtype=int,
+                    endpoint=True,
+                )
+            else:
+                train_ids = np.linspace(
+                    self.ids[0], self.ids[-1], train_samples, dtype=int, endpoint=True
+                )
+                val_ids = []
+                test_ids = []
 
         new_panel = self.loc[[*train_ids, *val_ids, *test_ids]]
 
@@ -641,9 +658,11 @@ class Panel(pd.DataFrame):
         if reset_ids:
             new_panel.reset_ids(inplace=True)
 
-        new_panel.train_size = train_samples
-        new_panel.val_size = val_samples
-        new_panel.test_size = test_samples
+        # Set new train, val, test sizes
+        if hasattr(self, "train_size"):
+            new_panel.train_size = train_samples
+            new_panel.val_size = val_samples
+            new_panel.test_size = test_samples
 
         # TODO inplace not working
         if inplace:
@@ -668,11 +687,15 @@ class Panel(pd.DataFrame):
         """
 
         # warnings.warn("Shuffling the panel can result in data leakage.")
-        # TODO fix if no set train split
 
-        train_ids = list(self.train.ids)
-        val_ids = list(self.val.ids)
-        test_ids = list(self.test.ids)
+        if hasattr(self, "train_size"):
+            train_ids = list(self.train.ids)
+            val_ids = list(self.val.ids)
+            test_ids = list(self.test.ids)
+        else:
+            train_ids = list(self.ids)
+            val_ids = []
+            test_ids = []
 
         random.seed(seed)
         random.shuffle(train_ids)
