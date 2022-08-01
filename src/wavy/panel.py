@@ -573,7 +573,6 @@ class Panel(pd.DataFrame):
         samples: Union[int, float] = 5,
         how: str = "spaced",
         reset_ids: bool = False,
-        inplace: bool = False,
         seed: int = 42,
     ) -> Optional[Panel]:
         """
@@ -583,7 +582,6 @@ class Panel(pd.DataFrame):
             samples (int or float): Number or percentage of samples to return.
             how (str): Sampling method, 'spaced' or 'random'
             reset_ids (bool): If True, reset the index of the sampled panel.
-            inplace (bool): If True, perform operation in-place.
             seed (int): Random seed.
 
         Returns:
@@ -664,15 +662,15 @@ class Panel(pd.DataFrame):
             new_panel.val_size = val_samples
             new_panel.test_size = test_samples
 
-        # TODO inplace not working
-        if inplace:
-            self = new_panel
-            return None
+        # # TODO inplace not working
+        # if inplace:
+        #     self = new_panel
+        #     return None
 
         return new_panel
 
     def shuffle_panel(
-        self, seed: int = None, reset_ids: bool = False, inplace: bool = False
+        self, seed: int = None, reset_ids: bool = False
     ) -> Optional[Panel]:
         """
         Shuffle the panel.
@@ -680,7 +678,6 @@ class Panel(pd.DataFrame):
         Args:
             seed (int): Random seed.
             reset_ids (bool): If True, reset the index of the shuffled panel.
-            inplace (bool): If True, perform operation in-place.
 
         Returns:
             ``Panel``: Result of shuffle function.
@@ -708,10 +705,10 @@ class Panel(pd.DataFrame):
         if reset_ids:
             new_panel.reset_ids(inplace=True)
 
-        # TODO inplace not working
-        if inplace:
-            self = new_panel
-            return None
+        # # TODO inplace not working
+        # if inplace:
+        #     self = new_panel
+        #     return None
 
         return new_panel
 

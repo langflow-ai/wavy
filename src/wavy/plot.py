@@ -28,7 +28,7 @@ class PanelFigure(Figure):
 
         ymax = panel.max().max() if panel.train_size else 0
 
-        if panel.train_size:
+        if hasattr(panel, "train_size"):
             xtrain_min = panel.train.index.min()
             self.fig.add_vline(
                 x=xtrain_min, line_dash="dot", line_color=color, opacity=opacity
@@ -37,7 +37,7 @@ class PanelFigure(Figure):
                 x=xtrain_min, y=ymax, text="Train", showarrow=False, xshift=20
             )
 
-        if panel.val_size:
+        if hasattr(panel, "val_size"):
             xval_min = panel.val.index.min()
             self.fig.add_vline(
                 x=xval_min, line_dash="dot", line_color=color, opacity=opacity
@@ -46,7 +46,7 @@ class PanelFigure(Figure):
                 x=xval_min, y=ymax, text="Validation", showarrow=False, xshift=35
             )
 
-        if panel.test_size:
+        if hasattr(panel, "test_size"):
             xtest_min = panel.test.index.min()
             self.fig.add_vline(
                 x=xtest_min, line_dash="dot", line_color=color, opacity=opacity
