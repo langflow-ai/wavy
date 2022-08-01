@@ -574,6 +574,7 @@ class Panel(pd.DataFrame):
         how: str = "spaced",
         reset_ids: bool = False,
         inplace: bool = False,
+        seed: int = 42,
     ) -> Optional[Panel]:
         """
         Sample panel returning a subset of frames.
@@ -582,12 +583,15 @@ class Panel(pd.DataFrame):
             samples (int or float): Number or percentage of samples to return.
             how (str): Sampling method, 'spaced' or 'random'
             reset_ids (bool): If True, reset the index of the sampled panel.
+            inplace (bool): If True, perform operation in-place.
+            seed (int): Random seed.
 
         Returns:
             ``Panel``: Result of sample function.
         """
 
         # TODO fix if no set train split
+        # TODO add seed
 
         train_samples, val_samples, test_samples = _validate_sample_panel(
             samples=samples,
@@ -595,6 +599,9 @@ class Panel(pd.DataFrame):
             val_size=self.val_size,
             test_size=self.test_size,
         )
+
+        # Set seed
+        np.random.seed(seed)
 
         if how == "random":
             train_ids = sorted(
@@ -697,6 +704,8 @@ class Panel(pd.DataFrame):
 
         Args:
             add_annotation (bool): If True, plot the training, validation, and test annotation.
+            max (int): Maximum number of samples to plot.
+            use_timestep (bool): If True, plot the timestep instead of the sample index.
             **kwargs: Additional arguments to pass to the plot function.
 
         Returns:
