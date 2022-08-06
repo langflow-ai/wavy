@@ -113,6 +113,27 @@ def reset_ids(panels: list[Panel], inplace: bool = False) -> list[Panel]:
     return [panel.reset_ids(inplace=inplace) for panel in panels]
 
 
+def dropna_match(x, y):
+    """
+    Drop frames with NaN in both x and y and match ids.
+
+    Args:
+        x (Panel): Panel with x data
+        y (Panel): Panel with y data
+
+    Returns:
+        ``Panel``: Panel with dropped frames and matched ids
+    """
+
+    x_t = x.dropnna_frames()
+    y_t = y.match_frames(x_t)
+
+    y_t = y_t.dropna_frames()
+    x_t = x_t.match_frames(y_t)
+
+    return x_t, y_t
+
+
 def concat_panels(
     panels: list[Panel], reset_ids: bool = False, sort: bool = False
 ) -> Panel:
@@ -199,7 +220,7 @@ class Panel(pd.DataFrame):
             ) > len(self.index.levels):
                 df = df.droplevel(0, axis="index")
 
-            if len(df) == len(self):
+            if df.num_frames == self.num_frames:
                 self._copy_attrs(df)
 
             return df
@@ -315,13 +336,25 @@ class Panel(pd.DataFrame):
         """
         return np.reshape(self.to_numpy(), self.shape_panel)
 
-    @property
-    def flatten_panel(self) -> np.ndarray:
+    def flatten_panel(self) -> pd.DataFrame:
         """
         Flatten the panel.
         """
-        return self.values_panel.reshape(
-            self.shape_panel[0], self.shape_panel[1] * self.shape_panel[2]
+        # return self.values_panel.reshape(
+        #     self.shape_panel[0], self.shape_panel[1] * self.shape_panel[2]
+        # )
+        new_timesteps = np.resize(
+            np.arange(self.num_timesteps), self.num_timesteps * self.num_frames
+        )
+        new_index = pd.MultiIndex.from_arrays(
+            [self.index.get_level_values(0), new_timesteps],
+            names=self.index.names,
+        )
+
+        return (
+            self.set_index(new_index)
+            .reset_index()
+            .pivot(index="id", columns=self.index.names[1])
         )
 
     def drop_ids(self, ids: Union[list, int], inplace: bool = False) -> Optional[Panel]:
@@ -335,6 +368,10 @@ class Panel(pd.DataFrame):
         Returns:
             ``Panel``: Panel with frames dropped.
         """
+
+        if self.index.nlevels == 1:
+            return self.drop(index=ids, axis=0, inplace=inplace)
+
         return self.drop(index=ids, level=0, inplace=inplace)
 
     def dropna_frames(self, inplace: bool = False) -> Optional[Panel]:
@@ -526,18 +563,6 @@ class Panel(pd.DataFrame):
             ``Panel``: Result of tail function.
         """
         return self[-n * self.shape_panel[1] :]
-
-    # def shift_panel(self, n: int = 1):
-    #     """
-    #     Shift the panel by n timesteps.
-
-    #     Args:
-    #         n (int): Number of timesteps to shift.
-
-    #     Returns:
-    #         ``Panel``: Result of shift function.
-    #     """
-    #     return self.shift(periods=n * self.num_timesteps)
 
     def sort_panel(
         self,

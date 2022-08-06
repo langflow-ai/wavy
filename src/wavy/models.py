@@ -29,8 +29,8 @@ class _BaseModel:
 
     def __init__(
         self,
-        x,
-        y,
+        x: Panel,
+        y: Panel,
         model_type: str = None,
         loss: str = None,
         optimizer: str = None,
@@ -500,13 +500,13 @@ class ShallowModel:
         Sets arrays for training, testing, and validation.
         """
 
-        self.x_train = self.x.train.flatten_panel
+        self.x_train = self.x.train.flatten_panel().values
         self.y_train = self.y.train.values
 
-        self.x_val = self.x.val.flatten_panel
+        self.x_val = self.x.val.flatten_panel().values
         self.y_val = self.y.val.values
 
-        self.x_test = self.x.test.flatten_panel
+        self.x_test = self.x.test.flatten_panel().values
         self.y_test = self.y.test.values
 
     def fit(self, **kwargs):
@@ -539,7 +539,7 @@ class ShallowModel:
         """
 
         if data is not None:
-            x = data.flatten_panel
+            x = data.flatten_panel().values
             index = pd.MultiIndex.from_arrays([data.ids, data.first_timestamp])
         else:
             x = np.concatenate([self.x_train, self.x_val, self.x_test], axis=0)
@@ -583,7 +583,7 @@ class ShallowModel:
 
         else:
             if data is not None:
-                x = data.flatten_panel
+                x = data.flatten_panel().values
                 index = pd.MultiIndex.from_arrays([data.ids, data.first_timestamp])
             else:
                 x = np.concatenate([self.x_train, self.x_val, self.x_test], axis=0)
