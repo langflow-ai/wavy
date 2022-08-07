@@ -399,7 +399,12 @@ class Panel(pd.DataFrame):
         Returns:
             ``List``: List with index of NaN frames.
         """
-        return self[self.isna().any(axis=1)].index.get_level_values(0).drop_duplicates()
+        na = self.isna().any(axis=1)
+        return (
+            self[na].index.get_level_values(0).drop_duplicates()
+            if na.any()
+            else pd.Int64Index([], name="id")
+        )
 
     def match_frames(self, other: Panel, inplace: bool = False) -> Optional[Panel]:
         """
@@ -479,6 +484,16 @@ class Panel(pd.DataFrame):
         if not self.train_size:
             raise ValueError("No training set was set.")
         self[: self.train_size * self.num_timesteps] = value.values
+
+    def as_dataframe(self) -> pd.DataFrame:
+        """
+        Convert the panel to a dataframe.
+
+        Returns:
+            ``pd.DataFrame``: Dataframe with the panel data.
+        """
+
+        return self.droplevel(0, axis=0).drop_duplicates()
 
     @property
     def val(self) -> Panel:

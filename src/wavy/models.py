@@ -268,9 +268,21 @@ class BaselineShift(_Baseline):
 
     def set_arrays(self):
         """Set the arrays."""
-        self.x_train = self.y.train.shift_panel(self.shift).fillna(self.fillna).values
-        self.x_val = self.y.val.shift_panel(self.shift).fillna(self.fillna).values
-        self.x_test = self.y.test.shift_panel(self.shift).fillna(self.fillna).values
+        self.x_train = (
+            self.y.train.shift(self.shift * self.x.num_timesteps)
+            .fillna(self.fillna)
+            .values
+        )
+        self.x_val = (
+            self.y.val.shift(self.shift * self.x.num_timesteps)
+            .fillna(self.fillna)
+            .values
+        )
+        self.x_test = (
+            self.y.test.shift(self.shift * self.x.num_timesteps)
+            .fillna(self.fillna)
+            .values
+        )
 
         self.y_train = self.y.train.values
         self.y_val = self.y.val.values
