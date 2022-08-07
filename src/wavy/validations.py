@@ -1,12 +1,23 @@
-from math import ceil, floor
+from typing import Tuple
 
 import numpy as np
 
 
-def _validate_training_split(n_samples, train_size, val_size, test_size):
+def _validate_training_split(
+    n_samples: int, train_size: int, val_size: int, test_size: int
+) -> Tuple[int, int, int]:
     """
     Validation helper to check if the test/test sizes are meaningful wrt to the
     size of the data (n_samples)
+
+    Args:
+        n_samples (int): Number of samples in the data
+        train_size (int): Size of the training set
+        val_size (int): Size of the validation set
+        test_size (int): Size of the test set
+
+    Returns:
+        Tuple[int, int, int]: Tuple of the training, validation, and test sizes
     """
 
     if sum(x is None for x in (train_size, val_size, test_size)) > 1:
@@ -113,10 +124,20 @@ def _validate_training_split(n_samples, train_size, val_size, test_size):
     return int(n_train), int(n_val), int(n_test)
 
 
-def _validate_sample_panel(samples, train_size, val_size, test_size):
+def _validate_sample_panel(
+    samples: int, train_size: int, val_size: int, test_size: int
+) -> Tuple[int, int, int]:
     """
     Validation helper to check if the samples size is meaningful wrt to the
     size of the data (n_samples)
+
+    Args:
+        samples (int): Number of samples in the data
+        train_size (int): Size of the training set
+        val_size (int): Size of the validation set
+
+    Returns:
+        Tuple[int, int, int]: Tuple of the training, validation, and test sizes
     """
 
     n_samples = train_size + val_size + test_size
@@ -139,7 +160,7 @@ def _validate_sample_panel(samples, train_size, val_size, test_size):
         raise ValueError(f"Invalid value for samples: {samples}")
 
     if samples_type == "i":
-        samples = samples / n_samples
+        samples /= n_samples
 
     train_samples = round(samples * train_size)
     val_samples = round(samples * val_size)

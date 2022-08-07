@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import plotly.express as px
 from plotlab import Figure
 
@@ -28,7 +30,7 @@ class PanelFigure(Figure):
 
         ymax = panel.max().max() if panel.train_size else 0
 
-        if hasattr(panel, "train_size"):
+        if hasattr(panel, "train_size") and panel.train_size:
             xtrain_min = panel.train.index.min()
             self.fig.add_vline(
                 x=xtrain_min, line_dash="dot", line_color=color, opacity=opacity
@@ -37,7 +39,7 @@ class PanelFigure(Figure):
                 x=xtrain_min, y=ymax, text="Train", showarrow=False, xshift=20
             )
 
-        if hasattr(panel, "val_size"):
+        if hasattr(panel, "val_size") and panel.val_size:
             xval_min = panel.val.index.min()
             self.fig.add_vline(
                 x=xval_min, line_dash="dot", line_color=color, opacity=opacity
@@ -46,7 +48,7 @@ class PanelFigure(Figure):
                 x=xval_min, y=ymax, text="Validation", showarrow=False, xshift=35
             )
 
-        if hasattr(panel, "test_size"):
+        if hasattr(panel, "test_size") and panel.test_size:
             xtest_min = panel.test.index.min()
             self.fig.add_vline(
                 x=xtest_min, line_dash="dot", line_color=color, opacity=opacity
@@ -71,7 +73,7 @@ class PanelFigure(Figure):
         return inner
 
     @iterator
-    def add_line(self, col, *args, **kwargs):
+    def add_line(self, col: str, *args, **kwargs):
         """
         Add a line to the figure.
 
@@ -81,7 +83,7 @@ class PanelFigure(Figure):
         self.line(col, *args, **kwargs)
 
     @iterator
-    def add_area(self, col, *args, **kwargs):
+    def add_area(self, col: str, *args, **kwargs):
         """
         Add an area to the figure.
 
@@ -91,7 +93,7 @@ class PanelFigure(Figure):
         self.area(col, *args, **kwargs)
 
     @iterator
-    def add_bar(self, col, *args, **kwargs):
+    def add_bar(self, col: str, *args, **kwargs):
         """
         Add a bar to the figure.
 
@@ -101,7 +103,7 @@ class PanelFigure(Figure):
         self.bar(col, *args, **kwargs)
 
     @iterator
-    def add_scatter(self, col, *args, **kwargs):
+    def add_scatter(self, col: str, *args, **kwargs):
         """
         Add a scatter to the figure.
 
@@ -111,19 +113,19 @@ class PanelFigure(Figure):
         self.scatter(col, *args, **kwargs)
 
     @iterator
-    def add_dotline(self, col, *args, **kwargs):  # color="gray", opacity=0.5):
+    def add_dotline(self, col: str, *args, **kwargs):
         """
         Add a dotline to the figure.
 
         Args:
             col (str): Column to plot
         """
-        # BUG: Dots and lines look displaced if zoomed in
-        self.dotline(col, *args, **kwargs)  # color=color, opacity=opacity)
+        self.dotline(col, *args, **kwargs)
 
 
-def plot(panel, use_timestep=False, add_annotation=False, **kwargs):
-    # TODO: Add "kind" parameter to chose between plot types
+def plot(
+    panel, use_timestep: bool = False, add_annotation: bool = False, **kwargs
+) -> PanelFigure:
     """
     Plot a panel.
 
@@ -136,8 +138,6 @@ def plot(panel, use_timestep=False, add_annotation=False, **kwargs):
         ``Plot``: Plotted data
     """
     fig = PanelFigure()
-
-    panel = panel.row_panel(n=0)
 
     for col in panel.columns:
         if panel[col].dtype == bool:
@@ -154,82 +154,3 @@ def plot(panel, use_timestep=False, add_annotation=False, **kwargs):
         fig.add_annotation(panel)
 
     return fig()
-
-
-# def plot_dataframes(dfs, **kwargs):
-#     """
-#     Plot dataframes.
-
-#     Args:
-#         dfs (list): List of dataframes
-
-#     Returns:
-#         ``Plot``: Plotted data
-#     """
-
-#     return pd.concat(dfs, axis=1).plot(**kwargs)
-
-
-# def add_threshline(
-#     # self,
-#     panel,
-#     up_thresh,
-#     down_thresh,
-#     up_color="green",
-#     down_color="red",
-#     col=None,
-# ):
-#     """
-#     Add a threshold line to the figure.
-
-#     Args:
-#         panel (wavy.Panel): Panel to plot
-#         up_thresh (float): Upper threshold
-#         down_thresh (float): Lower threshold
-#         up_color (str): Color of the upper threshold
-#         down_color (str): Color of the lower threshold
-#         col (str): Column to plot
-#     """
-
-#     def _colcheck(panel, col):
-#         if col is None:
-#             if panel.columns.size == 1:
-#                 return panel.columns[0]
-#             else:
-#                 raise ValueError("Must specify column to plot")
-
-#     col = _colcheck(panel, col)
-
-#     fig = PanelFigure()
-
-#     fig.threshline(
-#         panel.as_dataframe()[col], up_thresh, down_thresh, up_color, down_color
-#     )
-
-#     return fig
-
-
-# def plot_frame(x, y, index=None):
-#     """
-#     Plot a dataframe.
-
-#     Args:
-
-#     """
-
-#     # TODO: Code below is confusing
-#     # TODO: split into two functions?
-#     # if not(is_panel(x) and is_panel(y) and index is not None) or (is_dataframe(x) and is_dataframe(y)):
-#     #     raise Exception("x and y should be either Panel or DataFrame")
-
-#     # if is_panel(x):
-#     #     x = x[index]
-#     #     y = y[index]
-
-#     fig = PanelFigure()
-#     fig.add_line(x)
-#     fig.add_scatter(x)
-#     fig.add_line(y)
-#     fig.add_scatter(y)
-
-#     return fig()

@@ -4,7 +4,6 @@ import contextlib
 import random
 import warnings
 from itertools import chain
-from subprocess import call
 from typing import Optional, Tuple, Union
 
 import numpy as np
@@ -22,7 +21,16 @@ def create_panels(
     df: pd.DataFrame, lookback: int, horizon: int, gap: int = 0
 ) -> Tuple[Panel, Panel]:
     """
-    Creates a list of panels from a dataframe.
+    Create panels from a dataframe.
+
+    Args:
+        df (pd.DataFrame): Dataframe
+        lookback (int): Lookback size
+        horizon (int): Horizon size
+        gap (int): Gap size
+
+    Returns:
+        ``Tuple``: Tuple of panels
     """
 
     indices = df.index
@@ -340,9 +348,7 @@ class Panel(pd.DataFrame):
         """
         Flatten the panel.
         """
-        # return self.values_panel.reshape(
-        #     self.shape_panel[0], self.shape_panel[1] * self.shape_panel[2]
-        # )
+
         new_timesteps = np.resize(
             np.arange(self.num_timesteps), self.num_timesteps * self.num_frames
         )
@@ -743,7 +749,7 @@ class Panel(pd.DataFrame):
         max: int = 10_000,
         use_timestep: bool = False,
         **kwargs,
-    ) -> figure.Figure:
+    ) -> plot.PanelFigure:
         """
         Plot the panel.
 
@@ -757,13 +763,15 @@ class Panel(pd.DataFrame):
             ``plot``: Result of plot function.
         """
 
+        panel = self.row_panel(n=0)
+
         if max and self.num_frames > max:
             return plot(
-                self.sample_panel(max, how="spaced"),
+                panel.sample_panel(max, how="spaced"),
                 use_timestep=use_timestep,
                 add_annotation=add_annotation,
                 **kwargs,
             )
         return plot(
-            self, use_timestep=use_timestep, add_annotation=add_annotation, **kwargs
+            panel, use_timestep=use_timestep, add_annotation=add_annotation, **kwargs
         )
