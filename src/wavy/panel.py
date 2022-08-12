@@ -134,7 +134,7 @@ def dropna_match(x, y):
         ``Panel``: Panel with dropped frames and matched ids
     """
 
-    x_t = x.dropnna_frames()
+    x_t = x.dropna_frames()
     y_t = y.match_frames(x_t)
 
     y_t = y_t.dropna_frames()
@@ -168,7 +168,7 @@ def concat_panels(
     panel = Panel(pd.concat(panels, axis=0))
 
     if sort:
-        panel = panel.sort_ids()
+        panel = panel.sort_panel()
 
     if reset_ids:
         panel.reset_ids(inplace=True)
