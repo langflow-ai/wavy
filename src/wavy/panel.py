@@ -310,7 +310,7 @@ class Panel(pd.DataFrame):
 
         if all(n < -1 or n >= self.num_timesteps for n in n):
             raise ValueError("n must be -1 or between 0 and the number of timesteps")
-            
+
         new_panel = self.groupby(level=0, as_index=False).nth(n)
         self._copy_attrs(new_panel)
         return new_panel
@@ -389,18 +389,6 @@ class Panel(pd.DataFrame):
 
         return self.drop(index=ids, level=0, inplace=inplace)
 
-    def dropna_frames(self, inplace: bool = False) -> Optional[Panel]:
-        """
-        Drop frames with missing values from the panel.
-
-        Args:
-            inplace (bool): Whether to drop frames inplace.
-
-        Returns:
-            ``Panel``: Panel with frames dropped.
-        """
-        return self.drop_ids(self.findna_frames(), inplace=inplace)
-
     def findna_frames(self) -> pd.Int64Index:
         """
         Find NaN values index.
@@ -414,6 +402,18 @@ class Panel(pd.DataFrame):
             if na.any()
             else pd.Int64Index([], name="id")
         )
+
+    def dropna_frames(self, inplace: bool = False) -> Optional[Panel]:
+        """
+        Drop frames with missing values from the panel.
+
+        Args:
+            inplace (bool): Whether to drop frames inplace.
+
+        Returns:
+            ``Panel``: Panel with frames dropped.
+        """
+        return self.drop_ids(self.findna_frames(), inplace=inplace)
 
     def match_frames(self, other: Panel, inplace: bool = False) -> Optional[Panel]:
         """
@@ -469,6 +469,16 @@ class Panel(pd.DataFrame):
         self.val_size = n_val
         self.test_size = n_test
 
+    def as_dataframe(self) -> pd.DataFrame:
+        """
+        Convert the panel to a dataframe.
+
+        Returns:
+            ``pd.DataFrame``: Dataframe with the panel data.
+        """
+
+        return pd.DataFrame(self.droplevel(0, axis=0).drop_duplicates())
+
     @property
     def train(self) -> Panel:
         """
@@ -493,16 +503,6 @@ class Panel(pd.DataFrame):
         if not self.train_size:
             raise ValueError("No training set was set.")
         self[: self.train_size * self.num_timesteps] = value.values
-
-    def as_dataframe(self) -> pd.DataFrame:
-        """
-        Convert the panel to a dataframe.
-
-        Returns:
-            ``pd.DataFrame``: Dataframe with the panel data.
-        """
-
-        return pd.DataFrame(self.droplevel(0, axis=0).drop_duplicates())
 
     @property
     def val(self) -> Panel:
