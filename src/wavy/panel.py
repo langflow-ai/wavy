@@ -133,7 +133,7 @@ def dropna_match(x, y):
         ``Panel``: Panel with dropped frames and matched ids
     """
 
-    x_t = x.dropnna_frames()
+    x_t = x.dropna_frames()
     y_t = y.match_frames(x_t)
 
     y_t = y_t.dropna_frames()
@@ -167,7 +167,7 @@ def concat_panels(
     panel = Panel(pd.concat(panels, axis=0))
 
     if sort:
-        panel = panel.sort_ids()
+        panel = panel.sort_panel()
 
     if reset_ids:
         panel.reset_ids(inplace=True)
@@ -271,7 +271,7 @@ class Panel(pd.DataFrame):
             ids (list): List of ids.
         """
 
-        ids = np.repeat(np.arange(len(self)), self.shape_panel[1])
+        ids = np.repeat(ids, self.shape_panel[1])
         timestep = self.index.get_level_values(1)
 
         index = pd.MultiIndex.from_arrays([ids, timestep], names=["id", timestep.name])
