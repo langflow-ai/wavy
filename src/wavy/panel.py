@@ -200,6 +200,19 @@ def set_training_split(
     y.set_training_split(train_size=train_size, val_size=val_size, test_size=test_size)
 
 
+class _PanelSeries(pd.Series):
+    def __init__(self, df, *args, **kwargs):
+        super().__init__(df, *args, **kwargs)
+
+    @property
+    def _constructor_expanddim(self):
+        return Panel
+
+    @property
+    def _constructor(self):
+        return _PanelSeries
+
+
 class Panel(pd.DataFrame):
     def __init__(self, *args, **kw):
         super(Panel, self).__init__(*args, **kw)
@@ -216,10 +229,10 @@ class Panel(pd.DataFrame):
     def _constructor(self):
         def f(*args, **kw):
 
-            with contextlib.suppress(Exception):
-                index = [a for a in args[0].axes if isinstance(a, pd.MultiIndex)]
-                if index and len(index[0]) == self.num_timesteps:
-                    return pd.DataFrame(*args, **kw)
+            # with contextlib.suppress(Exception):
+            #     index = [a for a in args[0].axes if isinstance(a, pd.MultiIndex)]
+            #     if index and len(index[0]) == self.num_timesteps:
+            #         return pd.DataFrame(*args, **kw)
 
             df = Panel(*args, **kw)
 
@@ -235,6 +248,40 @@ class Panel(pd.DataFrame):
             return df
 
         return f
+
+    @property
+    def _constructor_sliced(self):
+        return _PanelSeries
+
+    # @property
+    # def _constructor_sliced(self):
+    #     def f(*args, **kw):
+
+    #         with contextlib.suppress(Exception):
+    #             index = [a for a in args[0].axes if isinstance(a, pd.MultiIndex)]
+    #             if index and len(index[0]) == self.num_timesteps:
+    #                 return pd.DataFrame(*args, **kw)
+
+    #         df = Panel(*args, **kw)
+
+    #         # Workaround to fix pandas bug
+    #         if (df.index.nlevels > 1 and self.index.nlevels > 1) and len(
+    #             df.index.levels
+    #         ) > len(self.index.levels):
+    #             df = df.droplevel(0, axis="index")
+
+    #         if df.num_frames == self.num_frames:
+    #             self._copy_attrs(df)
+
+    #         return df
+
+    #     return f
+
+    # def __getattribute__(self, name):
+    #     panel = super(Panel, self).__getattribute__(name)
+    #     if isinstance(panel, pd.DataFrame):
+    #         return Panel(panel)
+    #     return panel
 
     @property
     def num_frames(self) -> int:
@@ -255,6 +302,13 @@ class Panel(pd.DataFrame):
     def frames(self) -> DataFrameGroupBy:
         """Returns the frames in the panel."""
         return self.groupby(level=0, as_index=True)
+
+    @property
+    def timesteps(self) -> pd.Int64Index:
+        """
+        Returns the ids of the panel.
+        """
+        return self.index.get_level_values(1)
 
     @property
     def ids(self) -> pd.Int64Index:
@@ -469,15 +523,14 @@ class Panel(pd.DataFrame):
         self.val_size = n_val
         self.test_size = n_test
 
-    def as_dataframe(self) -> pd.DataFrame:
+    def to_dataframe(self) -> pd.DataFrame:
         """
-        Convert the panel to a dataframe.
+        Convert panel to dataframe.
 
         Returns:
-            ``pd.DataFrame``: Dataframe with the panel data.
+            ``pd.DataFrame``: Dataframe with panel values.
         """
-
-        return pd.DataFrame(self.droplevel(0, axis=0).drop_duplicates())
+        return pd.DataFrame(self)
 
     @property
     def train(self) -> Panel:
