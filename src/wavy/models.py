@@ -11,8 +11,6 @@ from tensorflow.keras.layers import Conv1D, Dense, Flatten, Reshape
 
 from .panel import Panel
 
-# ? Maybe we get rid of model_type and add e.g. DenseRegressor / DenseClassifier.
-
 
 class _ConstantKerasModel(tf.keras.Model):
     """A Keras model that returns the input values as outputs."""
@@ -73,6 +71,13 @@ class _BaseModel:
             if y[col].dtype == bool:
                 y[col] = y[col].astype(int)
 
+        if not model_type and y.unique().shape[0] == 2:
+            model_type = "classification"
+        elif not model_type and y.unique().shape[0] < 20:
+            model_type = "multi_classification"
+        elif not model_type:
+            model_type = "regression"
+
         # Raise error if column is not numeric
         for sample in [x, y]:
             for col in sample.columns:
@@ -112,7 +117,8 @@ class _BaseModel:
         return auc(fpr, tpr)
 
     def fit(self, **kwargs):
-        """Fit the model.
+        """
+        Fit the model.
 
         Args:
             **kwargs: Additional arguments to pass to the fit method.
@@ -235,7 +241,7 @@ class _Baseline(_BaseModel):
         self,
         x,
         y,
-        model_type: str,
+        model_type: str = None,
         loss: str = None,
         metrics: List[str] = None,
     ):
@@ -255,7 +261,7 @@ class BaselineShift(_Baseline):
         self,
         x,
         y,
-        model_type: str,
+        model_type: str = None,
         loss: str = None,
         metrics: List[str] = None,
         fillna=0,
@@ -299,7 +305,7 @@ class BaselineConstant(_Baseline):
         self,
         x,
         y,
-        model_type: str,
+        model_type: str = None,
         loss: str = None,
         metrics: List[str] = None,
         constant: float = 0,
@@ -324,7 +330,7 @@ class DenseModel(_BaseModel):
         self,
         x,
         y,
-        model_type: str,
+        model_type: str = None,
         dense_layers: int = 1,
         dense_units: int = 32,
         activation: str = "relu",
@@ -370,6 +376,7 @@ class DenseModel(_BaseModel):
         dense = Dense(units=self.dense_units, activation=self.activation)
         layers = [Flatten()]  # (time, features) => (time*features)
         layers += [dense for _ in range(self.dense_layers)]
+        # layers += [drop]
         layers += [
             Dense(
                 units=self.y.num_timesteps * self.y.num_columns,
@@ -386,7 +393,7 @@ class ConvModel(_BaseModel):
         self,
         x,
         y,
-        model_type: str,
+        model_type: str = None,
         conv_layers: int = 1,
         conv_filters: int = 32,
         kernel_size: int = 3,

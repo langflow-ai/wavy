@@ -17,6 +17,7 @@ from wavy.plot import plot
 from wavy.validations import _validate_sample_panel, _validate_training_split
 
 
+# Define column to y
 def create_panels(
     df: pd.DataFrame, lookback: int, horizon: int, gap: int = 0
 ) -> Tuple[Panel, Panel]:
@@ -271,7 +272,7 @@ class Panel(pd.DataFrame):
             ids (list): List of ids.
         """
 
-        ids = np.repeat(np.arange(len(self)), self.shape_panel[1])
+        ids = np.repeat(ids, self.shape_panel[1])
         timestep = self.index.get_level_values(1)
 
         index = pd.MultiIndex.from_arrays([ids, timestep], names=["id", timestep.name])
@@ -300,14 +301,16 @@ class Panel(pd.DataFrame):
         """
         return (len(self.ids), int(self.shape[0] / len(self.ids)), self.shape[1])
 
-    def row_panel(self, n: int = 0) -> Panel:
+    def row_panel(self, n: Union[list, int] = 0) -> Panel:
         """
         Returns the nth row of each frame.
         """
+        if isinstance(n, int):
+            n = [n]
 
-        if n < -1 or n >= self.num_timesteps:
+        if all(n < -1 or n >= self.num_timesteps for n in n):
             raise ValueError("n must be -1 or between 0 and the number of timesteps")
-
+            
         new_panel = self.groupby(level=0, as_index=False).nth(n)
         self._copy_attrs(new_panel)
         return new_panel
@@ -357,11 +360,17 @@ class Panel(pd.DataFrame):
             names=self.index.names,
         )
 
-        return (
+        panel = (
             self.set_index(new_index)
             .reset_index()
             .pivot(index="id", columns=self.index.names[1])
         )
+
+        columns = [f"{col}-{index}" for col, index in panel.columns.to_flat_index()]
+
+        panel.columns = columns
+
+        return panel
 
     def drop_ids(self, ids: Union[list, int], inplace: bool = False) -> Optional[Panel]:
         """
@@ -493,7 +502,7 @@ class Panel(pd.DataFrame):
             ``pd.DataFrame``: Dataframe with the panel data.
         """
 
-        return self.droplevel(0, axis=0).drop_duplicates()
+        return pd.DataFrame(self.droplevel(0, axis=0).drop_duplicates())
 
     @property
     def val(self) -> Panel:
