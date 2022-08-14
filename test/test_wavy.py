@@ -191,10 +191,9 @@ def test_match_frames(panel):
 # TODO test set_training_split
 
 
-def test_as_dataframe(panel):
-    x, y = panel
-    assert x.as_dataframe().shape == (5, 2), "Dataframe x is not correct"
-    assert y.as_dataframe().shape == (3, 2), "Dataframe y is not correct"
+def test_to_dataframe(panel):
+    x, _ = panel
+    assert isinstance(x.to_dataframe(), pd.DataFrame), "Dataframe x is not correct"
 
 
 # TODO test train/val/test

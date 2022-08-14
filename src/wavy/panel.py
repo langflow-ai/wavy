@@ -206,6 +206,23 @@ class _PanelSeries(pd.Series):
 
     @property
     def _constructor_expanddim(self):
+        # def f(*args, **kw):
+
+        #     df = Panel(*args, **kw)
+
+        #     # Workaround to fix pandas bug
+        #     if (df.index.nlevels > 1 and self.index.nlevels > 1) and len(
+        #         df.index.levels
+        #     ) > len(self.index.levels):
+        #         df = df.droplevel(0, axis="index")
+
+        #     if df.num_frames == self.num_frames:
+        #         self._copy_attrs(df)
+
+        #     return df
+
+        # return f
+
         return Panel
 
     @property
@@ -245,6 +262,16 @@ class Panel(pd.DataFrame):
             if df.num_frames == self.num_frames:
                 self._copy_attrs(df)
 
+            try:
+                print(f"Self train size: {self.train_size}")
+            except Exception:
+                print("No self train_size")
+
+            try:
+                print(f"Self train size: {df.train_size}")
+            except Exception:
+                print("No df train_size")
+
             return df
 
         return f
@@ -252,36 +279,6 @@ class Panel(pd.DataFrame):
     @property
     def _constructor_sliced(self):
         return _PanelSeries
-
-    # @property
-    # def _constructor_sliced(self):
-    #     def f(*args, **kw):
-
-    #         with contextlib.suppress(Exception):
-    #             index = [a for a in args[0].axes if isinstance(a, pd.MultiIndex)]
-    #             if index and len(index[0]) == self.num_timesteps:
-    #                 return pd.DataFrame(*args, **kw)
-
-    #         df = Panel(*args, **kw)
-
-    #         # Workaround to fix pandas bug
-    #         if (df.index.nlevels > 1 and self.index.nlevels > 1) and len(
-    #             df.index.levels
-    #         ) > len(self.index.levels):
-    #             df = df.droplevel(0, axis="index")
-
-    #         if df.num_frames == self.num_frames:
-    #             self._copy_attrs(df)
-
-    #         return df
-
-    #     return f
-
-    # def __getattribute__(self, name):
-    #     panel = super(Panel, self).__getattribute__(name)
-    #     if isinstance(panel, pd.DataFrame):
-    #         return Panel(panel)
-    #     return panel
 
     @property
     def num_frames(self) -> int:
@@ -313,7 +310,7 @@ class Panel(pd.DataFrame):
     @property
     def ids(self) -> pd.Int64Index:
         """
-        Returns the ids of the panel.
+        Returns the ids of the panel without duplicates.
         """
         return self.index.get_level_values(0).drop_duplicates()
 
@@ -380,7 +377,7 @@ class Panel(pd.DataFrame):
         if isinstance(n, int):
             n = [n]
 
-        return self.frames.take(n).index.get_level_values(2)
+        return self.frames.take(n).index.get_level_values(1)
 
     @property
     def values_panel(self) -> np.ndarray:
