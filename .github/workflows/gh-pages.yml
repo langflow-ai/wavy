@@ -35,6 +35,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
+      - name: Install pandoc
+        run: apt-get install haskell-platform
+
       - name: Install dependencies
         run: |
           pip install poetry
