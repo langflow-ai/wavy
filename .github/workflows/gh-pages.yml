@@ -39,7 +39,7 @@ jobs:
         run: |
           pip install poetry
           poetry config virtualenvs.in-project true
-          poetry install --dev
+          poetry install
         # run: python3 -m pip install sphinx sphinx-rtd-theme sphinxcontrib-napoleon sphinx-automodapi toml numpy pandas
 
       - run: source .venv/bin/activate && cd docs && make doc
