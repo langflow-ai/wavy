@@ -17,6 +17,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -51,17 +52,9 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="manual/installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="manual/introduction.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="manual/quickstart.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="manual/basics.html">Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/quickstart2.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="manual/models.html">Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="manual/tutorials.html">Tutorials</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Library</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="api/panel.html">wavy.panel Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/models.html">wavy.models Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/plot.html">wavy.plot Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/utils.html">wavy.utils Module</a></li>
 </ul>
 
         </div>
@@ -88,7 +81,31 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="wavy">
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="wavy">
 <h1>Wavy<a class="headerlink" href="#wavy" title="Permalink to this heading"></a></h1>
 <a class="reference internal image-reference" href="_images/logo.png"><img alt="_images/logo.png" class="align-center" src="_images/logo.png" style="width: 628.5px; height: 352.5px;" /></a>
 <div class="toctree-wrapper compound">
@@ -96,20 +113,12 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="manual/installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="manual/introduction.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="manual/quickstart.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="manual/basics.html">Basics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/quickstart2.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="manual/models.html">Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="manual/tutorials.html">Tutorials</a></li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">Library</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="api/panel.html">wavy.panel Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/models.html">wavy.models Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/plot.html">wavy.plot Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/utils.html">wavy.utils Module</a></li>
-</ul>
 </div>
 </section>
 
