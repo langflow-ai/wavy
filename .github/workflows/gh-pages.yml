@@ -36,7 +36,7 @@ jobs:
             ${{ runner.os }}-pip-
 
       - name: Install pandoc
-        run: apt-get install haskell-platform
+        run: sudo apt-get install haskell-platform
 
       - name: Install dependencies
         run: |
