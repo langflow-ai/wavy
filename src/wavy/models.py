@@ -10,6 +10,7 @@ from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Conv1D, Dense, Flatten, Reshape
 
 from .panel import Panel
+from .panel import concat_panels
 
 
 class _ConstantKerasModel(tf.keras.Model):
@@ -155,23 +156,40 @@ class _BaseModel:
             Panel of predicted probabilities.
         """
 
-        if data is not None:
-            x = data.values_panel
-            index = pd.MultiIndex.from_arrays([data.ids, data.get_timesteps(0)])
-        else:
-            x = np.concatenate([self.x_train, self.x_val, self.x_test], axis=0)
-            index = pd.MultiIndex.from_tuples(
-                np.concatenate(
-                    [self.y.train.index, self.y.val.index, self.y.test.index]
-                ),
-                names=self.y.index.names,
-            )
-
-        return Panel(
-            self.model.predict(x),
+        train = Panel(
+            self.model.predict(self.x_train),
             columns=self.y.columns,
-            index=index,
+            index=self.y.train.index,
         )
+
+        val = Panel(
+            self.model.predict(self.x_val),
+            columns=self.y.columns,
+            index=self.y.val.index,
+        )
+
+        test = Panel(
+            self.model.predict(self.x_test),
+            columns=self.y.columns,
+            index=self.y.test.index,
+        )
+
+        panel = concat_panels([train, val, test])
+        self.x._copy_attrs(panel)
+
+        # if data is not None:
+        #     x = data.values_panel
+        #     index = pd.MultiIndex.from_arrays([data.ids, data.get_timesteps(0)])
+        # else:
+        #     x = np.concatenate([self.x_train, self.x_val, self.x_test], axis=0)
+        #     index = pd.MultiIndex.from_tuples(
+        #         np.concatenate(
+        #             [self.y.train.index, self.y.val.index, self.y.test.index]
+        #         ),
+        #         names=self.y.index.names,
+        #     )
+
+        return panel
 
     def predict(self, data: Panel = None, **kwargs):
         """Predict.

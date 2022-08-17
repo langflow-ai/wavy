@@ -262,16 +262,6 @@ class Panel(pd.DataFrame):
             if df.num_frames == self.num_frames:
                 self._copy_attrs(df)
 
-            try:
-                print(f"Self train size: {self.train_size}")
-            except Exception:
-                print("No self train_size")
-
-            try:
-                print(f"Self train size: {df.train_size}")
-            except Exception:
-                print("No df train_size")
-
             return df
 
         return f
