@@ -225,5 +225,8 @@ def test_sort_panel(panel):
 # TODO test sample_panel, set seed and check values
 # TODO test shuffle_panel
 
+
+# TODO test models in a new file
+
 if __name__ == "__main__":
     pytest.main()
