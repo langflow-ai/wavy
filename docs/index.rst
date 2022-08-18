@@ -18,7 +18,6 @@ Wavy
    manual/installation.rst
    manual/introduction.rst
    notebooks/quickstart2.ipynb
-   manual/models.rst
    manual/tutorials.rst
 
 .. toctree::
