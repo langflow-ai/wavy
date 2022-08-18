@@ -231,6 +231,10 @@ class _PanelSeries(pd.Series):
 
 
 class Panel(pd.DataFrame):
+    """
+    Panel data structure.
+    """
+
     def __init__(self, *args, **kw):
         super(Panel, self).__init__(*args, **kw)
         if len(args) == 1 and isinstance(args[0], Panel):
@@ -262,15 +266,17 @@ class Panel(pd.DataFrame):
             if df.num_frames == self.num_frames:
                 self._copy_attrs(df)
 
-            try:
-                print(f"Self train size: {self.train_size}")
-            except Exception:
-                print("No self train_size")
+            # try:
+            #     print(f"Self train size: {self.train_size}")
+            # except Exception:
+            #     print("No self train_size")
 
-            try:
-                print(f"Self train size: {df.train_size}")
-            except Exception:
-                print("No df train_size")
+            # try:
+            #     print(f"Self train size: {df.train_size}")
+            # except Exception:
+            #     print("No df train_size")
+
+            # df.style.set_properties(**{"background-color": "black", "color": "green"})
 
             return df
 
@@ -376,6 +382,9 @@ class Panel(pd.DataFrame):
 
         if isinstance(n, int):
             n = [n]
+
+        if self.index.nlevels == 1:
+            return self.frames.take(n).index.get_level_values(0)
 
         return self.frames.take(n).index.get_level_values(1)
 
@@ -517,8 +526,8 @@ class Panel(pd.DataFrame):
         )
 
         self.train_size = n_train
-        self.val_size = n_val
-        self.test_size = n_test
+        self.val_size = n_val - self.num_timesteps + 1
+        self.test_size = n_test - self.num_timesteps + 1
 
     def to_dataframe(self) -> pd.DataFrame:
         """
@@ -566,8 +575,10 @@ class Panel(pd.DataFrame):
 
         return (
             self[
-                self.train_size
-                * self.num_timesteps : (self.train_size + self.val_size)
+                (self.train_size + self.num_timesteps - 1)
+                * self.num_timesteps : (
+                    self.train_size + self.val_size + self.num_timesteps - 1
+                )
                 * self.num_timesteps
             ]
             if self.val_size
@@ -586,8 +597,10 @@ class Panel(pd.DataFrame):
         if not self.val_size:
             raise ValueError("No validation set was set.")
         self[
-            self.train_size
-            * self.num_timesteps : (self.train_size + self.val_size)
+            (self.train_size + self.num_timesteps - 1)
+            * self.num_timesteps : (
+                self.train_size + self.val_size + self.num_timesteps - 1
+            )
             * self.num_timesteps
         ] = value.values
 
@@ -601,11 +614,7 @@ class Panel(pd.DataFrame):
             ``Panel``: Panel with the testing set.
         """
 
-        return (
-            self[(self.train_size + self.val_size) * self.num_timesteps :]
-            if self.test_size
-            else None
-        )
+        return self[-self.test_size * self.num_timesteps :] if self.test_size else None
 
     @test.setter
     def test(self, value: np.ndarray) -> None:
@@ -618,7 +627,7 @@ class Panel(pd.DataFrame):
 
         if not self.test_size:
             raise ValueError("No testing set was set.")
-        self[(self.train_size + self.val_size) * self.num_timesteps :] = value.values
+        self[-self.test_size * self.num_timesteps :] = value.values
 
     def head_panel(self, n: int = 5) -> Panel:
         """

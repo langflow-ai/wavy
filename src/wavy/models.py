@@ -9,7 +9,7 @@ from sklearn.metrics import auc, roc_curve
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Conv1D, Dense, Flatten, Reshape
 
-from .panel import Panel
+from .panel import Panel, set_training_split
 
 
 class _ConstantKerasModel(tf.keras.Model):
@@ -77,6 +77,16 @@ class _BaseModel:
             model_type = "multi_classification"
         elif not model_type:
             model_type = "regression"
+
+        if (
+            not hasattr(x, "train_size")
+            or not x.train_size
+            or not hasattr(y, "train_size")
+            or not y.train_size
+        ):
+            warnings.warn("Running set_training_split with default parameters")
+
+            set_training_split(x, y)
 
         # Raise error if column is not numeric
         for sample in [x, y]:
@@ -157,15 +167,26 @@ class _BaseModel:
 
         if data is not None:
             x = data.values_panel
-            index = pd.MultiIndex.from_arrays([data.ids, data.get_timesteps(0)])
+            if data.index.nlevels == 1:
+                index = pd.Index(data.get_timesteps(0))
+            else:
+                index = pd.MultiIndex.from_arrays([data.ids, data.get_timesteps(0)])
         else:
             x = np.concatenate([self.x_train, self.x_val, self.x_test], axis=0)
-            index = pd.MultiIndex.from_tuples(
-                np.concatenate(
-                    [self.y.train.index, self.y.val.index, self.y.test.index]
-                ),
-                names=self.y.index.names,
-            )
+            if self.y.index.nlevels == 1:
+                index = pd.Index(
+                    np.concatenate(
+                        [self.y.train.index, self.y.val.index, self.y.test.index]
+                    ),
+                    name=self.y.index.name,
+                )
+            else:
+                index = pd.MultiIndex.from_tuples(
+                    np.concatenate(
+                        [self.y.train.index, self.y.val.index, self.y.test.index]
+                    ),
+                    names=self.y.index.names,
+                )
 
         return Panel(
             self.model.predict(x),
@@ -559,15 +580,26 @@ class ShallowModel:
 
         if data is not None:
             x = data.flatten_panel().values
-            index = pd.MultiIndex.from_arrays([data.ids, data.first_timestamp])
+            if data.index.nlevels == 1:
+                index = pd.Index(data.get_timesteps(0))
+            else:
+                index = pd.MultiIndex.from_arrays([data.ids, data.get_timesteps(0)])
         else:
             x = np.concatenate([self.x_train, self.x_val, self.x_test], axis=0)
-            index = pd.MultiIndex.from_tuples(
-                np.concatenate(
-                    [self.y.train.index, self.y.val.index, self.y.test.index]
-                ),
-                names=self.y.index.names,
-            )
+            if self.y.index.nlevels == 1:
+                index = pd.Index(
+                    np.concatenate(
+                        [self.y.train.index, self.y.val.index, self.y.test.index]
+                    ),
+                    name=self.y.index.name,
+                )
+            else:
+                index = pd.MultiIndex.from_tuples(
+                    np.concatenate(
+                        [self.y.train.index, self.y.val.index, self.y.test.index]
+                    ),
+                    names=self.y.index.names,
+                )
 
         output = self.model.predict_proba(x)
 
