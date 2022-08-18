@@ -1,0 +1,6 @@
+set_training_split
+==================
+
+.. currentmodule:: wavy.panel
+
+.. autofunction:: set_training_split

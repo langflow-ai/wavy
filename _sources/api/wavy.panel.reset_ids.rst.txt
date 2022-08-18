@@ -1,0 +1,6 @@
+reset_ids
+=========
+
+.. currentmodule:: wavy.panel
+
+.. autofunction:: reset_ids

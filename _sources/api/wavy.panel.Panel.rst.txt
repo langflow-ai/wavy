@@ -1,0 +1,77 @@
+Panel
+=====
+
+.. currentmodule:: wavy.panel
+
+.. autoclass:: Panel
+   :show-inheritance:
+
+   .. rubric:: Attributes Summary
+
+   .. autosummary::
+
+      ~Panel.frames
+      ~Panel.ids
+      ~Panel.num_columns
+      ~Panel.num_frames
+      ~Panel.num_timesteps
+      ~Panel.shape_panel
+      ~Panel.test
+      ~Panel.timesteps
+      ~Panel.train
+      ~Panel.val
+      ~Panel.values_panel
+
+   .. rubric:: Methods Summary
+
+   .. autosummary::
+
+      ~Panel.drop_ids
+      ~Panel.dropna_frames
+      ~Panel.findna_frames
+      ~Panel.flatten_panel
+      ~Panel.get_timesteps
+      ~Panel.head_panel
+      ~Panel.match_frames
+      ~Panel.plot
+      ~Panel.reset_ids
+      ~Panel.row_panel
+      ~Panel.sample_panel
+      ~Panel.set_training_split
+      ~Panel.shuffle_panel
+      ~Panel.sort_panel
+      ~Panel.tail_panel
+      ~Panel.to_dataframe
+
+   .. rubric:: Attributes Documentation
+
+   .. autoattribute:: frames
+   .. autoattribute:: ids
+   .. autoattribute:: num_columns
+   .. autoattribute:: num_frames
+   .. autoattribute:: num_timesteps
+   .. autoattribute:: shape_panel
+   .. autoattribute:: test
+   .. autoattribute:: timesteps
+   .. autoattribute:: train
+   .. autoattribute:: val
+   .. autoattribute:: values_panel
+
+   .. rubric:: Methods Documentation
+
+   .. automethod:: drop_ids
+   .. automethod:: dropna_frames
+   .. automethod:: findna_frames
+   .. automethod:: flatten_panel
+   .. automethod:: get_timesteps
+   .. automethod:: head_panel
+   .. automethod:: match_frames
+   .. automethod:: plot
+   .. automethod:: reset_ids
+   .. automethod:: row_panel
+   .. automethod:: sample_panel
+   .. automethod:: set_training_split
+   .. automethod:: shuffle_panel
+   .. automethod:: sort_panel
+   .. automethod:: tail_panel
+   .. automethod:: to_dataframe

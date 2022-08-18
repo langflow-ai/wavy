@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Models &mdash; Wavy 0.1.9 documentation</title>
+  <title>dropna_match &mdash; Wavy 0.1.9 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
@@ -21,6 +21,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="reset_ids" href="wavy.panel.reset_ids.html" />
+    <link rel="prev" title="create_panels" href="wavy.panel.create_panels.html" />
 <script type="text/javascript">
   window.onload = function() {
     document.body.innerHTML = document.body.innerHTML.replace(/ module/g, '');
@@ -49,17 +51,28 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Using Wavy</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks/quickstart2.html">Quickstart</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/tutorials.html">Tutorials</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../api/panel.html">wavy.panel Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../api/models.html">wavy.models Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../api/plot.html">wavy.plot Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">wavy.utils Module</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="panel.html">wavy.panel Module</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="panel.html#functions">Functions</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="wavy.panel.concat_panels.html">concat_panels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wavy.panel.create_panels.html">create_panels</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">dropna_match</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wavy.panel.reset_ids.html">reset_ids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wavy.panel.set_training_split.html">set_training_split</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="panel.html#classes">Classes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">wavy.models Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot.html">wavy.plot Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">wavy.utils Module</a></li>
 </ul>
 
         </div>
@@ -76,9 +89,10 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Models</li>
+          <li><a href="panel.html">wavy.panel Module</a> &raquo;</li>
+      <li>dropna_match</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/manual/models.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/api/wavy.panel.dropna_match.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -110,35 +124,37 @@
     text-align: unset;
 }
 </style>
-<section id="models">
-<h1>Models<a class="headerlink" href="#models" title="Permalink to this heading"></a></h1>
-<section id="baselineshift">
-<h2>BaselineShift<a class="headerlink" href="#baselineshift" title="Permalink to this heading"></a></h2>
-</section>
-<section id="baselineconstant">
-<h2>BaselineConstant<a class="headerlink" href="#baselineconstant" title="Permalink to this heading"></a></h2>
-</section>
-<section id="densemodel">
-<h2>DenseModel<a class="headerlink" href="#densemodel" title="Permalink to this heading"></a></h2>
-</section>
-<section id="convmodel">
-<h2>ConvModel<a class="headerlink" href="#convmodel" title="Permalink to this heading"></a></h2>
-</section>
-<section id="linearregression">
-<h2>LinearRegression<a class="headerlink" href="#linearregression" title="Permalink to this heading"></a></h2>
-</section>
-<section id="logisticregression">
-<h2>LogisticRegression<a class="headerlink" href="#logisticregression" title="Permalink to this heading"></a></h2>
-</section>
-<section id="shallowmodel">
-<h2>ShallowModel<a class="headerlink" href="#shallowmodel" title="Permalink to this heading"></a></h2>
-</section>
+<section id="dropna-match">
+<h1>dropna_match<a class="headerlink" href="#dropna-match" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="wavy.panel.dropna_match">
+<span class="sig-name descname"><span class="pre">dropna_match</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/panel.html#dropna_match"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.dropna_match" title="Permalink to this definition"></a></dt>
+<dd><p>Drop frames with NaN in both x and y and match ids.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<a class="reference internal" href="wavy.panel.Panel.html#wavy.panel.Panel" title="wavy.panel.Panel"><em>Panel</em></a>) – Panel with x data</p></li>
+<li><p><strong>y</strong> (<a class="reference internal" href="wavy.panel.Panel.html#wavy.panel.Panel" title="wavy.panel.Panel"><em>Panel</em></a>) – Panel with y data</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Panel with dropped frames and matched ids</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">Panel</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="wavy.panel.create_panels.html" class="btn btn-neutral float-left" title="create_panels" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="wavy.panel.reset_ids.html" class="btn btn-neutral float-right" title="reset_ids" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 

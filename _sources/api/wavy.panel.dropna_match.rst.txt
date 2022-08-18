@@ -1,0 +1,6 @@
+dropna_match
+============
+
+.. currentmodule:: wavy.panel
+
+.. autofunction:: dropna_match

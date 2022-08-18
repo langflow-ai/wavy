@@ -1,0 +1,6 @@
+concat_panels
+=============
+
+.. currentmodule:: wavy.panel
+
+.. autofunction:: concat_panels

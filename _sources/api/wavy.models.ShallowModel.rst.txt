@@ -1,0 +1,29 @@
+ShallowModel
+============
+
+.. currentmodule:: wavy.models
+
+.. autoclass:: ShallowModel
+   :show-inheritance:
+
+   .. rubric:: Methods Summary
+
+   .. autosummary::
+
+      ~ShallowModel.fit
+      ~ShallowModel.get_auc
+      ~ShallowModel.predict
+      ~ShallowModel.predict_proba
+      ~ShallowModel.residuals
+      ~ShallowModel.score
+      ~ShallowModel.set_arrays
+
+   .. rubric:: Methods Documentation
+
+   .. automethod:: fit
+   .. automethod:: get_auc
+   .. automethod:: predict
+   .. automethod:: predict_proba
+   .. automethod:: residuals
+   .. automethod:: score
+   .. automethod:: set_arrays
