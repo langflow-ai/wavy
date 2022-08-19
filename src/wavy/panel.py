@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import contextlib
+# import contextlib
 import random
 import warnings
 from itertools import chain
-from typing import Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -20,18 +19,18 @@ from wavy.validations import _validate_sample_panel, _validate_training_split
 # Define column to y
 def create_panels(
     df: pd.DataFrame, lookback: int, horizon: int, gap: int = 0
-) -> Tuple[Panel, Panel]:
+) -> tuple[Panel, Panel]:
     """
     Create panels from a dataframe.
 
     Args:
-        df (pd.DataFrame): Dataframe
-        lookback (int): Lookback size
-        horizon (int): Horizon size
-        gap (int): Gap size
+        df (``pd.DataFrame``): Dataframe
+        lookback (``int``): Lookback size
+        horizon (``int``): Horizon size
+        gap (``int``): Gap size
 
     Returns:
-        ``Tuple``: Tuple of panels
+        ``tuple[Panel, Panel]``: Tuple of panels
     """
 
     indices = df.index
@@ -106,8 +105,8 @@ def reset_ids(panels: list[Panel], inplace: bool = False) -> list[Panel]:
     Reset ids of a panel.
 
     Args:
-        panels (list): List of panels
-        inplace (bool): Whether to reset ids inplace or not.
+        panels (``list``): List of panels
+        inplace (``bool``): Whether to reset ids inplace or not.
 
     Returns:
         ``Panel``: Reset id of panel
@@ -124,11 +123,11 @@ def reset_ids(panels: list[Panel], inplace: bool = False) -> list[Panel]:
 
 def dropna_match(x, y):
     """
-    Drop frames with NaN in both x and y and match ids.
+    Drop frames with NaN in panels and match ids.
 
     Args:
-        x (Panel): Panel with x data
-        y (Panel): Panel with y data
+        x (``Panel``): Panel with x data
+        y (``Panel``): Panel with y data
 
     Returns:
         ``Panel``: Panel with dropped frames and matched ids
@@ -150,9 +149,9 @@ def concat_panels(
     Concatenate panels.
 
     Args:
-        panels (list): List of panels
-        reset_ids (bool): Whether to reset ids
-        sort (bool): Whether to sort by id
+        panels (``list``): List of panels
+        reset_ids (``bool``): Whether to reset ids
+        sort (``bool``): Whether to sort by id
 
     Returns:
         ``Panel``: Concatenated panels
@@ -179,21 +178,21 @@ def concat_panels(
 def set_training_split(
     x: Panel,
     y: Panel,
-    train_size: Union[float, int] = 0.7,
-    val_size: Union[float, int] = 0.2,
-    test_size: Union[float, int] = 0.1,
+    train_size: float | int = 0.7,
+    val_size: float | int = 0.2,
+    test_size: float | int = 0.1,
 ) -> None:
     """
-    Splits the panel in training, validation, and test, accessed with the
-    properties .train, .val and .test.
+    Splits panel in training, validation, and test.
 
     Args:
-        train_size (float, int): Fraction of data to use for training.
-        test_size (float, int): Fraction of data to use for testing.
-        val_size (float, int): Fraction of data to use for validation.
+        train_size (``float`` or ``int``): Fraction of data to use for training.
+        test_size (``float`` or ``int``): Fraction of data to use for testing.
+        val_size (``float`` or ``int``): Fraction of data to use for validation.
 
     Example:
-    >>> x,y = set_training_split(x, y, val_size=0.2, test_size=0.1)
+
+    >>> x, y = set_training_split(x, y, train_size=0.8, val_size=0.2, test_size=0.1)
     """
 
     x.set_training_split(train_size=train_size, val_size=val_size, test_size=test_size)
@@ -232,7 +231,7 @@ class _PanelSeries(pd.Series):
 
 class Panel(pd.DataFrame):
     """
-    Panel data structure.
+    Panel class.
     """
 
     def __init__(self, *args, **kw):
@@ -293,30 +292,32 @@ class Panel(pd.DataFrame):
 
     @property
     def frames(self) -> DataFrameGroupBy:
-        """Returns the frames in the panel."""
+        """
+        Returns panel's frames.
+        """
         return self.groupby(level=0, as_index=True)
 
     @property
     def timesteps(self) -> pd.Int64Index:
         """
-        Returns the ids of the panel.
+        Returns panel's timesteps.
         """
         return self.index.get_level_values(1)
 
     @property
     def ids(self) -> pd.Int64Index:
         """
-        Returns the ids of the panel without duplicates.
+        Returns panel's ids without duplicates.
         """
         return self.index.get_level_values(0).drop_duplicates()
 
     @ids.setter
     def ids(self, ids: list[int]) -> None:
         """
-        Set the ids of the panel.
+        Set panel's ids.
 
         Args:
-            ids (list): List of ids.
+            ids (``list``): List of ids.
         """
 
         ids = np.repeat(ids, self.shape_panel[1])
@@ -326,12 +327,12 @@ class Panel(pd.DataFrame):
 
         self.index = index
 
-    def reset_ids(self, inplace: bool = False) -> Optional[Panel]:
+    def reset_ids(self, inplace: bool = False) -> Panel | None:
         """
-        Reset the ids of the panel.
+        Reset panel's ids.
 
         Args:
-            inplace (bool): Whether to reset ids inplace.
+            inplace (``bool``): Whether to reset ids inplace.
         """
         new_ids = np.repeat(np.arange(self.num_frames), self.num_timesteps)
         new_index = pd.MultiIndex.from_arrays(
@@ -342,15 +343,18 @@ class Panel(pd.DataFrame):
         return self.set_index(new_index, inplace=inplace)
 
     @property
-    def shape_panel(self) -> Tuple[int, int, int]:
+    def shape_panel(self) -> tuple[int, int, int]:
         """
-        Returns the shape of the panel.
+        Return a tuple representing the dimensionality of the Panel.
         """
         return (len(self.ids), int(self.shape[0] / len(self.ids)), self.shape[1])
 
-    def row_panel(self, n: Union[list, int] = 0) -> Panel:
+    def row_panel(self, n: list[int] | int = 0) -> Panel:
         """
         Returns the nth row of each frame.
+
+        Args:
+            n (``list[int]`` or ``int``): Row index.
         """
         if isinstance(n, int):
             n = [n]
@@ -362,12 +366,12 @@ class Panel(pd.DataFrame):
         self._copy_attrs(new_panel)
         return new_panel
 
-    def get_timesteps(self, n: Union[list, int] = 0) -> Panel:
+    def get_timesteps(self, n: list[int] | int = 0) -> Panel:
         """
         Returns the first timestep of each frame in the panel.
 
         Args:
-            n (int): Timestep to return.
+            n (``list[int]`` or ``int``): Timestep to return.
         """
 
         if isinstance(n, int):
@@ -422,13 +426,13 @@ class Panel(pd.DataFrame):
 
         return panel
 
-    def drop_ids(self, ids: Union[list, int], inplace: bool = False) -> Optional[Panel]:
+    def drop_ids(self, ids: list[int] | int, inplace: bool = False) -> Panel | None:
         """
         Drop frames by id.
 
         Args:
-            ids (list, int): List of ids to drop.
-            inplace (bool): Whether to drop ids inplace.
+            ids (``list[int]`` or ``int``): List of ids to drop.
+            inplace (``bool``): Whether to drop ids inplace.
 
         Returns:
             ``Panel``: Panel with frames dropped.
@@ -453,26 +457,27 @@ class Panel(pd.DataFrame):
             else pd.Int64Index([], name="id")
         )
 
-    def dropna_frames(self, inplace: bool = False) -> Optional[Panel]:
+    def dropna_frames(self, inplace: bool = False) -> Panel | None:
         """
         Drop frames with missing values from the panel.
 
         Args:
-            inplace (bool): Whether to drop frames inplace.
+            inplace (``bool``): Whether to drop frames inplace.
 
         Returns:
             ``Panel``: Panel with frames dropped.
         """
         return self.drop_ids(self.findna_frames(), inplace=inplace)
 
-    def match_frames(self, other: Panel, inplace: bool = False) -> Optional[Panel]:
+    def match_frames(self, other: Panel, inplace: bool = False) -> Panel | None:
         """
-        Match panel with other panel. This function will match the ids and id
-        order of self based on the ids of other.
+        Match panel with other panel.
+
+        This function will match the ids and id order of self based on the ids of other.
 
         Args:
             other (``Panel``): Panel to match with.
-            inplace (bool): Whether to match inplace.
+            inplace (``bool``): Whether to match inplace.
 
         Returns:
             ``Panel``: Result of match function.
@@ -491,21 +496,21 @@ class Panel(pd.DataFrame):
 
     def set_training_split(
         self,
-        train_size: Union[float, int] = 0.7,
-        val_size: Union[float, int] = 0.2,
-        test_size: Union[float, int] = 0.1,
+        train_size: float | int = 0.7,
+        val_size: float | int = 0.2,
+        test_size: float | int = 0.1,
     ) -> None:
         """
-        Splits the panel in training, validation, and test, accessed with the
-        properties .train, .val and .test.
+        Splits Panel into training, validation, and test.
 
         Args:
-            train_size (float, int): Fraction of data to use for training.
-            test_size (float, int): Fraction of data to use for testing.
-            val_size (float, int): Fraction of data to use for validation.
+            train_size (``float`` or ``int``): Fraction of data to use for training.
+            test_size (``float`` or ``int``): Fraction of data to use for testing.
+            val_size (``float`` or ``int``): Fraction of data to use for validation.
 
         Example:
-        >>> panel.set_training_split(val_size=0.2, test_size=0.1)
+
+        >>> panel.set_training_split(train_size=0.8, val_size=0.2, test_size=0.1)
         """
 
         n_train, n_val, n_test = _validate_training_split(
@@ -531,8 +536,7 @@ class Panel(pd.DataFrame):
     @property
     def train(self) -> Panel:
         """
-        Returns the Panel with the training set, according to
-        the parameters given in the 'set_training_split' function.
+        Returns the Panel with the training set.
 
         Returns:
             ``Panel``: Panel with the training set.
@@ -556,8 +560,7 @@ class Panel(pd.DataFrame):
     @property
     def val(self) -> Panel:
         """
-        Returns the Panel with the validation set, according to
-        the parameters given in the 'set_training_split' function.
+        Returns the Panel with the validation set.
 
         Returns:
             ``Panel``: Panel with the validation set.
@@ -597,8 +600,7 @@ class Panel(pd.DataFrame):
     @property
     def test(self) -> Panel:
         """
-        Returns the Panel with the testing set, according to
-        the parameters given in the 'set_training_split' function.
+        Returns the Panel with the testing set.
 
         Returns:
             ``Panel``: Panel with the testing set.
@@ -624,7 +626,7 @@ class Panel(pd.DataFrame):
         Return the first n frames of the panel.
 
         Args:
-            n (int): Number of frames to return.
+            n (``int``): Number of frames to return.
 
         Returns:
             ``Panel``: Result of head function.
@@ -636,7 +638,7 @@ class Panel(pd.DataFrame):
         Return the last n frames of the panel.
 
         Args:
-            n (int): Number of frames to return.
+            n (``int``): Number of frames to return.
 
         Returns:
             ``Panel``: Result of tail function.
@@ -649,18 +651,18 @@ class Panel(pd.DataFrame):
         inplace: bool = False,
         kind: str = "quicksort",
         key: callable = None,
-    ) -> Optional[Panel]:
+    ) -> Panel | None:
         """
         Sort panel by ids.
 
         Args:
-            ascending (bool or list-like of bools, default True): Sort ascending vs. descending. When the index is a MultiIndex the sort direction can be controlled for each level individually.
-            inplace (bool, default False): If True, perform operation in-place.
+            ascending (``bool`` or list-like of ``bools``, default True): Sort ascending vs. descending. When the index is a MultiIndex the sort direction can be controlled for each level individually.
+            inplace (``bool``, default False): If True, perform operation in-place.
             kind ({'quicksort', 'mergesort', 'heapsort', 'stable'}, default 'quicksort'): Choice of sorting algorithm. See also numpy.sort() for more information. mergesort and stable are the only stable algorithms. For DataFrames, this option is only applied when sorting on a single column or label.
             key (callable, optional): If not None, apply the key function to the index values before sorting. This is similar to the key argument in the builtin sorted() function, with the notable difference that this key function should be vectorized. It should expect an Index and return an Index of the same shape. For MultiIndex inputs, the key is applied per level.
 
         Returns:
-            ``Panel or None``: The original DataFrame sorted by the labels or None if `inplace=True`.
+            ``Panel`` or ``None``: The original DataFrame sorted by the labels or None if `inplace=True`.
         """
 
         return self.sort_index(
@@ -674,19 +676,19 @@ class Panel(pd.DataFrame):
 
     def sample_panel(
         self,
-        samples: Union[int, float] = 5,
+        samples: int | float = 5,
         how: str = "spaced",
         reset_ids: bool = False,
         seed: int = 42,
-    ) -> Optional[Panel]:
+    ) -> Panel | None:
         """
         Sample panel returning a subset of frames.
 
         Args:
-            samples (int or float): Number or percentage of samples to return.
-            how (str): Sampling method, 'spaced' or 'random'
-            reset_ids (bool): If True, reset the index of the sampled panel.
-            seed (int): Random seed.
+            samples (``int`` or ``float``): Number or percentage of samples to return.
+            how (``str``): Sampling method, 'spaced' or 'random'
+            reset_ids (``bool``): If True, reset the index of the sampled panel.
+            seed (``int``): Random seed.
 
         Returns:
             ``Panel``: Result of sample function.
@@ -773,15 +775,13 @@ class Panel(pd.DataFrame):
 
         return new_panel
 
-    def shuffle_panel(
-        self, seed: int = None, reset_ids: bool = False
-    ) -> Optional[Panel]:
+    def shuffle_panel(self, seed: int = None, reset_ids: bool = False) -> Panel | None:
         """
         Shuffle the panel.
 
         Args:
-            seed (int): Random seed.
-            reset_ids (bool): If True, reset the index of the shuffled panel.
+            seed (``int``): Random seed.
+            reset_ids (``bool``): If True, reset the index of the shuffled panel.
 
         Returns:
             ``Panel``: Result of shuffle function.
@@ -827,9 +827,9 @@ class Panel(pd.DataFrame):
         Plot the panel.
 
         Args:
-            add_annotation (bool): If True, plot the training, validation, and test annotation.
-            max (int): Maximum number of samples to plot.
-            use_timestep (bool): If True, plot the timestep instead of the sample index.
+            add_annotation (``bool``): If True, plot the training, validation, and test annotation.
+            max (``int``): Maximum number of samples to plot.
+            use_timestep (``bool``): If True, plot the timestep instead of the sample index.
             **kwargs: Additional arguments to pass to the plot function.
 
         Returns:

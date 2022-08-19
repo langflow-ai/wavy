@@ -1,13 +1,21 @@
 from __future__ import annotations
 
+from functools import wraps
+
 import plotly.express as px
 from plotlab import Figure
+
+# from .panel import Panel
 
 # TODO: Set plotting configs and add kwargs to functions
 # TODO: Check if kwargs would overwrite fig.add_trace if same params are used
 
 
 class PanelFigure(Figure):
+    """
+    PanelFigure class.
+    """
+
     def __init__(self):
         # TODO: Add dynamic color changing once new traces are added
         # TODO: Add candlestick plot
@@ -16,14 +24,14 @@ class PanelFigure(Figure):
         self.colors = px.colors.qualitative.Plotly
         self.color_index = 0
 
-    def add_annotation(self, panel, color="gray", opacity=1):
+    def add_annotation(self, panel, color: str = "gray", opacity: float = 1.0) -> None:
         """
-        Split panel into sets.
+        Plot vertical lines showing train, val, and test periods.
 
         Args:
-            panel (wavy.Panel): Panel to split
-            color (str): Color of the sets
-            opacity (float): Opacity of the sets
+            panel (``Panel``): Panel to split.
+            color (``str``): Color of the sets.
+            opacity (``float``): Opacity of the sets.
         """
         # BUG: Seems to break if using "ggplot2"
         # ! Won't take effect until next trace is added (no axis was added)
@@ -58,7 +66,8 @@ class PanelFigure(Figure):
             )
 
     # Add decorator for instance check and for loop
-    def iterator(func):
+    def _iterator(func):
+        @wraps(func)
         def inner(self, *args, **kwargs):
 
             args = list(args)
@@ -72,53 +81,53 @@ class PanelFigure(Figure):
 
         return inner
 
-    @iterator
-    def add_line(self, col: str, *args, **kwargs):
+    @_iterator
+    def add_line(self, col: str, *args, **kwargs) -> None:
         """
         Add a line to the figure.
 
         Args:
-            col (str): Column to plot
+            col (``str``): Column to plot
         """
         self.line(col, *args, **kwargs)
 
-    @iterator
-    def add_area(self, col: str, *args, **kwargs):
+    @_iterator
+    def add_area(self, col: str, *args, **kwargs) -> None:
         """
         Add an area to the figure.
 
         Args:
-            col (str): Column to plot
+            col (``str``): Column to plot
         """
         self.area(col, *args, **kwargs)
 
-    @iterator
-    def add_bar(self, col: str, *args, **kwargs):
+    @_iterator
+    def add_bar(self, col: str, *args, **kwargs) -> None:
         """
         Add a bar to the figure.
 
         Args:
-            col (str): Column to plot
+            col (``str``): Column to plot
         """
         self.bar(col, *args, **kwargs)
 
-    @iterator
-    def add_scatter(self, col: str, *args, **kwargs):
+    @_iterator
+    def add_scatter(self, col: str, *args, **kwargs) -> None:
         """
         Add a scatter to the figure.
 
         Args:
-            col (str): Column to plot
+            col (``str``): Column to plot.
         """
         self.scatter(col, *args, **kwargs)
 
-    @iterator
-    def add_dotline(self, col: str, *args, **kwargs):
+    @_iterator
+    def add_dotline(self, col: str, *args, **kwargs) -> None:
         """
         Add a dotline to the figure.
 
         Args:
-            col (str): Column to plot
+            col (``str``): Column to plot.
         """
         self.dotline(col, *args, **kwargs)
 
@@ -127,12 +136,12 @@ def plot(
     panel, use_timestep: bool = False, add_annotation: bool = False, **kwargs
 ) -> PanelFigure:
     """
-    Plot a panel.
+    Plot panel.
 
     Args:
-        panel (Panel): Panel object
-        use_timestep (bool): Use timestep instead of id
-        add_annotation (bool): If True, plot vertical lines showing train, val, and test periods
+        panel (``Panel``): Panel object.
+        use_timestep (``bool``): Use timestep instead of id.
+        add_annotation (``bool``): If True, plot vertical lines showing train, val, and test periods.
 
     Returns:
         ``Plot``: Plotted data

@@ -1,13 +1,14 @@
+from __future__ import annotations
+
 import warnings
-from typing import List
 
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from keras import Sequential
+from keras.layers import Conv1D, Dense, Flatten, Reshape
 from sklearn.base import is_classifier
 from sklearn.metrics import auc, roc_curve
-from tensorflow.keras import Sequential
-from tensorflow.keras.layers import Conv1D, Dense, Flatten, Reshape
 
 from .panel import Panel, set_training_split
 
@@ -22,7 +23,7 @@ class _ConstantKerasModel(tf.keras.Model):
         return inputs
 
 
-class _BaseModel:
+class BaseModel:
     """Base class for panel models."""
 
     def __init__(
@@ -32,9 +33,21 @@ class _BaseModel:
         model_type: str = None,
         loss: str = None,
         optimizer: str = None,
-        metrics: List[str] = None,
+        metrics: list[str] = None,
         last_activation: str = None,
     ):
+        """
+        Base model class.
+
+        Args:
+            x (``Panel``): Panel of input data.
+            y (``Panel``): Panel of output data.
+            model_type (``str``): Type of model.
+            loss (``str``): Loss function.
+            optimizer (``str``): Optimizer.
+            metrics (``list[str]``): Metrics.
+            last_activation (``str``): Last activation.
+        """
 
         PARAMS = {
             "regression": {
@@ -108,7 +121,7 @@ class _BaseModel:
         self.compile()
         self.model._name = self.__class__.__name__
 
-    def set_arrays(self):
+    def set_arrays(self) -> None:
         """Set the arrays."""
         self.x_train = self.x.train.values_panel
         self.x_val = self.x.val.values_panel
@@ -118,7 +131,7 @@ class _BaseModel:
         self.y_val = self.y.val.values_panel.squeeze(axis=2)
         self.y_test = self.y.test.values_panel.squeeze(axis=2)
 
-    def get_auc(self):
+    def get_auc(self) -> float:
         """Get the AUC score."""
         y = self.y_test.squeeze()
         prediction = self.model.predict(self.x_test).squeeze()
@@ -126,7 +139,7 @@ class _BaseModel:
         fpr, tpr, _ = roc_curve(y, prediction)
         return auc(fpr, tpr)
 
-    def fit(self, **kwargs):
+    def fit(self, **kwargs) -> None:
         """
         Fit the model.
 
@@ -140,7 +153,7 @@ class _BaseModel:
             **kwargs,
         )
 
-    def compile(self, **kwargs):
+    def compile(self, **kwargs) -> None:
         """Compile the model.
 
         Args:
@@ -150,15 +163,15 @@ class _BaseModel:
             loss=self.loss, optimizer=self.optimizer, metrics=self.metrics, **kwargs
         )
 
-    def build(self):
+    def build(self) -> None:
         """Build the model."""
         pass
 
-    def predict_proba(self, data: Panel = None, **kwargs):
+    def predict_proba(self, data: Panel = None, **kwargs) -> Panel:
         """Predict probabilities.
 
         Args:
-            data: Panel of data to predict.
+            data (``Panel``): Panel of data to predict.
             **kwargs: Additional arguments to pass to the predict method.
 
         Returns:
@@ -194,15 +207,15 @@ class _BaseModel:
             index=index,
         )
 
-    def predict(self, data: Panel = None, **kwargs):
+    def predict(self, data: Panel = None, **kwargs) -> Panel:
         """Predict.
 
         Args:
-            data: Panel of data to predict.
+            data (``Panel``): Panel of data to predict.
             **kwargs: Additional arguments to pass to the predict method.
 
         Returns:
-            Panel of predicted values.
+            ``Panel`` of predicted values.
         """
 
         threshold = self.get_auc() if self.model_type == "classification" else None
@@ -213,11 +226,11 @@ class _BaseModel:
             panel if threshold is None else panel.apply(lambda x: (x > threshold) + 0)
         )
 
-    def score(self, on=None, **kwargs):
+    def score(self, on: list[str] | str = None, **kwargs) -> pd.DataFrame:
         """Score the model.
 
         Args:
-            on: Columns to score on.
+            on (``list[str]`` or ``str``): Columns to score on.
             **kwargs: Additional arguments to pass to the score method.
 
         Returns:
@@ -248,33 +261,35 @@ class _BaseModel:
             index=self.metrics,
         )
 
-    def residuals(self):
+    def residuals(self) -> Panel:
         """Residuals.
 
         Returns:
-            Panel of residuals.
+            ``Panel`` of residuals.
         """
         return self.predict() - self.y
 
 
-class _Baseline(_BaseModel):
+class _Baseline(BaseModel):
     def __init__(
         self,
         x,
         y,
         model_type: str = None,
         loss: str = None,
-        metrics: List[str] = None,
+        metrics: list[str] = None,
     ):
 
         super().__init__(x=x, y=y, model_type=model_type, loss=loss, metrics=metrics)
 
-    def build(self):
+    def build(self) -> None:
         """Build the model."""
         self.model = _ConstantKerasModel()
 
 
 class BaselineShift(_Baseline):
+    """Baseline shift model."""
+
     # ! Maybe shift should be y.horizon by default, to avoid leakage
     # TODO test with different gap and horizon values
 
@@ -284,7 +299,7 @@ class BaselineShift(_Baseline):
         y,
         model_type: str = None,
         loss: str = None,
-        metrics: List[str] = None,
+        metrics: list[str] = None,
         fillna=0,
         shift=1,
     ):
@@ -315,12 +330,14 @@ class BaselineShift(_Baseline):
         self.y_val = self.y.val.values
         self.y_test = self.y.test.values
 
-    def build(self):
+    def build(self) -> None:
         """Build the model."""
         self.model = _ConstantKerasModel()
 
 
 class BaselineConstant(_Baseline):
+    """Baseline constant model."""
+
     # TODO BUG: Not working when model_type="classification"
     def __init__(
         self,
@@ -328,14 +345,14 @@ class BaselineConstant(_Baseline):
         y,
         model_type: str = None,
         loss: str = None,
-        metrics: List[str] = None,
+        metrics: list[str] = None,
         constant: float = 0,
     ):
 
         self.constant = constant if model_type == "regression" else int(constant)
         super().__init__(x=x, y=y, model_type=model_type, loss=loss, metrics=metrics)
 
-    def set_arrays(self):
+    def set_arrays(self) -> None:
         """Set the arrays."""
         self.x_train = np.full(self.y.train.shape, self.constant)
         self.x_val = np.full(self.y.val.shape, self.constant)
@@ -346,7 +363,9 @@ class BaselineConstant(_Baseline):
         self.y_test = self.y.test.values
 
 
-class DenseModel(_BaseModel):
+class DenseModel(BaseModel):
+    """Dense model."""
+
     def __init__(
         self,
         x,
@@ -357,22 +376,22 @@ class DenseModel(_BaseModel):
         activation: str = "relu",
         loss: str = None,
         optimizer: str = None,
-        metrics: List[str] = None,
+        metrics: list[str] = None,
         last_activation: str = None,
     ):
         """
         Dense Model.
 
         Args:
-            panel (Panel): Panel with data
-            model_type (str): Model type (regression, classification, multi_classification)
-            dense_layers (int): Number of dense layers
-            dense_units (int): Number of neurons in each dense layer
-            activation (str): Activation type of each dense layer
-            loss (str): Loss name
-            optimizer (str): Optimizer name
-            metrics (List[str]): Metrics list
-            last_activation (str): Activation type of the last layer
+            panel (``Panel``): Panel with data
+            model_type (``str``): Model type (regression, classification, multi_classification)
+            dense_layers (``int``): Number of dense layers
+            dense_units (``int``)t``)t``)t``)t``): Number of neurons in each dense layer
+            activation (``str``): Activation type of each dense layer
+            loss (``str``): Loss name
+            optimizer (``str``): Optimizer name
+            metrics (``list[str]``): Metrics list
+            last_activation (``str``): Activation type of the last layer
 
         Returns:
             ``DenseModel``: Constructed DenseModel
@@ -392,7 +411,7 @@ class DenseModel(_BaseModel):
             last_activation=last_activation,
         )
 
-    def build(self):
+    def build(self) -> None:
         """Build the model."""
         dense = Dense(units=self.dense_units, activation=self.activation)
         layers = [Flatten()]  # (time, features) => (time*features)
@@ -409,11 +428,13 @@ class DenseModel(_BaseModel):
         self.model = Sequential(layers)
 
 
-class ConvModel(_BaseModel):
+class ConvModel(BaseModel):
+    """Convolutional model."""
+
     def __init__(
         self,
-        x,
-        y,
+        x: Panel,
+        y: Panel,
         model_type: str = None,
         conv_layers: int = 1,
         conv_filters: int = 32,
@@ -423,25 +444,26 @@ class ConvModel(_BaseModel):
         activation: str = "relu",
         loss: str = None,
         optimizer: str = None,
-        metrics: List[str] = None,
+        metrics: list[str] = None,
         last_activation: str = None,
     ):
         """
         Convolution Model.
 
         Args:
-            panel (Panel): Panel with data
-            model_type (str): Model type (regression, classification, multi_classification)
-            conv_layers (int): Number of convolution layers
-            conv_filters (int): Number of convolution filters
-            kernel_size (int): Kernel size of convolution layer
-            dense_layers (int): Number of dense layers
-            dense_units (int): Number of neurons in each dense layer
-            activation (str): Activation type of each dense layer
-            loss (str): Loss name
-            optimizer (str): Optimizer name
-            metrics (List[str]): Metrics list
-            last_activation (str): Activation type of the last layer
+            x (``Panel``): Panel with x data
+            y (``Panel``): Panel with y data
+            model_type (``str``): Model type (regression, classification, multi_classification)
+            conv_layers (``int``): Number of convolution layers
+            conv_filters (``int``): Number of convolution filters
+            kernel_size (``int``): Kernel size of convolution layer
+            dense_layers (``int``): Number of dense layers
+            dense_units (``int``): Number of neurons in each dense layer
+            activation (``str``): Activation type of each dense layer
+            loss (``str``): Loss name
+            optimizer (``str``): Optimizer name
+            metrics (``list[str]``): Metrics list
+            last_activation (``str``): Activation type of the last layer
 
         Returns:
             ``DenseModel``: Constructed DenseModel
@@ -469,7 +491,7 @@ class ConvModel(_BaseModel):
             last_activation=last_activation,
         )
 
-    def build(self):
+    def build(self) -> None:
         """Build the model."""
 
         if self.x.num_timesteps % self.kernel_size != 0:
@@ -499,11 +521,15 @@ class ConvModel(_BaseModel):
 
 
 class LinearRegression(DenseModel):
+    """Linear regression model."""
+
     def __init__(self, x, y, **kwargs):
         super().__init__(x=x, y=y, model_type="regression", dense_layers=0, **kwargs)
 
 
 class LogisticRegression(DenseModel):
+    """Logistic regression model."""
+
     def __init__(self, x, y, **kwargs):
         super().__init__(
             x=x, y=y, model_type="classification", dense_layers=0, **kwargs
@@ -511,14 +537,16 @@ class LogisticRegression(DenseModel):
 
 
 class ShallowModel:
-    def __init__(self, x, y, model, metrics, **kwargs):
+    """Shallow model."""
+
+    def __init__(self, x: Panel, y: Panel, model: str, metrics: list[str], **kwargs):
         """Shallow Model.
 
         Args:
-            x (Panel): Panel with data
-            y (Panel): Panel with data
-            model (str): Model (regression, classification, multi_classification)
-            metrics (List[str]): Metrics list
+            x (``Panel``): Panel with x data
+            y (``Panel``): Panel with y data
+            model (``str``): Model (regression, classification, multi_classification)
+            metrics (``list[str]``): Metrics list
             **kwargs: Additional arguments
 
         Returns:
@@ -535,7 +563,7 @@ class ShallowModel:
         self.metrics = metrics
         self.set_arrays()
 
-    def set_arrays(self):
+    def set_arrays(self) -> None:
         """
         Sets arrays for training, testing, and validation.
         """
@@ -554,13 +582,10 @@ class ShallowModel:
 
         Args:
             **kwargs: Keyword arguments for the fit method of the model.
-
-        Returns:
-            ``ShallowModel``: The fitted model.
         """
-        return self.model.fit(X=self.x_train, y=self.y_train, **kwargs)
+        self.model.fit(X=self.x_train, y=self.y_train, **kwargs)
 
-    def get_auc(self):
+    def get_auc(self) -> float:
         """Get the AUC score."""
 
         y = self.y_test.squeeze()
@@ -568,11 +593,11 @@ class ShallowModel:
         fpr, tpr, _ = roc_curve(y, prediction)
         return auc(fpr, tpr)
 
-    def predict_proba(self, data: Panel = None):
+    def predict_proba(self, data: Panel = None) -> Panel:
         """Predict probabilities.
 
         Args:
-            data (Panel): Panel with data
+            data (``Panel``): Panel with data
 
         Returns:
             ``ShallowModel``: The predicted probabilities.
@@ -618,14 +643,14 @@ class ShallowModel:
             index=index,
         )
 
-    def predict(self, data: Panel = None):
+    def predict(self, data: Panel = None) -> Panel:
         """Predict on data.
 
         Args:
-            data (Panel, optional): Data to predict on. Defaults to None.
+            data (``Panel``, optional): Data to predict on. Defaults to None.
 
         Returns:
-            Panel: Predicted data
+            ``Panel``: Predicted data
         """
         if is_classifier(self.model):
             threshold = self.get_auc()
@@ -651,14 +676,14 @@ class ShallowModel:
                 index=index,
             )
 
-    def score(self, on=None):
+    def score(self, on: list[str] | str = None) -> pd.DataFrame:
         """Score the model.
 
         Args:
-            on (str): Data to use for scoring
+            on (``list[str]`` or ``str``): Data to use for scoring
 
         Returns:
-            pd.Series: Score
+            ``pd.Series``: Score
         """
         on = [on] if on else ["train", "val", "test"]
 
@@ -694,13 +719,14 @@ class ShallowModel:
             }
 
             dic["val"] = metrics_dict
+
         return pd.DataFrame(dic, index=[a.__name__ for a in self.metrics])
 
-    def residuals(self):
+    def residuals(self) -> Panel:
         """Residuals.
 
         Returns:
-            Panel: Residuals
+            ``Panel``: Residuals
         """
         return self.predict() - self.y
 
@@ -712,7 +738,7 @@ def compute_score_per_model(*models, on="val"):
 
     Args:
         *models: Models to score
-        on (str, optional): Data to use for scoring. Defaults to "val".
+        on (``str``, optional): Data to use for scoring. Defaults to "val".
 
     Returns:
         pd.DataFrame: Scores
@@ -730,11 +756,11 @@ def compute_default_scores(x, y, model_type, epochs=10, verbose=0, **kwargs):
     Compute default scores for a model.
 
     Args:
-        x (Panel): X data
-        y (Panel): Y data
-        model_type (str): Model type
-        epochs (int, optional): Number of epochs. Defaults to 10.
-        verbose (int, optional): Verbosity. Defaults to 0.
+        x (``Panel``): X data.
+        y (``Panel``): Y data.
+        model_type (``str``): Model type.
+        epochs (``int``, optional): Number of epochs. Defaults to 10.
+        verbose (``int``, optional): Verbosity. Defaults to 0.
         **kwargs: Keyword arguments for the model.
 
     Returns:

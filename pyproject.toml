@@ -14,7 +14,7 @@ packages = [{include = "wavy", from = "src"}]
 
 [tool.poetry.dependencies]
 python = ">=3.8,<3.11"
-pandas = "^1.4.2"
+pandas = "1.4.3"
 sklearn = "^0.0"
 plotly = "^5.7.0"
 tensorflow = "^2.8.0"
@@ -22,6 +22,7 @@ numpy = "^1.22.3"
 tqdm = "^4.64.0"
 plotlab = "^0.1.0"
 toml = "^0.10.2"
+ipykernel = "^6.15.1"
 nbformat = "^5.4.0"
 
 [tool.poetry.dev-dependencies]
@@ -40,6 +41,9 @@ sphinxcontrib-napoleon = "^0.7"
 sphinx-automodapi = "^0.14.1"
 nbsphinx = "^0.8.9"
 pandoc = "^2.2"
+seaborn = "^0.11.2"
+openpyxl = "^3.0.10"
+kaleido = "0.2.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

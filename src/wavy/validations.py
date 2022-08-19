@@ -1,20 +1,23 @@
-from typing import Tuple
+from __future__ import annotations
 
 import numpy as np
 
 
 def _validate_training_split(
-    n_samples: int, train_size: int, val_size: int, test_size: int
-) -> Tuple[int, int, int]:
+    n_samples: int,
+    train_size: int | float,
+    val_size: int | float,
+    test_size: int | float,
+) -> tuple[int, int, int]:
     """
     Validation helper to check if the test/test sizes are meaningful wrt to the
     size of the data (n_samples)
 
     Args:
-        n_samples (int): Number of samples in the data
-        train_size (int): Size of the training set
-        val_size (int): Size of the validation set
-        test_size (int): Size of the test set
+        n_samples (``int``): Number of samples in the data
+        train_size (``int``): Size of the training set
+        val_size (``int``): Size of the validation set
+        test_size (``int``): Size of the test set
 
     Returns:
         Tuple[int, int, int]: Tuple of the training, validation, and test sizes
@@ -125,16 +128,16 @@ def _validate_training_split(
 
 
 def _validate_sample_panel(
-    samples: int, train_size: int, val_size: int, test_size: int
-) -> Tuple[int, int, int]:
+    samples: int, train_size: int | float, val_size: int | float, test_size: int | float
+) -> tuple[int, int, int]:
     """
     Validation helper to check if the samples size is meaningful wrt to the
     size of the data (n_samples)
 
     Args:
-        samples (int): Number of samples in the data
-        train_size (int): Size of the training set
-        val_size (int): Size of the validation set
+        samples (``int``): Number of samples in the data
+        train_size (``int``): Size of the training set
+        val_size (``int``): Size of the validation set
 
     Returns:
         Tuple[int, int, int]: Tuple of the training, validation, and test sizes
