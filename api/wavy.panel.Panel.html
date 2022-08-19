@@ -25,7 +25,7 @@
     <link rel="prev" title="set_training_split" href="wavy.panel.set_training_split.html" />
 <script type="text/javascript">
   window.onload = function() {
-    document.body.innerHTML = document.body.innerHTML.replace(/ module/g, '');
+    document.body.innerHTML = document.body.innerHTML.replace(/ Module/g, '');
   }
 </script>
 
@@ -68,7 +68,6 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">wavy.models Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot.html">wavy.plot Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="utils.html">wavy.utils Module</a></li>
 </ul>
 
         </div>
@@ -126,7 +125,7 @@
 <dt class="sig sig-object py" id="wavy.panel.Panel">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Panel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kw</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/panel.html#Panel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></p>
-<p>Panel data structure.</p>
+<p>Panel class.</p>
 <p class="rubric">Attributes Summary</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -135,10 +134,10 @@
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#wavy.panel.Panel.frames" title="wavy.panel.Panel.frames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">frames</span></code></a></p></td>
-<td><p>Returns the frames in the panel.</p></td>
+<td><p>Returns panel's frames.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#wavy.panel.Panel.ids" title="wavy.panel.Panel.ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ids</span></code></a></p></td>
-<td><p>Returns the ids of the panel without duplicates.</p></td>
+<td><p>Returns panel's ids without duplicates.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#wavy.panel.Panel.num_columns" title="wavy.panel.Panel.num_columns"><code class="xref py py-obj docutils literal notranslate"><span class="pre">num_columns</span></code></a></p></td>
 <td><p>Returns the number of columns in the panel.</p></td>
@@ -150,19 +149,19 @@
 <td><p>Returns the number of timesteps in the panel.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#wavy.panel.Panel.shape_panel" title="wavy.panel.Panel.shape_panel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shape_panel</span></code></a></p></td>
-<td><p>Returns the shape of the panel.</p></td>
+<td><p>Return a tuple representing the dimensionality of the Panel.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#wavy.panel.Panel.test" title="wavy.panel.Panel.test"><code class="xref py py-obj docutils literal notranslate"><span class="pre">test</span></code></a></p></td>
-<td><p>Returns the Panel with the testing set, according to the parameters given in the 'set_training_split' function.</p></td>
+<td><p>Returns the Panel with the testing set.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#wavy.panel.Panel.timesteps" title="wavy.panel.Panel.timesteps"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timesteps</span></code></a></p></td>
-<td><p>Returns the ids of the panel.</p></td>
+<td><p>Returns panel's timesteps.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#wavy.panel.Panel.train" title="wavy.panel.Panel.train"><code class="xref py py-obj docutils literal notranslate"><span class="pre">train</span></code></a></p></td>
-<td><p>Returns the Panel with the training set, according to the parameters given in the 'set_training_split' function.</p></td>
+<td><p>Returns the Panel with the training set.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#wavy.panel.Panel.val" title="wavy.panel.Panel.val"><code class="xref py py-obj docutils literal notranslate"><span class="pre">val</span></code></a></p></td>
-<td><p>Returns the Panel with the validation set, according to the parameters given in the 'set_training_split' function.</p></td>
+<td><p>Returns the Panel with the validation set.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#wavy.panel.Panel.values_panel" title="wavy.panel.Panel.values_panel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">values_panel</span></code></a></p></td>
 <td><p>3D matrix with Panel value.</p></td>
@@ -201,7 +200,7 @@
 <td><p>Plot the panel.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#wavy.panel.Panel.reset_ids" title="wavy.panel.Panel.reset_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset_ids</span></code></a>([inplace])</p></td>
-<td><p>Reset the ids of the panel.</p></td>
+<td><p>Reset panel's ids.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#wavy.panel.Panel.row_panel" title="wavy.panel.Panel.row_panel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">row_panel</span></code></a>([n])</p></td>
 <td><p>Returns the nth row of each frame.</p></td>
@@ -210,7 +209,7 @@
 <td><p>Sample panel returning a subset of frames.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#wavy.panel.Panel.set_training_split" title="wavy.panel.Panel.set_training_split"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_training_split</span></code></a>([train_size, val_size, ...])</p></td>
-<td><p>Splits the panel in training, validation, and test, accessed with the properties .train, .val and .test.</p></td>
+<td><p>Splits Panel into training, validation, and test.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#wavy.panel.Panel.shuffle_panel" title="wavy.panel.Panel.shuffle_panel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shuffle_panel</span></code></a>([seed, reset_ids])</p></td>
 <td><p>Shuffle the panel.</p></td>
@@ -230,13 +229,13 @@
 <dl class="py attribute">
 <dt class="sig sig-object py" id="wavy.panel.Panel.frames">
 <span class="sig-name descname"><span class="pre">frames</span></span><a class="headerlink" href="#wavy.panel.Panel.frames" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the frames in the panel.</p>
+<dd><p>Returns panel’s frames.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="wavy.panel.Panel.ids">
 <span class="sig-name descname"><span class="pre">ids</span></span><a class="headerlink" href="#wavy.panel.Panel.ids" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the ids of the panel without duplicates.</p>
+<dd><p>Returns panel’s ids without duplicates.</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -260,14 +259,13 @@
 <dl class="py attribute">
 <dt class="sig sig-object py" id="wavy.panel.Panel.shape_panel">
 <span class="sig-name descname"><span class="pre">shape_panel</span></span><a class="headerlink" href="#wavy.panel.Panel.shape_panel" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the shape of the panel.</p>
+<dd><p>Return a tuple representing the dimensionality of the Panel.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="wavy.panel.Panel.test">
 <span class="sig-name descname"><span class="pre">test</span></span><a class="headerlink" href="#wavy.panel.Panel.test" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the Panel with the testing set, according to
-the parameters given in the ‘set_training_split’ function.</p>
+<dd><p>Returns the Panel with the testing set.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>Panel with the testing set.</p>
@@ -281,14 +279,13 @@ the parameters given in the ‘set_training_split’ function.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="wavy.panel.Panel.timesteps">
 <span class="sig-name descname"><span class="pre">timesteps</span></span><a class="headerlink" href="#wavy.panel.Panel.timesteps" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the ids of the panel.</p>
+<dd><p>Returns panel’s timesteps.</p>
 </dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="wavy.panel.Panel.train">
 <span class="sig-name descname"><span class="pre">train</span></span><a class="headerlink" href="#wavy.panel.Panel.train" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the Panel with the training set, according to
-the parameters given in the ‘set_training_split’ function.</p>
+<dd><p>Returns the Panel with the training set.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>Panel with the training set.</p>
@@ -302,8 +299,7 @@ the parameters given in the ‘set_training_split’ function.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="wavy.panel.Panel.val">
 <span class="sig-name descname"><span class="pre">val</span></span><a class="headerlink" href="#wavy.panel.Panel.val" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the Panel with the validation set, according to
-the parameters given in the ‘set_training_split’ function.</p>
+<dd><p>Returns the Panel with the validation set.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>Panel with the validation set.</p>
@@ -335,13 +331,13 @@ the parameters given in the ‘set_training_split’ function.</p>
 <p class="rubric">Methods Documentation</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="wavy.panel.Panel.drop_ids">
-<span class="sig-name descname"><span class="pre">drop_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.drop_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.drop_ids" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">drop_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.drop_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.drop_ids" title="Permalink to this definition"></a></dt>
 <dd><p>Drop frames by id.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ids</strong> (<em>list</em><em>, </em><em>int</em>) – List of ids to drop.</p></li>
-<li><p><strong>inplace</strong> (<em>bool</em>) – Whether to drop ids inplace.</p></li>
+<li><p><strong>ids</strong> (<code class="docutils literal notranslate"><span class="pre">list[int]</span></code> or <code class="docutils literal notranslate"><span class="pre">int</span></code>) – List of ids to drop.</p></li>
+<li><p><strong>inplace</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – Whether to drop ids inplace.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -355,11 +351,11 @@ the parameters given in the ‘set_training_split’ function.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="wavy.panel.Panel.dropna_frames">
-<span class="sig-name descname"><span class="pre">dropna_frames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.dropna_frames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.dropna_frames" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">dropna_frames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.dropna_frames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.dropna_frames" title="Permalink to this definition"></a></dt>
 <dd><p>Drop frames with missing values from the panel.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>inplace</strong> (<em>bool</em>) – Whether to drop frames inplace.</p>
+<dd class="field-odd"><p><strong>inplace</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – Whether to drop frames inplace.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Panel with frames dropped.</p>
@@ -392,11 +388,11 @@ the parameters given in the ‘set_training_split’ function.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="wavy.panel.Panel.get_timesteps">
-<span class="sig-name descname"><span class="pre">get_timesteps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a></span></span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.get_timesteps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.get_timesteps" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_timesteps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a></span></span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.get_timesteps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.get_timesteps" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the first timestep of each frame in the panel.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>n</strong> (<em>int</em>) – Timestep to return.</p>
+<dd class="field-odd"><p><strong>n</strong> (<code class="docutils literal notranslate"><span class="pre">list[int]</span></code> or <code class="docutils literal notranslate"><span class="pre">int</span></code>) – Timestep to return.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -407,7 +403,7 @@ the parameters given in the ‘set_training_split’ function.</p>
 <dd><p>Return the first n frames of the panel.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>n</strong> (<em>int</em>) – Number of frames to return.</p>
+<dd class="field-odd"><p><strong>n</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – Number of frames to return.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Result of head function.</p>
@@ -420,14 +416,14 @@ the parameters given in the ‘set_training_split’ function.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="wavy.panel.Panel.match_frames">
-<span class="sig-name descname"><span class="pre">match_frames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.match_frames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.match_frames" title="Permalink to this definition"></a></dt>
-<dd><p>Match panel with other panel. This function will match the ids and id
-order of self based on the ids of other.</p>
+<span class="sig-name descname"><span class="pre">match_frames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.match_frames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.match_frames" title="Permalink to this definition"></a></dt>
+<dd><p>Match panel with other panel.</p>
+<p>This function will match the ids and id order of self based on the ids of other.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>other</strong> (<code class="docutils literal notranslate"><span class="pre">Panel</span></code>) – Panel to match with.</p></li>
-<li><p><strong>inplace</strong> (<em>bool</em>) – Whether to match inplace.</p></li>
+<li><p><strong>inplace</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – Whether to match inplace.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -446,9 +442,9 @@ order of self based on the ids of other.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>add_annotation</strong> (<em>bool</em>) – If True, plot the training, validation, and test annotation.</p></li>
-<li><p><strong>max</strong> (<em>int</em>) – Maximum number of samples to plot.</p></li>
-<li><p><strong>use_timestep</strong> (<em>bool</em>) – If True, plot the timestep instead of the sample index.</p></li>
+<li><p><strong>add_annotation</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – If True, plot the training, validation, and test annotation.</p></li>
+<li><p><strong>max</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – Maximum number of samples to plot.</p></li>
+<li><p><strong>use_timestep</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – If True, plot the timestep instead of the sample index.</p></li>
 <li><p><strong>**kwargs</strong> – Additional arguments to pass to the plot function.</p></li>
 </ul>
 </dd>
@@ -463,32 +459,37 @@ order of self based on the ids of other.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="wavy.panel.Panel.reset_ids">
-<span class="sig-name descname"><span class="pre">reset_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.reset_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.reset_ids" title="Permalink to this definition"></a></dt>
-<dd><p>Reset the ids of the panel.</p>
+<span class="sig-name descname"><span class="pre">reset_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.reset_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.reset_ids" title="Permalink to this definition"></a></dt>
+<dd><p>Reset panel’s ids.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>inplace</strong> (<em>bool</em>) – Whether to reset ids inplace.</p>
+<dd class="field-odd"><p><strong>inplace</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – Whether to reset ids inplace.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="wavy.panel.Panel.row_panel">
-<span class="sig-name descname"><span class="pre">row_panel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a></span></span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.row_panel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.row_panel" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">row_panel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a></span></span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.row_panel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.row_panel" title="Permalink to this definition"></a></dt>
 <dd><p>Returns the nth row of each frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>n</strong> (<code class="docutils literal notranslate"><span class="pre">list[int]</span></code> or <code class="docutils literal notranslate"><span class="pre">int</span></code>) – Row index.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="wavy.panel.Panel.sample_panel">
-<span class="sig-name descname"><span class="pre">sample_panel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">how</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'spaced'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.sample_panel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.sample_panel" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">sample_panel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">how</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'spaced'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.sample_panel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.sample_panel" title="Permalink to this definition"></a></dt>
 <dd><p>Sample panel returning a subset of frames.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>samples</strong> (<em>int</em><em> or </em><em>float</em>) – Number or percentage of samples to return.</p></li>
-<li><p><strong>how</strong> (<em>str</em>) – Sampling method, ‘spaced’ or ‘random’</p></li>
-<li><p><strong>reset_ids</strong> (<em>bool</em>) – If True, reset the index of the sampled panel.</p></li>
-<li><p><strong>seed</strong> (<em>int</em>) – Random seed.</p></li>
+<li><p><strong>samples</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code> or <code class="docutils literal notranslate"><span class="pre">float</span></code>) – Number or percentage of samples to return.</p></li>
+<li><p><strong>how</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – Sampling method, ‘spaced’ or ‘random’</p></li>
+<li><p><strong>reset_ids</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – If True, reset the index of the sampled panel.</p></li>
+<li><p><strong>seed</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – Random seed.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -502,31 +503,32 @@ order of self based on the ids of other.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="wavy.panel.Panel.set_training_split">
-<span class="sig-name descname"><span class="pre">set_training_split</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.set_training_split"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.set_training_split" title="Permalink to this definition"></a></dt>
-<dd><p>Splits the panel in training, validation, and test, accessed with the
-properties .train, .val and .test.</p>
+<span class="sig-name descname"><span class="pre">set_training_split</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.set_training_split"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.set_training_split" title="Permalink to this definition"></a></dt>
+<dd><p>Splits Panel into training, validation, and test.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>train_size</strong> (<em>float</em><em>, </em><em>int</em>) – Fraction of data to use for training.</p></li>
-<li><p><strong>test_size</strong> (<em>float</em><em>, </em><em>int</em>) – Fraction of data to use for testing.</p></li>
-<li><p><strong>val_size</strong> (<em>float</em><em>, </em><em>int</em>) – Fraction of data to use for validation.</p></li>
+<li><p><strong>train_size</strong> (<code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">int</span></code>) – Fraction of data to use for training.</p></li>
+<li><p><strong>test_size</strong> (<code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">int</span></code>) – Fraction of data to use for testing.</p></li>
+<li><p><strong>val_size</strong> (<code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">int</span></code>) – Fraction of data to use for validation.</p></li>
 </ul>
 </dd>
 </dl>
-<p>Example:
-&gt;&gt;&gt; panel.set_training_split(val_size=0.2, test_size=0.1)</p>
+<p>Example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">panel</span><span class="o">.</span><span class="n">set_training_split</span><span class="p">(</span><span class="n">train_size</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">val_size</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="wavy.panel.Panel.shuffle_panel">
-<span class="sig-name descname"><span class="pre">shuffle_panel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.shuffle_panel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.shuffle_panel" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">shuffle_panel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.shuffle_panel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.shuffle_panel" title="Permalink to this definition"></a></dt>
 <dd><p>Shuffle the panel.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>seed</strong> (<em>int</em>) – Random seed.</p></li>
-<li><p><strong>reset_ids</strong> (<em>bool</em>) – If True, reset the index of the shuffled panel.</p></li>
+<li><p><strong>seed</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – Random seed.</p></li>
+<li><p><strong>reset_ids</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – If True, reset the index of the shuffled panel.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -540,13 +542,13 @@ properties .train, .val and .test.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="wavy.panel.Panel.sort_panel">
-<span class="sig-name descname"><span class="pre">sort_panel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ascending</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'quicksort'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">callable</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.sort_panel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.sort_panel" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">sort_panel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ascending</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inplace</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'quicksort'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">callable</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/wavy/panel.html#Panel.sort_panel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.Panel.sort_panel" title="Permalink to this definition"></a></dt>
 <dd><p>Sort panel by ids.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ascending</strong> (<em>bool</em><em> or </em><em>list-like of bools</em><em>, </em><em>default True</em>) – Sort ascending vs. descending. When the index is a MultiIndex the sort direction can be controlled for each level individually.</p></li>
-<li><p><strong>inplace</strong> (<em>bool</em><em>, </em><em>default False</em>) – If True, perform operation in-place.</p></li>
+<li><p><strong>ascending</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code> or list-like of <code class="docutils literal notranslate"><span class="pre">bools</span></code>, default True) – Sort ascending vs. descending. When the index is a MultiIndex the sort direction can be controlled for each level individually.</p></li>
+<li><p><strong>inplace</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>, default False) – If True, perform operation in-place.</p></li>
 <li><p><strong>kind</strong> (<em>{'quicksort'</em><em>, </em><em>'mergesort'</em><em>, </em><em>'heapsort'</em><em>, </em><em>'stable'}</em><em>, </em><em>default 'quicksort'</em>) – Choice of sorting algorithm. See also numpy.sort() for more information. mergesort and stable are the only stable algorithms. For DataFrames, this option is only applied when sorting on a single column or label.</p></li>
 <li><p><strong>key</strong> (<em>callable</em><em>, </em><em>optional</em>) – If not None, apply the key function to the index values before sorting. This is similar to the key argument in the builtin sorted() function, with the notable difference that this key function should be vectorized. It should expect an Index and return an Index of the same shape. For MultiIndex inputs, the key is applied per level.</p></li>
 </ul>
@@ -555,7 +557,7 @@ properties .train, .val and .test.</p>
 <dd class="field-even"><p>The original DataFrame sorted by the labels or None if <cite>inplace=True</cite>.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">Panel</span> <span class="pre">or</span> <span class="pre">None</span></code></p>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">Panel</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -566,7 +568,7 @@ properties .train, .val and .test.</p>
 <dd><p>Return the last n frames of the panel.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>n</strong> (<em>int</em>) – Number of frames to return.</p>
+<dd class="field-odd"><p><strong>n</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – Number of frames to return.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Result of tail function.</p>

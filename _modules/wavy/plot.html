@@ -22,7 +22,7 @@
     <link rel="search" title="Search" href="../../search.html" />
 <script type="text/javascript">
   window.onload = function() {
-    document.body.innerHTML = document.body.innerHTML.replace(/ module/g, '');
+    document.body.innerHTML = document.body.innerHTML.replace(/ Module/g, '');
   }
 </script>
 
@@ -58,7 +58,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../api/panel.html">wavy.panel Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api/models.html">wavy.models Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api/plot.html">wavy.plot Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../api/utils.html">wavy.utils Module</a></li>
 </ul>
 
         </div>
@@ -88,14 +87,22 @@
   <h1>Source code for wavy.plot</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+
 <span class="kn">import</span> <span class="nn">plotly.express</span> <span class="k">as</span> <span class="nn">px</span>
 <span class="kn">from</span> <span class="nn">plotlab</span> <span class="kn">import</span> <span class="n">Figure</span>
+
+<span class="c1"># from .panel import Panel</span>
 
 <span class="c1"># TODO: Set plotting configs and add kwargs to functions</span>
 <span class="c1"># TODO: Check if kwargs would overwrite fig.add_trace if same params are used</span>
 
 
 <div class="viewcode-block" id="PanelFigure"><a class="viewcode-back" href="../../api/wavy.plot.PanelFigure.html#wavy.plot.PanelFigure">[docs]</a><span class="k">class</span> <span class="nc">PanelFigure</span><span class="p">(</span><span class="n">Figure</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    PanelFigure class.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># TODO: Add dynamic color changing once new traces are added</span>
         <span class="c1"># TODO: Add candlestick plot</span>
@@ -104,14 +111,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">colors</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">qualitative</span><span class="o">.</span><span class="n">Plotly</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">color_index</span> <span class="o">=</span> <span class="mi">0</span>
 
-<div class="viewcode-block" id="PanelFigure.add_annotation"><a class="viewcode-back" href="../../api/wavy.plot.PanelFigure.html#wavy.plot.PanelFigure.add_annotation">[docs]</a>    <span class="k">def</span> <span class="nf">add_annotation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">panel</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;gray&quot;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<div class="viewcode-block" id="PanelFigure.add_annotation"><a class="viewcode-back" href="../../api/wavy.plot.PanelFigure.html#wavy.plot.PanelFigure.add_annotation">[docs]</a>    <span class="k">def</span> <span class="nf">add_annotation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">panel</span><span class="p">,</span> <span class="n">color</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;gray&quot;</span><span class="p">,</span> <span class="n">opacity</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Split panel into sets.</span>
+<span class="sd">        Plot vertical lines showing train, val, and test periods.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            panel (wavy.Panel): Panel to split</span>
-<span class="sd">            color (str): Color of the sets</span>
-<span class="sd">            opacity (float): Opacity of the sets</span>
+<span class="sd">            panel (``Panel``): Panel to split.</span>
+<span class="sd">            color (``str``): Color of the sets.</span>
+<span class="sd">            opacity (``float``): Opacity of the sets.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># BUG: Seems to break if using &quot;ggplot2&quot;</span>
         <span class="c1"># ! Won&#39;t take effect until next trace is added (no axis was added)</span>
@@ -146,7 +153,8 @@
             <span class="p">)</span></div>
 
     <span class="c1"># Add decorator for instance check and for loop</span>
-<div class="viewcode-block" id="PanelFigure.iterator"><a class="viewcode-back" href="../../api/wavy.plot.PanelFigure.html#wavy.plot.PanelFigure.iterator">[docs]</a>    <span class="k">def</span> <span class="nf">iterator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_iterator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+        <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
         <span class="k">def</span> <span class="nf">inner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
             <span class="n">args</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
@@ -158,55 +166,55 @@
                 <span class="k">if</span> <span class="n">col</span> <span class="o">!=</span> <span class="s2">&quot;frame&quot;</span><span class="p">:</span>
                     <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">],</span> <span class="o">*</span><span class="nb">tuple</span><span class="p">(</span><span class="n">args</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">inner</span></div>
+        <span class="k">return</span> <span class="n">inner</span>
 
-<div class="viewcode-block" id="PanelFigure.add_line"><a class="viewcode-back" href="../../api/wavy.plot.PanelFigure.html#wavy.plot.PanelFigure.add_line">[docs]</a>    <span class="nd">@iterator</span>
-    <span class="k">def</span> <span class="nf">add_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PanelFigure.add_line"><a class="viewcode-back" href="../../api/wavy.plot.PanelFigure.html#wavy.plot.PanelFigure.add_line">[docs]</a>    <span class="nd">@_iterator</span>
+    <span class="k">def</span> <span class="nf">add_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add a line to the figure.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            col (str): Column to plot</span>
+<span class="sd">            col (``str``): Column to plot</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="PanelFigure.add_area"><a class="viewcode-back" href="../../api/wavy.plot.PanelFigure.html#wavy.plot.PanelFigure.add_area">[docs]</a>    <span class="nd">@iterator</span>
-    <span class="k">def</span> <span class="nf">add_area</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PanelFigure.add_area"><a class="viewcode-back" href="../../api/wavy.plot.PanelFigure.html#wavy.plot.PanelFigure.add_area">[docs]</a>    <span class="nd">@_iterator</span>
+    <span class="k">def</span> <span class="nf">add_area</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add an area to the figure.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            col (str): Column to plot</span>
+<span class="sd">            col (``str``): Column to plot</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">area</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="PanelFigure.add_bar"><a class="viewcode-back" href="../../api/wavy.plot.PanelFigure.html#wavy.plot.PanelFigure.add_bar">[docs]</a>    <span class="nd">@iterator</span>
-    <span class="k">def</span> <span class="nf">add_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PanelFigure.add_bar"><a class="viewcode-back" href="../../api/wavy.plot.PanelFigure.html#wavy.plot.PanelFigure.add_bar">[docs]</a>    <span class="nd">@_iterator</span>
+    <span class="k">def</span> <span class="nf">add_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add a bar to the figure.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            col (str): Column to plot</span>
+<span class="sd">            col (``str``): Column to plot</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="PanelFigure.add_scatter"><a class="viewcode-back" href="../../api/wavy.plot.PanelFigure.html#wavy.plot.PanelFigure.add_scatter">[docs]</a>    <span class="nd">@iterator</span>
-    <span class="k">def</span> <span class="nf">add_scatter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PanelFigure.add_scatter"><a class="viewcode-back" href="../../api/wavy.plot.PanelFigure.html#wavy.plot.PanelFigure.add_scatter">[docs]</a>    <span class="nd">@_iterator</span>
+    <span class="k">def</span> <span class="nf">add_scatter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add a scatter to the figure.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            col (str): Column to plot</span>
+<span class="sd">            col (``str``): Column to plot.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="PanelFigure.add_dotline"><a class="viewcode-back" href="../../api/wavy.plot.PanelFigure.html#wavy.plot.PanelFigure.add_dotline">[docs]</a>    <span class="nd">@iterator</span>
-    <span class="k">def</span> <span class="nf">add_dotline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="PanelFigure.add_dotline"><a class="viewcode-back" href="../../api/wavy.plot.PanelFigure.html#wavy.plot.PanelFigure.add_dotline">[docs]</a>    <span class="nd">@_iterator</span>
+    <span class="k">def</span> <span class="nf">add_dotline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add a dotline to the figure.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            col (str): Column to plot</span>
+<span class="sd">            col (``str``): Column to plot.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dotline</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
 
@@ -215,12 +223,12 @@
     <span class="n">panel</span><span class="p">,</span> <span class="n">use_timestep</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">add_annotation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PanelFigure</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Plot a panel.</span>
+<span class="sd">    Plot panel.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        panel (Panel): Panel object</span>
-<span class="sd">        use_timestep (bool): Use timestep instead of id</span>
-<span class="sd">        add_annotation (bool): If True, plot vertical lines showing train, val, and test periods</span>
+<span class="sd">        panel (``Panel``): Panel object.</span>
+<span class="sd">        use_timestep (``bool``): Use timestep instead of id.</span>
+<span class="sd">        add_annotation (``bool``): If True, plot vertical lines showing train, val, and test periods.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        ``Plot``: Plotted data</span>

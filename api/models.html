@@ -25,7 +25,7 @@
     <link rel="prev" title="Panel" href="wavy.panel.Panel.html" />
 <script type="text/javascript">
   window.onload = function() {
-    document.body.innerHTML = document.body.innerHTML.replace(/ module/g, '');
+    document.body.innerHTML = document.body.innerHTML.replace(/ Module/g, '');
   }
 </script>
 
@@ -66,6 +66,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#classes">Classes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="wavy.models.BaseModel.html">BaseModel</a></li>
 <li class="toctree-l3"><a class="reference internal" href="wavy.models.BaselineConstant.html">BaselineConstant</a></li>
 <li class="toctree-l3"><a class="reference internal" href="wavy.models.BaselineShift.html">BaselineShift</a></li>
 <li class="toctree-l3"><a class="reference internal" href="wavy.models.ConvModel.html">ConvModel</a></li>
@@ -78,7 +79,6 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="plot.html">wavy.plot Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="utils.html">wavy.utils Module</a></li>
 </ul>
 
         </div>
@@ -156,26 +156,29 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="wavy.models.BaselineConstant.html#wavy.models.BaselineConstant" title="wavy.models.BaselineConstant"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaselineConstant</span></code></a>(x, y[, model_type, loss, ...])</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="wavy.models.BaseModel.html#wavy.models.BaseModel" title="wavy.models.BaseModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseModel</span></code></a>(x, y[, model_type, loss, ...])</p></td>
+<td><p>Base class for panel models.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="wavy.models.BaselineShift.html#wavy.models.BaselineShift" title="wavy.models.BaselineShift"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaselineShift</span></code></a>(x, y[, model_type, loss, ...])</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="wavy.models.BaselineConstant.html#wavy.models.BaselineConstant" title="wavy.models.BaselineConstant"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaselineConstant</span></code></a>(x, y[, model_type, loss, ...])</p></td>
+<td><p>Baseline constant model.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="wavy.models.ConvModel.html#wavy.models.ConvModel" title="wavy.models.ConvModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConvModel</span></code></a>(x, y[, model_type, conv_layers, ...])</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="wavy.models.BaselineShift.html#wavy.models.BaselineShift" title="wavy.models.BaselineShift"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaselineShift</span></code></a>(x, y[, model_type, loss, ...])</p></td>
+<td><p>Baseline shift model.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="wavy.models.DenseModel.html#wavy.models.DenseModel" title="wavy.models.DenseModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DenseModel</span></code></a>(x, y[, model_type, dense_layers, ...])</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="wavy.models.ConvModel.html#wavy.models.ConvModel" title="wavy.models.ConvModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConvModel</span></code></a>(x, y[, model_type, conv_layers, ...])</p></td>
+<td><p>Convolutional model.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="wavy.models.LinearRegression.html#wavy.models.LinearRegression" title="wavy.models.LinearRegression"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LinearRegression</span></code></a>(x, y, **kwargs)</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="wavy.models.DenseModel.html#wavy.models.DenseModel" title="wavy.models.DenseModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DenseModel</span></code></a>(x, y[, model_type, dense_layers, ...])</p></td>
+<td><p>Dense model.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="wavy.models.LogisticRegression.html#wavy.models.LogisticRegression" title="wavy.models.LogisticRegression"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LogisticRegression</span></code></a>(x, y, **kwargs)</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="wavy.models.LinearRegression.html#wavy.models.LinearRegression" title="wavy.models.LinearRegression"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LinearRegression</span></code></a>(x, y, **kwargs)</p></td>
+<td><p>Linear regression model.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="wavy.models.ShallowModel.html#wavy.models.ShallowModel" title="wavy.models.ShallowModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ShallowModel</span></code></a>(x, y, model, metrics, **kwargs)</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="wavy.models.LogisticRegression.html#wavy.models.LogisticRegression" title="wavy.models.LogisticRegression"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LogisticRegression</span></code></a>(x, y, **kwargs)</p></td>
+<td><p>Logistic regression model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="wavy.models.ShallowModel.html#wavy.models.ShallowModel" title="wavy.models.ShallowModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ShallowModel</span></code></a>(x, y, model, metrics, **kwargs)</p></td>
+<td><p>Shallow model.</p></td>
 </tr>
 </tbody>
 </table>

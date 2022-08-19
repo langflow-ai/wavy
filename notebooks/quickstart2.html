@@ -27,7 +27,7 @@
     <link rel="prev" title="Introduction" href="../manual/introduction.html" />
 <script type="text/javascript">
   window.onload = function() {
-    document.body.innerHTML = document.body.innerHTML.replace(/ module/g, '');
+    document.body.innerHTML = document.body.innerHTML.replace(/ Module/g, '');
   }
 </script>
 
@@ -63,7 +63,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../api/panel.html">wavy.panel Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/models.html">wavy.models Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/plot.html">wavy.plot Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../api/utils.html">wavy.utils Module</a></li>
 </ul>
 
         </div>
@@ -372,18 +371,21 @@ div.rendered_html tbody tr:hover {
 <h1>Quickstart<a class="headerlink" href="#Quickstart" title="Permalink to this heading"></a></h1>
 <p>This is a short introduction to <code class="docutils literal notranslate"><span class="pre">wavy</span></code>, geared mainly for new users.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import libraries</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">wavy</span>
+<span class="kn">from</span> <span class="nn">wavy</span> <span class="kn">import</span> <span class="n">models</span>
+<span class="kn">import</span> <span class="nn">plotly.io</span> <span class="k">as</span> <span class="nn">pio</span>
+<span class="n">pio</span><span class="o">.</span><span class="n">renderers</span><span class="o">.</span><span class="n">default</span> <span class="o">=</span> <span class="s1">&#39;pdf&#39;</span>
 </pre></div>
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Start with any time series dataframe</span>
@@ -392,11 +394,20 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create panels. Each panel is composed of a list of frames.</span>
 <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">wavy</span><span class="o">.</span><span class="n">create_panels</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">lookback</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">horizon</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set training split</span>
+<span class="n">wavy</span><span class="o">.</span><span class="n">set_training_split</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">train_size</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> <span class="n">val_size</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -406,7 +417,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># x and y are contain the past and corresponding future data.</span>
 <span class="c1"># lookback and horizon are the number of timesteps.</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Lookback:&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="s2">&quot;Horizon:&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Lookback:&quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">num_timesteps</span><span class="p">,</span> <span class="s2">&quot;Horizon:&quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">num_timesteps</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -431,16 +442,14 @@ Lookback: 10 Horizon: 1
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<div class="admonition warning">
-<p>Data type cannot be displayed: application/vnd.plotly.v1+json</p>
-</div>
+<img alt="../_images/notebooks_quickstart2_7_0.pdf" src="../_images/notebooks_quickstart2_7_0.pdf" />
 </div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Convert to numpy arrays. Panels contain a train-val-test split by default.</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Convert to numpy arrays</span>
 <span class="n">x_train</span><span class="p">,</span> <span class="n">y_train</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">values</span>
 <span class="n">x_test</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">values</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">x_train</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">y_train</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
@@ -452,57 +461,18 @@ Lookback: 10 Horizon: 1
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-(712, 10, 1) (712, 1, 1)
+(3960, 1) (396, 1)
 </pre></div></div>
 </div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Or just instantiate a model.</span>
-<span class="n">model</span> <span class="o">=</span> <span class="n">wavy</span><span class="o">.</span><span class="n">LinearRegression</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">LinearRegression</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
 <span class="n">model</span><span class="o">.</span><span class="n">score</span><span class="p">()</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
-</pre></div>
-</div>
-<div class="output_area rendered_html docutils container">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>train</th>
-      <th>test</th>
-      <th>val</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>MAE</th>
-      <td>1.398996</td>
-      <td>1.484263</td>
-      <td>1.412011</td>
-    </tr>
-  </tbody>
-</table>
-</div></div>
 </div>
 </section>
 

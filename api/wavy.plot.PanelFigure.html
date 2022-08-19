@@ -21,11 +21,10 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="wavy.utils Module" href="utils.html" />
     <link rel="prev" title="plot" href="wavy.plot.plot.html" />
 <script type="text/javascript">
   window.onload = function() {
-    document.body.innerHTML = document.body.innerHTML.replace(/ module/g, '');
+    document.body.innerHTML = document.body.innerHTML.replace(/ Module/g, '');
   }
 </script>
 
@@ -68,7 +67,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="utils.html">wavy.utils Module</a></li>
 </ul>
 
         </div>
@@ -126,6 +124,7 @@
 <dt class="sig sig-object py" id="wavy.plot.PanelFigure">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">PanelFigure</span></span><a class="reference internal" href="../_modules/wavy/plot.html#PanelFigure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.plot.PanelFigure" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Figure</span></code></p>
+<p>PanelFigure class.</p>
 <p class="rubric">Methods Summary</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -134,39 +133,36 @@
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#wavy.plot.PanelFigure.add_annotation" title="wavy.plot.PanelFigure.add_annotation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_annotation</span></code></a>(panel[, color, opacity])</p></td>
-<td><p>Split panel into sets.</p></td>
+<td><p>Plot vertical lines showing train, val, and test periods.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#wavy.plot.PanelFigure.add_area" title="wavy.plot.PanelFigure.add_area"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_area</span></code></a>(*args, **kwargs)</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#wavy.plot.PanelFigure.add_area" title="wavy.plot.PanelFigure.add_area"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_area</span></code></a>(col, *args, **kwargs)</p></td>
+<td><p>Add an area to the figure.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#wavy.plot.PanelFigure.add_bar" title="wavy.plot.PanelFigure.add_bar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_bar</span></code></a>(*args, **kwargs)</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wavy.plot.PanelFigure.add_bar" title="wavy.plot.PanelFigure.add_bar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_bar</span></code></a>(col, *args, **kwargs)</p></td>
+<td><p>Add a bar to the figure.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#wavy.plot.PanelFigure.add_dotline" title="wavy.plot.PanelFigure.add_dotline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_dotline</span></code></a>(*args, **kwargs)</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#wavy.plot.PanelFigure.add_dotline" title="wavy.plot.PanelFigure.add_dotline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_dotline</span></code></a>(col, *args, **kwargs)</p></td>
+<td><p>Add a dotline to the figure.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#wavy.plot.PanelFigure.add_line" title="wavy.plot.PanelFigure.add_line"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_line</span></code></a>(*args, **kwargs)</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wavy.plot.PanelFigure.add_line" title="wavy.plot.PanelFigure.add_line"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_line</span></code></a>(col, *args, **kwargs)</p></td>
+<td><p>Add a line to the figure.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#wavy.plot.PanelFigure.add_scatter" title="wavy.plot.PanelFigure.add_scatter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_scatter</span></code></a>(*args, **kwargs)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#wavy.plot.PanelFigure.iterator" title="wavy.plot.PanelFigure.iterator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iterator</span></code></a>()</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#wavy.plot.PanelFigure.add_scatter" title="wavy.plot.PanelFigure.add_scatter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_scatter</span></code></a>(col, *args, **kwargs)</p></td>
+<td><p>Add a scatter to the figure.</p></td>
 </tr>
 </tbody>
 </table>
 <p class="rubric">Methods Documentation</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="wavy.plot.PanelFigure.add_annotation">
-<span class="sig-name descname"><span class="pre">add_annotation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">panel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gray'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/plot.html#PanelFigure.add_annotation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.plot.PanelFigure.add_annotation" title="Permalink to this definition"></a></dt>
-<dd><p>Split panel into sets.</p>
+<span class="sig-name descname"><span class="pre">add_annotation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">panel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'gray'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opacity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/wavy/plot.html#PanelFigure.add_annotation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.plot.PanelFigure.add_annotation" title="Permalink to this definition"></a></dt>
+<dd><p>Plot vertical lines showing train, val, and test periods.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>panel</strong> (<em>wavy.Panel</em>) – Panel to split</p></li>
-<li><p><strong>color</strong> (<em>str</em>) – Color of the sets</p></li>
-<li><p><strong>opacity</strong> (<em>float</em>) – Opacity of the sets</p></li>
+<li><p><strong>panel</strong> (<code class="docutils literal notranslate"><span class="pre">Panel</span></code>) – Panel to split.</p></li>
+<li><p><strong>color</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – Color of the sets.</p></li>
+<li><p><strong>opacity</strong> (<code class="docutils literal notranslate"><span class="pre">float</span></code>) – Opacity of the sets.</p></li>
 </ul>
 </dd>
 </dl>
@@ -174,33 +170,58 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="wavy.plot.PanelFigure.add_area">
-<span class="sig-name descname"><span class="pre">add_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/plot.html#PanelFigure.add_area"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.plot.PanelFigure.add_area" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">add_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/wavy/plot.html#PanelFigure.add_area"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.plot.PanelFigure.add_area" title="Permalink to this definition"></a></dt>
+<dd><p>Add an area to the figure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>col</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – Column to plot</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="wavy.plot.PanelFigure.add_bar">
-<span class="sig-name descname"><span class="pre">add_bar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/plot.html#PanelFigure.add_bar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.plot.PanelFigure.add_bar" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">add_bar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/wavy/plot.html#PanelFigure.add_bar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.plot.PanelFigure.add_bar" title="Permalink to this definition"></a></dt>
+<dd><p>Add a bar to the figure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>col</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – Column to plot</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="wavy.plot.PanelFigure.add_dotline">
-<span class="sig-name descname"><span class="pre">add_dotline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/plot.html#PanelFigure.add_dotline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.plot.PanelFigure.add_dotline" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">add_dotline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/wavy/plot.html#PanelFigure.add_dotline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.plot.PanelFigure.add_dotline" title="Permalink to this definition"></a></dt>
+<dd><p>Add a dotline to the figure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>col</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – Column to plot.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="wavy.plot.PanelFigure.add_line">
-<span class="sig-name descname"><span class="pre">add_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/plot.html#PanelFigure.add_line"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.plot.PanelFigure.add_line" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">add_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/wavy/plot.html#PanelFigure.add_line"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.plot.PanelFigure.add_line" title="Permalink to this definition"></a></dt>
+<dd><p>Add a line to the figure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>col</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – Column to plot</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="wavy.plot.PanelFigure.add_scatter">
-<span class="sig-name descname"><span class="pre">add_scatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/plot.html#PanelFigure.add_scatter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.plot.PanelFigure.add_scatter" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="wavy.plot.PanelFigure.iterator">
-<span class="sig-name descname"><span class="pre">iterator</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/plot.html#PanelFigure.iterator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.plot.PanelFigure.iterator" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">add_scatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">col</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/wavy/plot.html#PanelFigure.add_scatter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.plot.PanelFigure.add_scatter" title="Permalink to this definition"></a></dt>
+<dd><p>Add a scatter to the figure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>col</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – Column to plot.</p>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
@@ -211,7 +232,6 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="wavy.plot.plot.html" class="btn btn-neutral float-left" title="plot" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="utils.html" class="btn btn-neutral float-right" title="wavy.utils Module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

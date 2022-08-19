@@ -11,9 +11,23 @@ BaselineShift
    .. autosummary::
 
       ~BaselineShift.build
+      ~BaselineShift.compile
+      ~BaselineShift.fit
+      ~BaselineShift.get_auc
+      ~BaselineShift.predict
+      ~BaselineShift.predict_proba
+      ~BaselineShift.residuals
+      ~BaselineShift.score
       ~BaselineShift.set_arrays
 
    .. rubric:: Methods Documentation
 
    .. automethod:: build
+   .. automethod:: compile
+   .. automethod:: fit
+   .. automethod:: get_auc
+   .. automethod:: predict
+   .. automethod:: predict_proba
+   .. automethod:: residuals
+   .. automethod:: score
    .. automethod:: set_arrays

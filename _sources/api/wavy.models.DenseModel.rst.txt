@@ -11,7 +11,23 @@ DenseModel
    .. autosummary::
 
       ~DenseModel.build
+      ~DenseModel.compile
+      ~DenseModel.fit
+      ~DenseModel.get_auc
+      ~DenseModel.predict
+      ~DenseModel.predict_proba
+      ~DenseModel.residuals
+      ~DenseModel.score
+      ~DenseModel.set_arrays
 
    .. rubric:: Methods Documentation
 
    .. automethod:: build
+   .. automethod:: compile
+   .. automethod:: fit
+   .. automethod:: get_auc
+   .. automethod:: predict
+   .. automethod:: predict_proba
+   .. automethod:: residuals
+   .. automethod:: score
+   .. automethod:: set_arrays

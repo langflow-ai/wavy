@@ -16,7 +16,6 @@ PanelFigure
       ~PanelFigure.add_dotline
       ~PanelFigure.add_line
       ~PanelFigure.add_scatter
-      ~PanelFigure.iterator
 
    .. rubric:: Methods Documentation
 
@@ -26,4 +25,3 @@ PanelFigure
    .. automethod:: add_dotline
    .. automethod:: add_line
    .. automethod:: add_scatter
-   .. automethod:: iterator

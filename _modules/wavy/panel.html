@@ -22,7 +22,7 @@
     <link rel="search" title="Search" href="../../search.html" />
 <script type="text/javascript">
   window.onload = function() {
-    document.body.innerHTML = document.body.innerHTML.replace(/ module/g, '');
+    document.body.innerHTML = document.body.innerHTML.replace(/ Module/g, '');
   }
 </script>
 
@@ -58,7 +58,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../api/panel.html">wavy.panel Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api/models.html">wavy.models Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api/plot.html">wavy.plot Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../api/utils.html">wavy.utils Module</a></li>
 </ul>
 
         </div>
@@ -88,11 +87,10 @@
   <h1>Source code for wavy.panel</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">import</span> <span class="nn">contextlib</span>
+<span class="c1"># import contextlib</span>
 <span class="kn">import</span> <span class="nn">random</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
@@ -108,18 +106,18 @@
 <span class="c1"># Define column to y</span>
 <div class="viewcode-block" id="create_panels"><a class="viewcode-back" href="../../api/wavy.panel.create_panels.html#wavy.panel.create_panels">[docs]</a><span class="k">def</span> <span class="nf">create_panels</span><span class="p">(</span>
     <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">lookback</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">horizon</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">gap</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Panel</span><span class="p">,</span> <span class="n">Panel</span><span class="p">]:</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Panel</span><span class="p">,</span> <span class="n">Panel</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create panels from a dataframe.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        df (pd.DataFrame): Dataframe</span>
-<span class="sd">        lookback (int): Lookback size</span>
-<span class="sd">        horizon (int): Horizon size</span>
-<span class="sd">        gap (int): Gap size</span>
+<span class="sd">        df (``pd.DataFrame``): Dataframe</span>
+<span class="sd">        lookback (``int``): Lookback size</span>
+<span class="sd">        horizon (``int``): Horizon size</span>
+<span class="sd">        gap (``int``): Gap size</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        ``Tuple``: Tuple of panels</span>
+<span class="sd">        ``tuple[Panel, Panel]``: Tuple of panels</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">indices</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span>
@@ -194,8 +192,8 @@
 <span class="sd">    Reset ids of a panel.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        panels (list): List of panels</span>
-<span class="sd">        inplace (bool): Whether to reset ids inplace or not.</span>
+<span class="sd">        panels (``list``): List of panels</span>
+<span class="sd">        inplace (``bool``): Whether to reset ids inplace or not.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        ``Panel``: Reset id of panel</span>
@@ -212,11 +210,11 @@
 
 <div class="viewcode-block" id="dropna_match"><a class="viewcode-back" href="../../api/wavy.panel.dropna_match.html#wavy.panel.dropna_match">[docs]</a><span class="k">def</span> <span class="nf">dropna_match</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Drop frames with NaN in both x and y and match ids.</span>
+<span class="sd">    Drop frames with NaN in panels and match ids.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        x (Panel): Panel with x data</span>
-<span class="sd">        y (Panel): Panel with y data</span>
+<span class="sd">        x (``Panel``): Panel with x data</span>
+<span class="sd">        y (``Panel``): Panel with y data</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        ``Panel``: Panel with dropped frames and matched ids</span>
@@ -238,9 +236,9 @@
 <span class="sd">    Concatenate panels.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        panels (list): List of panels</span>
-<span class="sd">        reset_ids (bool): Whether to reset ids</span>
-<span class="sd">        sort (bool): Whether to sort by id</span>
+<span class="sd">        panels (``list``): List of panels</span>
+<span class="sd">        reset_ids (``bool``): Whether to reset ids</span>
+<span class="sd">        sort (``bool``): Whether to sort by id</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        ``Panel``: Concatenated panels</span>
@@ -267,21 +265,21 @@
 <div class="viewcode-block" id="set_training_split"><a class="viewcode-back" href="../../api/wavy.panel.set_training_split.html#wavy.panel.set_training_split">[docs]</a><span class="k">def</span> <span class="nf">set_training_split</span><span class="p">(</span>
     <span class="n">x</span><span class="p">:</span> <span class="n">Panel</span><span class="p">,</span>
     <span class="n">y</span><span class="p">:</span> <span class="n">Panel</span><span class="p">,</span>
-    <span class="n">train_size</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.7</span><span class="p">,</span>
-    <span class="n">val_size</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
-    <span class="n">test_size</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+    <span class="n">train_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="mf">0.7</span><span class="p">,</span>
+    <span class="n">val_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
+    <span class="n">test_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Splits the panel in training, validation, and test, accessed with the</span>
-<span class="sd">    properties .train, .val and .test.</span>
+<span class="sd">    Splits panel in training, validation, and test.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        train_size (float, int): Fraction of data to use for training.</span>
-<span class="sd">        test_size (float, int): Fraction of data to use for testing.</span>
-<span class="sd">        val_size (float, int): Fraction of data to use for validation.</span>
+<span class="sd">        train_size (``float`` or ``int``): Fraction of data to use for training.</span>
+<span class="sd">        test_size (``float`` or ``int``): Fraction of data to use for testing.</span>
+<span class="sd">        val_size (``float`` or ``int``): Fraction of data to use for validation.</span>
 
 <span class="sd">    Example:</span>
-<span class="sd">    &gt;&gt;&gt; x,y = set_training_split(x, y, val_size=0.2, test_size=0.1)</span>
+
+<span class="sd">    &gt;&gt;&gt; x, y = set_training_split(x, y, train_size=0.8, val_size=0.2, test_size=0.1)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">x</span><span class="o">.</span><span class="n">set_training_split</span><span class="p">(</span><span class="n">train_size</span><span class="o">=</span><span class="n">train_size</span><span class="p">,</span> <span class="n">val_size</span><span class="o">=</span><span class="n">val_size</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="n">test_size</span><span class="p">)</span>
@@ -320,7 +318,7 @@
 
 <div class="viewcode-block" id="Panel"><a class="viewcode-back" href="../../api/wavy.panel.Panel.html#wavy.panel.Panel">[docs]</a><span class="k">class</span> <span class="nc">Panel</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Panel data structure.</span>
+<span class="sd">    Panel class.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
@@ -381,30 +379,32 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">frames</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrameGroupBy</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Returns the frames in the panel.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns panel&#39;s frames.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">timesteps</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Int64Index</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the ids of the panel.</span>
+<span class="sd">        Returns panel&#39;s timesteps.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ids</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Int64Index</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the ids of the panel without duplicates.</span>
+<span class="sd">        Returns panel&#39;s ids without duplicates.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
 
     <span class="nd">@ids</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">ids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Set the ids of the panel.</span>
+<span class="sd">        Set panel&#39;s ids.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            ids (list): List of ids.</span>
+<span class="sd">            ids (``list``): List of ids.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape_panel</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
@@ -414,12 +414,12 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">index</span>
 
-<div class="viewcode-block" id="Panel.reset_ids"><a class="viewcode-back" href="../../api/wavy.panel.Panel.html#wavy.panel.Panel.reset_ids">[docs]</a>    <span class="k">def</span> <span class="nf">reset_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inplace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Panel</span><span class="p">]:</span>
+<div class="viewcode-block" id="Panel.reset_ids"><a class="viewcode-back" href="../../api/wavy.panel.Panel.html#wavy.panel.Panel.reset_ids">[docs]</a>    <span class="k">def</span> <span class="nf">reset_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inplace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Panel</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Reset the ids of the panel.</span>
+<span class="sd">        Reset panel&#39;s ids.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            inplace (bool): Whether to reset ids inplace.</span>
+<span class="sd">            inplace (``bool``): Whether to reset ids inplace.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">new_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_frames</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_timesteps</span><span class="p">)</span>
         <span class="n">new_index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_arrays</span><span class="p">(</span>
@@ -430,15 +430,18 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">new_index</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="n">inplace</span><span class="p">)</span></div>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">shape_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">shape_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the shape of the panel.</span>
+<span class="sd">        Return a tuple representing the dimensionality of the Panel.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="p">)),</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 
-<div class="viewcode-block" id="Panel.row_panel"><a class="viewcode-back" href="../../api/wavy.panel.Panel.html#wavy.panel.Panel.row_panel">[docs]</a>    <span class="k">def</span> <span class="nf">row_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Panel</span><span class="p">:</span>
+<div class="viewcode-block" id="Panel.row_panel"><a class="viewcode-back" href="../../api/wavy.panel.Panel.html#wavy.panel.Panel.row_panel">[docs]</a>    <span class="k">def</span> <span class="nf">row_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Panel</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the nth row of each frame.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            n (``list[int]`` or ``int``): Row index.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
             <span class="n">n</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span><span class="p">]</span>
@@ -450,12 +453,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_copy_attrs</span><span class="p">(</span><span class="n">new_panel</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">new_panel</span></div>
 
-<div class="viewcode-block" id="Panel.get_timesteps"><a class="viewcode-back" href="../../api/wavy.panel.Panel.html#wavy.panel.Panel.get_timesteps">[docs]</a>    <span class="k">def</span> <span class="nf">get_timesteps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Panel</span><span class="p">:</span>
+<div class="viewcode-block" id="Panel.get_timesteps"><a class="viewcode-back" href="../../api/wavy.panel.Panel.html#wavy.panel.Panel.get_timesteps">[docs]</a>    <span class="k">def</span> <span class="nf">get_timesteps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Panel</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the first timestep of each frame in the panel.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            n (int): Timestep to return.</span>
+<span class="sd">            n (``list[int]`` or ``int``): Timestep to return.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
@@ -510,13 +513,13 @@
 
         <span class="k">return</span> <span class="n">panel</span></div>
 
-<div class="viewcode-block" id="Panel.drop_ids"><a class="viewcode-back" href="../../api/wavy.panel.Panel.html#wavy.panel.Panel.drop_ids">[docs]</a>    <span class="k">def</span> <span class="nf">drop_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">inplace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Panel</span><span class="p">]:</span>
+<div class="viewcode-block" id="Panel.drop_ids"><a class="viewcode-back" href="../../api/wavy.panel.Panel.html#wavy.panel.Panel.drop_ids">[docs]</a>    <span class="k">def</span> <span class="nf">drop_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="nb">int</span><span class="p">,</span> <span class="n">inplace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Panel</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Drop frames by id.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            ids (list, int): List of ids to drop.</span>
-<span class="sd">            inplace (bool): Whether to drop ids inplace.</span>
+<span class="sd">            ids (``list[int]`` or ``int``): List of ids to drop.</span>
+<span class="sd">            inplace (``bool``): Whether to drop ids inplace.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ``Panel``: Panel with frames dropped.</span>
@@ -541,26 +544,27 @@
             <span class="k">else</span> <span class="n">pd</span><span class="o">.</span><span class="n">Int64Index</span><span class="p">([],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="Panel.dropna_frames"><a class="viewcode-back" href="../../api/wavy.panel.Panel.html#wavy.panel.Panel.dropna_frames">[docs]</a>    <span class="k">def</span> <span class="nf">dropna_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inplace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Panel</span><span class="p">]:</span>
+<div class="viewcode-block" id="Panel.dropna_frames"><a class="viewcode-back" href="../../api/wavy.panel.Panel.html#wavy.panel.Panel.dropna_frames">[docs]</a>    <span class="k">def</span> <span class="nf">dropna_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inplace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Panel</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Drop frames with missing values from the panel.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            inplace (bool): Whether to drop frames inplace.</span>
+<span class="sd">            inplace (``bool``): Whether to drop frames inplace.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ``Panel``: Panel with frames dropped.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_ids</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">findna_frames</span><span class="p">(),</span> <span class="n">inplace</span><span class="o">=</span><span class="n">inplace</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Panel.match_frames"><a class="viewcode-back" href="../../api/wavy.panel.Panel.html#wavy.panel.Panel.match_frames">[docs]</a>    <span class="k">def</span> <span class="nf">match_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Panel</span><span class="p">,</span> <span class="n">inplace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Panel</span><span class="p">]:</span>
+<div class="viewcode-block" id="Panel.match_frames"><a class="viewcode-back" href="../../api/wavy.panel.Panel.html#wavy.panel.Panel.match_frames">[docs]</a>    <span class="k">def</span> <span class="nf">match_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Panel</span><span class="p">,</span> <span class="n">inplace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Panel</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Match panel with other panel. This function will match the ids and id</span>
-<span class="sd">        order of self based on the ids of other.</span>
+<span class="sd">        Match panel with other panel.</span>
+
+<span class="sd">        This function will match the ids and id order of self based on the ids of other.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            other (``Panel``): Panel to match with.</span>
-<span class="sd">            inplace (bool): Whether to match inplace.</span>
+<span class="sd">            inplace (``bool``): Whether to match inplace.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ``Panel``: Result of match function.</span>
@@ -579,21 +583,21 @@
 
 <div class="viewcode-block" id="Panel.set_training_split"><a class="viewcode-back" href="../../api/wavy.panel.Panel.html#wavy.panel.Panel.set_training_split">[docs]</a>    <span class="k">def</span> <span class="nf">set_training_split</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">train_size</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.7</span><span class="p">,</span>
-        <span class="n">val_size</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
-        <span class="n">test_size</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+        <span class="n">train_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="mf">0.7</span><span class="p">,</span>
+        <span class="n">val_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
+        <span class="n">test_size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Splits the panel in training, validation, and test, accessed with the</span>
-<span class="sd">        properties .train, .val and .test.</span>
+<span class="sd">        Splits Panel into training, validation, and test.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            train_size (float, int): Fraction of data to use for training.</span>
-<span class="sd">            test_size (float, int): Fraction of data to use for testing.</span>
-<span class="sd">            val_size (float, int): Fraction of data to use for validation.</span>
+<span class="sd">            train_size (``float`` or ``int``): Fraction of data to use for training.</span>
+<span class="sd">            test_size (``float`` or ``int``): Fraction of data to use for testing.</span>
+<span class="sd">            val_size (``float`` or ``int``): Fraction of data to use for validation.</span>
 
 <span class="sd">        Example:</span>
-<span class="sd">        &gt;&gt;&gt; panel.set_training_split(val_size=0.2, test_size=0.1)</span>
+
+<span class="sd">        &gt;&gt;&gt; panel.set_training_split(train_size=0.8, val_size=0.2, test_size=0.1)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">n_train</span><span class="p">,</span> <span class="n">n_val</span><span class="p">,</span> <span class="n">n_test</span> <span class="o">=</span> <span class="n">_validate_training_split</span><span class="p">(</span>
@@ -619,8 +623,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Panel</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the Panel with the training set, according to</span>
-<span class="sd">        the parameters given in the &#39;set_training_split&#39; function.</span>
+<span class="sd">        Returns the Panel with the training set.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ``Panel``: Panel with the training set.</span>
@@ -644,8 +647,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">val</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Panel</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the Panel with the validation set, according to</span>
-<span class="sd">        the parameters given in the &#39;set_training_split&#39; function.</span>
+<span class="sd">        Returns the Panel with the validation set.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ``Panel``: Panel with the validation set.</span>
@@ -685,8 +687,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Panel</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the Panel with the testing set, according to</span>
-<span class="sd">        the parameters given in the &#39;set_training_split&#39; function.</span>
+<span class="sd">        Returns the Panel with the testing set.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ``Panel``: Panel with the testing set.</span>
@@ -712,7 +713,7 @@
 <span class="sd">        Return the first n frames of the panel.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            n (int): Number of frames to return.</span>
+<span class="sd">            n (``int``): Number of frames to return.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ``Panel``: Result of head function.</span>
@@ -724,7 +725,7 @@
 <span class="sd">        Return the last n frames of the panel.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            n (int): Number of frames to return.</span>
+<span class="sd">            n (``int``): Number of frames to return.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ``Panel``: Result of tail function.</span>
@@ -737,18 +738,18 @@
         <span class="n">inplace</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;quicksort&quot;</span><span class="p">,</span>
         <span class="n">key</span><span class="p">:</span> <span class="n">callable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Panel</span><span class="p">]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Panel</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sort panel by ids.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            ascending (bool or list-like of bools, default True): Sort ascending vs. descending. When the index is a MultiIndex the sort direction can be controlled for each level individually.</span>
-<span class="sd">            inplace (bool, default False): If True, perform operation in-place.</span>
+<span class="sd">            ascending (``bool`` or list-like of ``bools``, default True): Sort ascending vs. descending. When the index is a MultiIndex the sort direction can be controlled for each level individually.</span>
+<span class="sd">            inplace (``bool``, default False): If True, perform operation in-place.</span>
 <span class="sd">            kind ({&#39;quicksort&#39;, &#39;mergesort&#39;, &#39;heapsort&#39;, &#39;stable&#39;}, default &#39;quicksort&#39;): Choice of sorting algorithm. See also numpy.sort() for more information. mergesort and stable are the only stable algorithms. For DataFrames, this option is only applied when sorting on a single column or label.</span>
 <span class="sd">            key (callable, optional): If not None, apply the key function to the index values before sorting. This is similar to the key argument in the builtin sorted() function, with the notable difference that this key function should be vectorized. It should expect an Index and return an Index of the same shape. For MultiIndex inputs, the key is applied per level.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            ``Panel or None``: The original DataFrame sorted by the labels or None if `inplace=True`.</span>
+<span class="sd">            ``Panel`` or ``None``: The original DataFrame sorted by the labels or None if `inplace=True`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sort_index</span><span class="p">(</span>
@@ -762,19 +763,19 @@
 
 <div class="viewcode-block" id="Panel.sample_panel"><a class="viewcode-back" href="../../api/wavy.panel.Panel.html#wavy.panel.Panel.sample_panel">[docs]</a>    <span class="k">def</span> <span class="nf">sample_panel</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">samples</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="n">samples</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
         <span class="n">how</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;spaced&quot;</span><span class="p">,</span>
         <span class="n">reset_ids</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Panel</span><span class="p">]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Panel</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sample panel returning a subset of frames.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            samples (int or float): Number or percentage of samples to return.</span>
-<span class="sd">            how (str): Sampling method, &#39;spaced&#39; or &#39;random&#39;</span>
-<span class="sd">            reset_ids (bool): If True, reset the index of the sampled panel.</span>
-<span class="sd">            seed (int): Random seed.</span>
+<span class="sd">            samples (``int`` or ``float``): Number or percentage of samples to return.</span>
+<span class="sd">            how (``str``): Sampling method, &#39;spaced&#39; or &#39;random&#39;</span>
+<span class="sd">            reset_ids (``bool``): If True, reset the index of the sampled panel.</span>
+<span class="sd">            seed (``int``): Random seed.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ``Panel``: Result of sample function.</span>
@@ -861,15 +862,13 @@
 
         <span class="k">return</span> <span class="n">new_panel</span></div>
 
-<div class="viewcode-block" id="Panel.shuffle_panel"><a class="viewcode-back" href="../../api/wavy.panel.Panel.html#wavy.panel.Panel.shuffle_panel">[docs]</a>    <span class="k">def</span> <span class="nf">shuffle_panel</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">reset_ids</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Panel</span><span class="p">]:</span>
+<div class="viewcode-block" id="Panel.shuffle_panel"><a class="viewcode-back" href="../../api/wavy.panel.Panel.html#wavy.panel.Panel.shuffle_panel">[docs]</a>    <span class="k">def</span> <span class="nf">shuffle_panel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">reset_ids</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Panel</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Shuffle the panel.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            seed (int): Random seed.</span>
-<span class="sd">            reset_ids (bool): If True, reset the index of the shuffled panel.</span>
+<span class="sd">            seed (``int``): Random seed.</span>
+<span class="sd">            reset_ids (``bool``): If True, reset the index of the shuffled panel.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            ``Panel``: Result of shuffle function.</span>
@@ -915,9 +914,9 @@
 <span class="sd">        Plot the panel.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            add_annotation (bool): If True, plot the training, validation, and test annotation.</span>
-<span class="sd">            max (int): Maximum number of samples to plot.</span>
-<span class="sd">            use_timestep (bool): If True, plot the timestep instead of the sample index.</span>
+<span class="sd">            add_annotation (``bool``): If True, plot the training, validation, and test annotation.</span>
+<span class="sd">            max (``int``): Maximum number of samples to plot.</span>
+<span class="sd">            use_timestep (``bool``): If True, plot the timestep instead of the sample index.</span>
 <span class="sd">            **kwargs: Additional arguments to pass to the plot function.</span>
 
 <span class="sd">        Returns:</span>

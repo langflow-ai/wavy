@@ -25,7 +25,7 @@
     <link rel="prev" title="BaselineConstant" href="wavy.models.BaselineConstant.html" />
 <script type="text/javascript">
   window.onload = function() {
-    document.body.innerHTML = document.body.innerHTML.replace(/ module/g, '');
+    document.body.innerHTML = document.body.innerHTML.replace(/ Module/g, '');
   }
 </script>
 
@@ -62,6 +62,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="models.html">wavy.models Module</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="models.html#functions">Functions</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="models.html#classes">Classes</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="wavy.models.BaseModel.html">BaseModel</a></li>
 <li class="toctree-l3"><a class="reference internal" href="wavy.models.BaselineConstant.html">BaselineConstant</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">BaselineShift</a></li>
 <li class="toctree-l3"><a class="reference internal" href="wavy.models.ConvModel.html">ConvModel</a></li>
@@ -74,7 +75,6 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="plot.html">wavy.plot Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="utils.html">wavy.utils Module</a></li>
 </ul>
 
         </div>
@@ -130,8 +130,9 @@
 <h1>BaselineShift<a class="headerlink" href="#baselineshift" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="wavy.models.BaselineShift">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">BaselineShift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fillna</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/models.html#BaselineShift"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.models.BaselineShift" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">BaselineShift</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fillna</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/models.html#BaselineShift"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.models.BaselineShift" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_Baseline</span></code></p>
+<p>Baseline shift model.</p>
 <p class="rubric">Methods Summary</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -142,7 +143,28 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#wavy.models.BaselineShift.build" title="wavy.models.BaselineShift.build"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build</span></code></a>()</p></td>
 <td><p>Build the model.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#wavy.models.BaselineShift.set_arrays" title="wavy.models.BaselineShift.set_arrays"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_arrays</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#wavy.models.BaselineShift.compile" title="wavy.models.BaselineShift.compile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compile</span></code></a>(**kwargs)</p></td>
+<td><p>Compile the model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wavy.models.BaselineShift.fit" title="wavy.models.BaselineShift.fit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit</span></code></a>(**kwargs)</p></td>
+<td><p>Fit the model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#wavy.models.BaselineShift.get_auc" title="wavy.models.BaselineShift.get_auc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_auc</span></code></a>()</p></td>
+<td><p>Get the AUC score.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wavy.models.BaselineShift.predict" title="wavy.models.BaselineShift.predict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict</span></code></a>([data])</p></td>
+<td><p>Predict.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#wavy.models.BaselineShift.predict_proba" title="wavy.models.BaselineShift.predict_proba"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict_proba</span></code></a>([data])</p></td>
+<td><p>Predict probabilities.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wavy.models.BaselineShift.residuals" title="wavy.models.BaselineShift.residuals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">residuals</span></code></a>()</p></td>
+<td><p>Residuals.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#wavy.models.BaselineShift.score" title="wavy.models.BaselineShift.score"><code class="xref py py-obj docutils literal notranslate"><span class="pre">score</span></code></a>([on])</p></td>
+<td><p>Score the model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#wavy.models.BaselineShift.set_arrays" title="wavy.models.BaselineShift.set_arrays"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_arrays</span></code></a>()</p></td>
 <td><p>Set the arrays.</p></td>
 </tr>
 </tbody>
@@ -150,8 +172,98 @@
 <p class="rubric">Methods Documentation</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="wavy.models.BaselineShift.build">
-<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wavy/models.html#BaselineShift.build"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.models.BaselineShift.build" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/wavy/models.html#BaselineShift.build"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.models.BaselineShift.build" title="Permalink to this definition"></a></dt>
 <dd><p>Build the model.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wavy.models.BaselineShift.compile">
+<span class="sig-name descname"><span class="pre">compile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#wavy.models.BaselineShift.compile" title="Permalink to this definition"></a></dt>
+<dd><p>Compile the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>**kwargs</strong> – Additional arguments to pass to the compile method.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wavy.models.BaselineShift.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#wavy.models.BaselineShift.fit" title="Permalink to this definition"></a></dt>
+<dd><p>Fit the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>**kwargs</strong> – Additional arguments to pass to the fit method.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wavy.models.BaselineShift.get_auc">
+<span class="sig-name descname"><span class="pre">get_auc</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#wavy.models.BaselineShift.get_auc" title="Permalink to this definition"></a></dt>
+<dd><p>Get the AUC score.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wavy.models.BaselineShift.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="wavy.panel.Panel.html#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="wavy.panel.Panel.html#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a></span></span><a class="headerlink" href="#wavy.models.BaselineShift.predict" title="Permalink to this definition"></a></dt>
+<dd><p>Predict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<code class="docutils literal notranslate"><span class="pre">Panel</span></code>) – Panel of data to predict.</p></li>
+<li><p><strong>**kwargs</strong> – Additional arguments to pass to the predict method.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">Panel</span></code> of predicted values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wavy.models.BaselineShift.predict_proba">
+<span class="sig-name descname"><span class="pre">predict_proba</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="wavy.panel.Panel.html#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="wavy.panel.Panel.html#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a></span></span><a class="headerlink" href="#wavy.models.BaselineShift.predict_proba" title="Permalink to this definition"></a></dt>
+<dd><p>Predict probabilities.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<code class="docutils literal notranslate"><span class="pre">Panel</span></code>) – Panel of data to predict.</p></li>
+<li><p><strong>**kwargs</strong> – Additional arguments to pass to the predict method.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Panel of predicted probabilities.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wavy.models.BaselineShift.residuals">
+<span class="sig-name descname"><span class="pre">residuals</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="wavy.panel.Panel.html#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a></span></span><a class="headerlink" href="#wavy.models.BaselineShift.residuals" title="Permalink to this definition"></a></dt>
+<dd><p>Residuals.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">Panel</span></code> of residuals.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wavy.models.BaselineShift.score">
+<span class="sig-name descname"><span class="pre">score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">on</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">pd.DataFrame</span></span></span><a class="headerlink" href="#wavy.models.BaselineShift.score" title="Permalink to this definition"></a></dt>
+<dd><p>Score the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>on</strong> (<code class="docutils literal notranslate"><span class="pre">list[str]</span></code> or <code class="docutils literal notranslate"><span class="pre">str</span></code>) – Columns to score on.</p></li>
+<li><p><strong>**kwargs</strong> – Additional arguments to pass to the score method.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Panel of scores.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">

@@ -1,6 +1,0 @@
-reverse_diff
-============
-
-.. currentmodule:: wavy.utils
-
-.. autofunction:: reverse_diff

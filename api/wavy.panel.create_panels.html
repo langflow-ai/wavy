@@ -25,7 +25,7 @@
     <link rel="prev" title="concat_panels" href="wavy.panel.concat_panels.html" />
 <script type="text/javascript">
   window.onload = function() {
-    document.body.innerHTML = document.body.innerHTML.replace(/ module/g, '');
+    document.body.innerHTML = document.body.innerHTML.replace(/ Module/g, '');
   }
 </script>
 
@@ -72,7 +72,6 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">wavy.models Module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="plot.html">wavy.plot Module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="utils.html">wavy.utils Module</a></li>
 </ul>
 
         </div>
@@ -128,22 +127,22 @@
 <h1>create_panels<a class="headerlink" href="#create-panels" title="Permalink to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="wavy.panel.create_panels">
-<span class="sig-name descname"><span class="pre">create_panels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lookback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">horizon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="wavy.panel.Panel.html#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="wavy.panel.Panel.html#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/wavy/panel.html#create_panels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.create_panels" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">create_panels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pd.DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lookback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">horizon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="wavy.panel.Panel.html#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="wavy.panel.Panel.html#wavy.panel.Panel" title="wavy.panel.Panel"><span class="pre">Panel</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/wavy/panel.html#create_panels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wavy.panel.create_panels" title="Permalink to this definition"></a></dt>
 <dd><p>Create panels from a dataframe.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>df</strong> (<em>pd.DataFrame</em>) – Dataframe</p></li>
-<li><p><strong>lookback</strong> (<em>int</em>) – Lookback size</p></li>
-<li><p><strong>horizon</strong> (<em>int</em>) – Horizon size</p></li>
-<li><p><strong>gap</strong> (<em>int</em>) – Gap size</p></li>
+<li><p><strong>df</strong> (<code class="docutils literal notranslate"><span class="pre">pd.DataFrame</span></code>) – Dataframe</p></li>
+<li><p><strong>lookback</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – Lookback size</p></li>
+<li><p><strong>horizon</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – Horizon size</p></li>
+<li><p><strong>gap</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – Gap size</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Tuple of panels</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">Tuple</span></code></p>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">tuple[Panel,</span> <span class="pre">Panel]</span></code></p>
 </dd>
 </dl>
 </dd></dl>

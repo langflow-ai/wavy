@@ -1,24 +1,24 @@
-BaselineConstant
-================
+BaseModel
+=========
 
 .. currentmodule:: wavy.models
 
-.. autoclass:: BaselineConstant
+.. autoclass:: BaseModel
    :show-inheritance:
 
    .. rubric:: Methods Summary
 
    .. autosummary::
 
-      ~BaselineConstant.build
-      ~BaselineConstant.compile
-      ~BaselineConstant.fit
-      ~BaselineConstant.get_auc
-      ~BaselineConstant.predict
-      ~BaselineConstant.predict_proba
-      ~BaselineConstant.residuals
-      ~BaselineConstant.score
-      ~BaselineConstant.set_arrays
+      ~BaseModel.build
+      ~BaseModel.compile
+      ~BaseModel.fit
+      ~BaseModel.get_auc
+      ~BaseModel.predict
+      ~BaseModel.predict_proba
+      ~BaseModel.residuals
+      ~BaseModel.score
+      ~BaseModel.set_arrays
 
    .. rubric:: Methods Documentation
 
