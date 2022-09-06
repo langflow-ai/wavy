@@ -24,6 +24,16 @@ def test_panel_creation():
 
 
 # TODO test function reset_ids
+def test_reset_ids(panel):
+    x, _ = panel
+    assert x.dropna_frames().reset_ids().ids.to_list() == [
+        0,
+        1,
+    ], "IDs x are not correct"
+    x.dropna_frames(inplace=True)
+    x.reset_ids(inplace=True)
+    assert x.ids.to_list() == [0, 1], "IDs x are not correct"
+
 
 # TODO this test is not correct
 def test_dropna_match(panel):
@@ -82,6 +92,10 @@ def test_num_timesteps(panel):
 
 
 # TODO test num_columns
+def test_num_columns(panel):
+    x, y = panel
+    assert x.num_columns == 2, "Columns x are not correct"
+    assert y.num_columns == 2, "Columns y are not correct"
 
 
 def test_columns(panel):
@@ -94,17 +108,6 @@ def test_ids(panel):
     x, y = panel
     assert x.ids.to_list() == [0, 1, 2], "IDs x are not correct"
     assert y.ids.to_list() == [0, 1, 2], "IDs y are not correct"
-
-
-def test_reset_ids(panel):
-    x, _ = panel
-    assert x.dropna_frames().reset_ids().ids.to_list() == [
-        0,
-        1,
-    ], "IDs x are not correct"
-    x.dropna_frames(inplace=True)
-    x.reset_ids(inplace=True)
-    assert x.ids.to_list() == [0, 1], "IDs x are not correct"
 
 
 def test_shape(panel):
@@ -121,14 +124,31 @@ def test_row_panel(panel):
     x, y = panel
     assert x.row_panel().shape[0] == 3, "Row panel x is not correct"
     assert y.row_panel().shape[0] == 3, "Row panel y is not correct"
+    assert x.row_panel().get_timesteps().to_list() == [
+        1,
+        2,
+        3,
+    ], "Row panel x are not correct"
+    assert y.row_panel().get_timesteps().to_list() == [
+        4,
+        5,
+        6,
+    ], "Row panel y are not correct"
 
 
 # TODO test get_timesteps with a list
 def test_get_timesteps(panel):
-    x, _ = panel
+    x, y = panel
     assert x.get_timesteps().to_list() == [1, 2, 3], "Timesteps x are not correct"
-    assert x.get_timesteps(1).to_list() == [2, 3, 4], "Timesteps x are not correct"
-    assert x.get_timesteps(2).to_list() == [3, 4, 5], "Timesteps x are not correct"
+    assert x.get_timesteps([1, 2]).to_list() == [
+        2,
+        3,
+        3,
+        4,
+        4,
+        5,
+    ], "Timesteps x are not correct"
+    assert y.get_timesteps().to_list() == [4, 5, 6], "Timesteps y are not correct"
 
 
 # TODO check if values are correct, not only shape
@@ -136,6 +156,8 @@ def test_values_panel(panel):
     x, y = panel
     assert x.values_panel.shape == (3, 3, 2), "Values panel x is not correct"
     assert y.values_panel.shape == (3, 1, 2), "Values panel y is not correct"
+    assert x.values_panel.size == 18, "Values panel x is not correct"
+    assert y.values_panel.size == 6, "Values panel y is not correct"
 
 
 # TODO check if values are correct, not only shape
@@ -143,6 +165,7 @@ def test_flatten_panel(panel):
     x, y = panel
     assert x.flatten_panel().shape == (3, 6), "Flatten panel x is not correct"
     assert y.flatten_panel().shape == (3, 2), "Flatten panel y is not correct"
+    assert x.flatten_panel().num_columns == 6, "Flatten panel x is not correct"
 
 
 def test_drop_ids(panel):
