@@ -84,13 +84,18 @@ class BaseModel:
             if y[col].dtype == bool:
                 y[col] = y[col].astype(int)
 
-        if not model_type and y.unique().shape[0] == 2:
-            model_type = "classification"
-        elif not model_type and y.unique().shape[0] < 20:
-            model_type = "multi_classification"
-        elif not model_type:
-            model_type = "regression"
+        # Get model_type automatically from y cardinality
+        if y.shape[1] == 1:
+            if not model_type and y.iloc[:, 0].unique().shape[0] == 2:
+                model_type = "classification"
+            elif not model_type and y.iloc[:, 0].unique().shape[0] < 20:
+                model_type = "multi_classification"
+            elif not model_type:
+                model_type = "regression"
+        if not model_type:
+            raise ValueError("Model type not specified.")
 
+        # Run set_training_split on x and y if not already done
         if (
             not hasattr(x, "train_size")
             or not x.train_size
