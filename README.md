@@ -66,6 +66,11 @@ model = models.LinearRegression(x, y)
 model.score()
 ```
 
+![lookback_horizon](https://user-images.githubusercontent.com/12815734/194475105-8763714e-6ece-4301-925e-d8168b5bb406.jpg)
+
+<img width="50%" alt="panels" src="https://user-images.githubusercontent.com/12815734/194475118-bbeaea7c-3295-42be-aa18-272273bbaeac.png">
+
+
 <!-- Description -->
 ## Features
 
