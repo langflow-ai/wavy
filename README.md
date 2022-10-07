@@ -1,5 +1,5 @@
 <!-- Title -->
-## ≋ Wavy: Time-Series Manipulation ≋
+## ≈ Wavy: Time-Series Manipulation ≈
 
 <p>
 <img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/logspace-ai/wavy" />
@@ -71,9 +71,7 @@ y.plot()
 # Convert to numpy arrays.
 x_train, y_train = x.train.values, y.train.values
 x_test, y_test = x.test.values, y.test.values
-
 print(x_train.shape, y_train.shape)
-
 
 # Or just instantiate a model.
 from wavy import models
