@@ -10,7 +10,7 @@ def _validate_training_split(
     test_size: int | float,
 ) -> tuple[int, int, int]:
     """
-    Validation helper to check if the test/test sizes are meaningful wrt to the
+    Validation helper to check if the split sizes are meaningful to the
     size of the data (n_samples)
 
     Args:

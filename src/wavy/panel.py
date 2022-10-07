@@ -196,7 +196,14 @@ def set_training_split(
     """
 
     x.set_training_split(train_size=train_size, val_size=val_size, test_size=test_size)
-    y.set_training_split(train_size=train_size, val_size=val_size, test_size=test_size)
+
+    # ! set_train_split varies for different num_timesteps, thus x and y cannot be created using it. Removed the line below:
+    # y.set_training_split(train_size=train_size, val_size=val_size, test_size=test_size)
+
+    # ! Added instead:
+    y.train_size = x.train_size
+    y.val_size = x.val_size
+    y.test_size = x.test_size
 
 
 class _PanelSeries(pd.Series):
@@ -523,6 +530,7 @@ class Panel(pd.DataFrame):
         self.train_size = n_train
         self.val_size = n_val - self.num_timesteps + 1
         self.test_size = n_test - self.num_timesteps + 1
+
 
     def to_dataframe(self) -> pd.DataFrame:
         """
