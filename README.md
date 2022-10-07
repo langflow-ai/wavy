@@ -61,12 +61,7 @@ print("Horizon:", y.num_timesteps)
 # Set train-val-test split. Defaults to 0.7, 0.2 and 0.1, respectively.
 wavy.set_training_split(x, y)
 
-# Convert to numpy arrays.
-x_train, y_train = x.train.values, y.train.values
-x_test, y_test = x.test.values, y.test.values
-print(x_train.shape, y_train.shape)
-
-# Or just instantiate a model.
+# Instantiate a model.
 model = models.LinearRegression(x, y)
 model.score()
 ```
