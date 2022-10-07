@@ -38,7 +38,6 @@ You can install Wavy from pip:
 pip install wavyts
 ```
 
-
 <!-- GETTING STARTED -->
 ## 🚀 Quickstart
 
@@ -49,17 +48,39 @@ import wavy
 
 # Start with any time-series dataframe
 df = pd.DataFrame({'price': np.random.randn(1000)}, index=range(1000))
-df.head()
+
+# Create panels. Each panel is a frame collection.
+x, y = wavy.create_panels(df, lookback=3, horizon=1)
+
+# x and y contain the past and corresponding future data.
+# lookback and horizon are the number of timesteps.
+print("Lookback:", x.num_timesteps)
+print("Horizon:", y.num_timesteps)
+
+# Set train-val-test split. Defaults to 0.7, 0.2 and 0.1, respectively.
+wavy.set_training_split(x, y)
+
+# Plot the target.
+y.plot()
 ```
 
-Out[ ]:	
-price
-0	-0.495187
-1	-1.370577
-2	0.637780
-3	-0.922224
-4	0.551576
+<img width="1128" alt="Screen Shot 2022-10-07 at 2 14 29 AM" src="https://user-images.githubusercontent.com/12815734/194472739-9735c301-ec1c-4ad2-9d50-04381e6d191f.png">
 
+
+```python
+# Convert to numpy arrays.
+x_train, y_train = x.train.values, y.train.values
+x_test, y_test = x.test.values, y.test.values
+
+print(x_train.shape, y_train.shape)
+
+
+# Or just instantiate a model.
+from wavy import models
+
+model = wavy.models.LinearRegression(x, y)
+model.score()
+```
 
 <!-- Description -->
 ## Features
