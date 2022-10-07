@@ -47,7 +47,7 @@ import pandas as pd
 import wavy
 from wavy import models
 
-# Start with any time-series dataframe
+# Start with any time-series dataframe:
 df = pd.DataFrame({'price': np.random.randn(1000)}, index=range(1000))
 
 # Create panels. Each panel is a frame collection.
@@ -61,7 +61,7 @@ print("Horizon:", y.num_timesteps)
 # Set train-val-test split. Defaults to 0.7, 0.2 and 0.1, respectively.
 wavy.set_training_split(x, y)
 
-# Instantiate a model.
+# Instantiate a model:
 model = models.LinearRegression(x, y)
 model.score()
 ```
