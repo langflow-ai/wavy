@@ -52,7 +52,13 @@ df = pd.DataFrame({'price': np.random.randn(1000)}, index=range(1000))
 
 # Create panels. Each panel is a frame collection.
 x, y = wavy.create_panels(df, lookback=3, horizon=1)
+```
 
+<p align="center">
+<img src="https://user-images.githubusercontent.com/12815734/194475105-8763714e-6ece-4301-925e-d8168b5bb406.jpg" alt="lookback_horizon" width="65%" height="65%"/>
+    </p>
+
+```python
 # x and y contain the past and corresponding future data.
 # lookback and horizon are the number of timesteps.
 print("Lookback:", x.num_timesteps)
@@ -65,10 +71,6 @@ wavy.set_training_split(x, y)
 model = models.LinearRegression(x, y)
 model.score()
 ```
-
-<p align="center">
-<img src="https://user-images.githubusercontent.com/12815734/194475105-8763714e-6ece-4301-925e-d8168b5bb406.jpg" alt="lookback_horizon" width="65%" height="65%"/>
-    </p>
     
 
 <!-- Description -->
