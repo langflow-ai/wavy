@@ -38,6 +38,24 @@ You can install Wavy from pip:
 pip install wavyts
 ```
 
+```python
+import numpy as np
+import pandas as pd
+import wavy
+
+# Start with any time-series dataframe
+df = pd.DataFrame({'price': np.random.randn(1000)}, index=range(1000))
+df.head()
+```
+
+Out[ ]:	
+price
+0	-0.495187
+1	-1.370577
+2	0.637780
+3	-0.922224
+4	0.551576
+
 
 <!-- Description -->
 ## Features
