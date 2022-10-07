@@ -67,7 +67,7 @@ model.score()
 ```
 
 <p align="center">
-<img src="https://user-images.githubusercontent.com/12815734/194475105-8763714e-6ece-4301-925e-d8168b5bb406.jpg" alt="lookback_horizon" width="50%" height="50%"/>
+<img src="https://user-images.githubusercontent.com/12815734/194475105-8763714e-6ece-4301-925e-d8168b5bb406.jpg" alt="lookback_horizon" width="65%" height="65%"/>
     </p>
     
 
