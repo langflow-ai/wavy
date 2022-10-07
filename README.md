@@ -66,8 +66,8 @@ model = models.LinearRegression(x, y)
 model.score()
 ```
 
-<p align="40%">
-<img src="https://user-images.githubusercontent.com/12815734/194475105-8763714e-6ece-4301-925e-d8168b5bb406.jpg" alt="lookback_horizon" width="55%" height="55%"/>
+<p align="center">
+<img src="https://user-images.githubusercontent.com/12815734/194475105-8763714e-6ece-4301-925e-d8168b5bb406.jpg" alt="lookback_horizon" width="50%" height="50%"/>
     </p>
     
 
