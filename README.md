@@ -57,12 +57,7 @@ x, y = wavy.create_panels(df, lookback=3, horizon=1)
 # lookback and horizon are the number of timesteps.
 print("Lookback:", x.num_timesteps)
 print("Horizon:", y.num_timesteps)
-```
 
-<!-- ![lookback_horizon](https://user-images.githubusercontent.com/12815734/194475105-8763714e-6ece-4301-925e-d8168b5bb406.jpg) -->
-<img src="https://user-images.githubusercontent.com/12815734/194475105-8763714e-6ece-4301-925e-d8168b5bb406.jpg" alt="lookback_horizon" style="width:50%;height:50%"/>
-
-```python
 # Set train-val-test split. Defaults to 0.7, 0.2 and 0.1, respectively.
 wavy.set_training_split(x, y)
 
@@ -71,6 +66,7 @@ model = models.LinearRegression(x, y)
 model.score()
 ```
 
+<img src="https://user-images.githubusercontent.com/12815734/194475105-8763714e-6ece-4301-925e-d8168b5bb406.jpg" alt="lookback_horizon" style="width:60%;height:60%;align:center"/>
 
 <!-- Description -->
 ## Features
