@@ -1,5 +1,5 @@
 <!-- Title -->
-## ≋ Wavy: Time-Series Simplified ≋
+## ≋ Wavy: Time-Series Manipulation ≋
 
 <p>
 <img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/logspace-ai/wavy" />
@@ -30,13 +30,17 @@ Wavy is a time series package designed to simplify the pre-processing steps and 
 </div> -->
 
 <!-- GETTING STARTED -->
-## 🚀 Quickstart
+## 📦 Installation
 
 You can install Wavy from pip:
 
 ```bash
 pip install wavyts
 ```
+
+
+<!-- GETTING STARTED -->
+## 🚀 Quickstart
 
 ```python
 import numpy as np
