@@ -45,6 +45,7 @@ pip install wavyts
 import numpy as np
 import pandas as pd
 import wavy
+from wavy import models
 
 # Start with any time-series dataframe
 df = pd.DataFrame({'price': np.random.randn(1000)}, index=range(1000))
@@ -60,23 +61,13 @@ print("Horizon:", y.num_timesteps)
 # Set train-val-test split. Defaults to 0.7, 0.2 and 0.1, respectively.
 wavy.set_training_split(x, y)
 
-# Plot the target.
-y.plot()
-```
-
-<img width="1128" alt="Screen Shot 2022-10-07 at 2 14 29 AM" src="https://user-images.githubusercontent.com/12815734/194472739-9735c301-ec1c-4ad2-9d50-04381e6d191f.png">
-
-
-```python
 # Convert to numpy arrays.
 x_train, y_train = x.train.values, y.train.values
 x_test, y_test = x.test.values, y.test.values
 print(x_train.shape, y_train.shape)
 
 # Or just instantiate a model.
-from wavy import models
-
-model = wavy.models.LinearRegression(x, y)
+model = models.LinearRegression(x, y)
 model.score()
 ```
 
