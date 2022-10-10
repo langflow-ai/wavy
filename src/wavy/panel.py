@@ -113,10 +113,12 @@ def reset_ids(panels: list[Panel], inplace: bool = False) -> list[Panel]:
     """
 
     # Check if id in x and y are the same
-    if not all(np.array_equal(panels[0].ids, panel.ids) for panel in panels):
-        raise ValueError(
-            "Ids for panels are not the same. Try using match function first."
-        )
+    # ! Broken
+    # if not all(np.array_equal(panels[0].ids, panel.ids) for panel in panels):
+    #     raise ValueError(
+    #         "Ids for panels are not the same. Try using match function first."
+    #     )
+
 
     return [panel.reset_ids(inplace=inplace) for panel in panels]
 
@@ -142,37 +144,40 @@ def dropna_match(x, y):
     return x_t, y_t
 
 
-def concat_panels(
-    panels: list[Panel], reset_ids: bool = False, sort: bool = False
-) -> Panel:
-    """
-    Concatenate panels.
+# ? Why is this function necessay if we can use pandas concat and append?
+# def concat_panels(
+#     panels: list[Panel], reset_ids: bool = False, sort: bool = False, axis=0
+# ) -> Panel:
+#     """
+#     Concatenate panels.
 
-    Args:
-        panels (``list``): List of panels
-        reset_ids (``bool``): Whether to reset ids
-        sort (``bool``): Whether to sort by id
+#     Args:
+#         panels (``list``): List of panels
+#         reset_ids (``bool``): Whether to reset ids
+#         sort (``bool``): Whether to sort by id
+#         axis (``axis``): Same as pd.concat axis
 
-    Returns:
-        ``Panel``: Concatenated panels
-    """
+#     Returns:
+#         ``Panel``: Concatenated panels
+#     """
 
-    # Get ids of all panels
-    ids = list(chain(*[panel.ids for panel in panels]))
+#     # ! What if the panels have the same ids before concat and we want to concat anyway? IDs should be hashes.
+#     # Get ids of all panels
+#     # ids = list(chain(*[panel.ids for panel in panels]))
 
-    # Check duplicated ids in list
-    if len(ids) != len(set(ids)):
-        raise ValueError("There are duplicated ids in the list.")
+#     # Check duplicated ids in list
+#     # if len(ids) != len(set(ids)):
+#     #     raise ValueError("There are duplicated ids in the list.")
 
-    panel = Panel(pd.concat(panels, axis=0))
+#     panel = Panel(pd.concat(panels, axis=axis))
 
-    if sort:
-        panel = panel.sort_panel()
+#     if sort:
+#         panel = panel.sort_panel()
 
-    if reset_ids:
-        panel.reset_ids(inplace=True)
+#     if reset_ids:
+#         panel.reset_ids(inplace=True)
 
-    return panel
+#     return panel
 
 
 def set_training_split(
@@ -824,6 +829,7 @@ class Panel(pd.DataFrame):
 
         return new_panel
 
+    # ! Inconsistent with lookback >= 2 if frames were modified.
     def plot(
         self,
         add_annotation: bool = True,
