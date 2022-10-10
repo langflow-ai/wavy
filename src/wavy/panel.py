@@ -2,6 +2,7 @@ from __future__ import annotations
 
 # import contextlib
 import random
+import uuid
 import warnings
 from itertools import chain
 
@@ -50,27 +51,32 @@ def create_panels(
 
     ids = np.arange(lookback, end)
 
-    xframes = np.zeros(shape=(len(ids) * lookback, df.shape[1]))
+    xframes = np.empty(shape=(len(ids) * lookback, df.shape[1]), dtype="object")
     xindex = [
-        np.zeros(shape=(len(ids) * lookback), dtype=int),
-        np.zeros(shape=(len(ids) * lookback), dtype=df.index.dtype),
+        np.empty(shape=(len(ids) * lookback), dtype="<U31"),
+        np.empty(shape=(len(ids) * lookback), dtype=df.index.dtype),
     ]
 
-    yframes = np.zeros(shape=(len(ids) * horizon, df.shape[1]))
+    yframes = np.empty(shape=(len(ids) * horizon, df.shape[1]), dtype="object")
     yindex = [
-        np.zeros(shape=(len(ids) * horizon), dtype=int),
-        np.zeros(shape=(len(ids) * horizon), dtype=df.index.dtype),
+        np.empty(shape=(len(ids) * horizon), dtype="<U31"),
+        np.empty(shape=(len(ids) * horizon), dtype=df.index.dtype),
     ]
 
     for i in ids:
+        uuid_str = str(uuid.uuid4())
+
         # X
         frame = df.iloc[i - lookback : i]
         xframes[
             (i - lookback) * lookback : (i - lookback + 1) * lookback, :
-        ] = frame.values # BUG: Fail when df contains strings.
-        xindex[0][(i - lookback) * lookback : (i - lookback + 1) * lookback] = (
-            i - lookback
-        ) * np.ones(lookback, dtype=int)
+        ] = frame.values
+        # xindex[0][(i - lookback) * lookback : (i - lookback + 1) * lookback] = (
+        #     i - lookback
+        # ) * np.ones(lookback, dtype=int)
+        xindex[0][
+            (i - lookback) * lookback : (i - lookback + 1) * lookback
+        ] = np.repeat(uuid_str, lookback)
         xindex[1][
             (i - lookback) * lookback : (i - lookback + 1) * lookback
         ] = frame.index.values
@@ -80,9 +86,12 @@ def create_panels(
         yframes[
             (i - lookback) * horizon : (i - lookback + 1) * horizon, :
         ] = frame.values
-        yindex[0][(i - lookback) * horizon : (i - lookback + 1) * horizon] = (
-            i - lookback
-        ) * np.ones(horizon, dtype=int)
+        # yindex[0][(i - lookback) * horizon : (i - lookback + 1) * horizon] = (
+        #     i - lookback
+        # ) * np.ones(horizon, dtype=int)
+        yindex[0][(i - lookback) * horizon : (i - lookback + 1) * horizon] = np.repeat(
+            uuid_str, horizon
+        )
         yindex[1][
             (i - lookback) * horizon : (i - lookback + 1) * horizon
         ] = frame.index.values
@@ -100,27 +109,26 @@ def create_panels(
     )
 
 
-def reset_ids(panels: list[Panel], inplace: bool = False) -> list[Panel]:
-    """
-    Reset ids of a panel.
+# def reset_ids(panels: list[Panel], inplace: bool = False) -> list[Panel]:
+#     """
+#     Reset ids of a panel.
 
-    Args:
-        panels (``list``): List of panels
-        inplace (``bool``): Whether to reset ids inplace or not.
+#     Args:
+#         panels (``list``): List of panels
+#         inplace (``bool``): Whether to reset ids inplace or not.
 
-    Returns:
-        ``Panel``: Reset id of panel
-    """
+#     Returns:
+#         ``Panel``: Reset id of panel
+#     """
 
-    # Check if id in x and y are the same
-    # ! Broken
-    # if not all(np.array_equal(panels[0].ids, panel.ids) for panel in panels):
-    #     raise ValueError(
-    #         "Ids for panels are not the same. Try using match function first."
-    #     )
+#     # Check if id in x and y are the same
+#     # ! Broken
+#     # if not all(np.array_equal(panels[0].ids, panel.ids) for panel in panels):
+#     #     raise ValueError(
+#     #         "Ids for panels are not the same. Try using match function first."
+#     #     )
 
-
-    return [panel.reset_ids(inplace=inplace) for panel in panels]
+#     return [panel.reset_ids(inplace=inplace) for panel in panels]
 
 
 def dropna_match(x, y):
@@ -200,15 +208,20 @@ def set_training_split(
     >>> x, y = set_training_split(x, y, train_size=0.8, val_size=0.2, test_size=0.1)
     """
 
-    x.set_training_split(train_size=train_size, val_size=val_size, test_size=test_size)
-
-    # ! set_train_split varies for different num_timesteps, thus x and y cannot be created using it. Removed the line below:
-    # y.set_training_split(train_size=train_size, val_size=val_size, test_size=test_size)
-
-    # ! Added instead:
-    y.train_size = x.train_size
-    y.val_size = x.val_size
-    y.test_size = x.test_size
+    if x.num_timesteps >= y.num_timesteps:
+        x.set_training_split(
+            train_size=train_size, val_size=val_size, test_size=test_size
+        )
+        y.train_size = x.train_size
+        y.val_size = x.val_size
+        y.test_size = x.test_size
+    else:
+        y.set_training_split(
+            train_size=train_size, val_size=val_size, test_size=test_size
+        )
+        x.train_size = y.train_size
+        x.val_size = y.val_size
+        x.test_size = y.test_size
 
 
 class _PanelSeries(pd.Series):
@@ -536,7 +549,6 @@ class Panel(pd.DataFrame):
         self.val_size = n_val - self.num_timesteps + 1
         self.test_size = n_test - self.num_timesteps + 1
 
-
     def to_dataframe(self) -> pd.DataFrame:
         """
         Convert panel to dataframe.
@@ -830,35 +842,35 @@ class Panel(pd.DataFrame):
         return new_panel
 
     # ! Inconsistent with lookback >= 2 if frames were modified.
-    def plot(
-        self,
-        add_annotation: bool = True,
-        max: int = 10_000,
-        use_timestep: bool = False,
-        **kwargs,
-    ) -> plot.PanelFigure:
-        """
-        Plot the panel.
+    # def plot(
+    #     self,
+    #     add_annotation: bool = True,
+    #     max: int = 10_000,
+    #     use_timestep: bool = False,
+    #     **kwargs,
+    # ) -> plot.PanelFigure:
+    #     """
+    #     Plot the panel.
 
-        Args:
-            add_annotation (``bool``): If True, plot the training, validation, and test annotation.
-            max (``int``): Maximum number of samples to plot.
-            use_timestep (``bool``): If True, plot the timestep instead of the sample index.
-            **kwargs: Additional arguments to pass to the plot function.
+    #     Args:
+    #         add_annotation (``bool``): If True, plot the training, validation, and test annotation.
+    #         max (``int``): Maximum number of samples to plot.
+    #         use_timestep (``bool``): If True, plot the timestep instead of the sample index.
+    #         **kwargs: Additional arguments to pass to the plot function.
 
-        Returns:
-            ``plot``: Result of plot function.
-        """
+    #     Returns:
+    #         ``plot``: Result of plot function.
+    #     """
 
-        panel = self.row_panel(n=0)
+    #     panel = self.row_panel(n=0)
 
-        if max and self.num_frames > max:
-            return plot(
-                panel.sample_panel(max, how="spaced"),
-                use_timestep=use_timestep,
-                add_annotation=add_annotation,
-                **kwargs,
-            )
-        return plot(
-            panel, use_timestep=use_timestep, add_annotation=add_annotation, **kwargs
-        )
+    #     if max and self.num_frames > max:
+    #         return plot(
+    #             panel.sample_panel(max, how="spaced"),
+    #             use_timestep=use_timestep,
+    #             add_annotation=add_annotation,
+    #             **kwargs,
+    #         )
+    #     return plot(
+    #         panel, use_timestep=use_timestep, add_annotation=add_annotation, **kwargs
+    #     )
