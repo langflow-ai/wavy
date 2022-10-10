@@ -67,7 +67,7 @@ def create_panels(
         frame = df.iloc[i - lookback : i]
         xframes[
             (i - lookback) * lookback : (i - lookback + 1) * lookback, :
-        ] = frame.values
+        ] = frame.values # BUG: Fail when df contains strings.
         xindex[0][(i - lookback) * lookback : (i - lookback + 1) * lookback] = (
             i - lookback
         ) * np.ones(lookback, dtype=int)
