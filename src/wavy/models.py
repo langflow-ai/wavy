@@ -110,7 +110,9 @@ class BaseModel:
         for sample in [x, y]:
             for col in sample.columns:
                 if sample[col].dtype not in [np.float64, np.int64]:
-                    raise ValueError(f"Column {col} is not numeric.")
+                    raise ValueError(
+                        f"Column {col} is of type {sample[col].dtype}, not numeric."
+                    )
 
         self.x = x
         self.y = y
@@ -132,9 +134,13 @@ class BaseModel:
         self.x_val = self.x.val.values_panel
         self.x_test = self.x.test.values_panel
 
-        self.y_train = self.y.train.values_panel.squeeze(axis=2)
-        self.y_val = self.y.val.values_panel.squeeze(axis=2)
-        self.y_test = self.y.test.values_panel.squeeze(axis=2)
+        self.y_train = self.y.train.values_panel.squeeze().reshape(
+            self.x_train.shape[0], -1
+        )
+        self.y_val = self.y.val.values_panel.squeeze().reshape(self.x_val.shape[0], -1)
+        self.y_test = self.y.test.values_panel.squeeze().reshape(
+            self.x_test.shape[0], -1
+        )
 
     def get_auc(self) -> float:
         """Get the AUC score."""
