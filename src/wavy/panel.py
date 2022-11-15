@@ -17,96 +17,145 @@ from wavy.plot import plot
 from wavy.validations import _validate_sample_panel, _validate_training_split
 
 
-# Define column to y
-def create_panels(
-    df: pd.DataFrame, lookback: int, horizon: int, gap: int = 0
-) -> tuple[Panel, Panel]:
-    """
-    Create panels from a dataframe.
 
-    Args:
-        df (``pd.DataFrame``): Dataframe
-        lookback (``int``): Lookback size
-        horizon (``int``): Horizon size
-        gap (``int``): Gap size
+def make_xy(df, lookback, horizon, gap):
+    x_frames = [frame for frame in df.iloc[:-horizon].rolling(lookback) if len(frame) == lookback]
 
-    Returns:
-        ``tuple[Panel, Panel]``: Tuple of panels
-    """
+    y_frames = [frame for frame in df.iloc[lookback:].rolling(horizon) if len(frame) == horizon]
 
-    indices = df.index
+    x_frames = x_frames[:len(y_frames)]
+    y_frames = y_frames[:len(x_frames)]
 
-    # Sort by index
-    df = df.sort_index(ascending=True)
+    x_frames = x_frames[:-gap]
+    y_frames = y_frames[gap:]
 
-    if not all(df.index == indices):
-        warnings.warn("DataFrame is being sorted!")
+    return x_frames, y_frames
 
-    x_timesteps = len(df.index)
 
-    if x_timesteps - lookback - horizon - gap <= -1:
-        raise ValueError("Not enough timesteps to build.")
+def make_xy_by_timestamp(df, lookback, horizon, gap):
 
-    end = x_timesteps - horizon - gap + 1
+    # sourcery skip: identity-comprehension
+    # ! datetime gaps are not supported yet
+    x_frames = [frame for frame in df[df.index < (df.index[-1] - pd.Timedelta(horizon))].rolling(lookback)]
 
-    ids = np.arange(lookback, end)
+    y_frames = [frame for frame in df[df.index > (df.index[0] + pd.Timedelta(lookback))].rolling(horizon)]
 
-    xframes = np.empty(shape=(len(ids) * lookback, df.shape[1]), dtype="object")
-    xindex = [
-        np.empty(shape=(len(ids) * lookback), dtype="<U31"),
-        np.empty(shape=(len(ids) * lookback), dtype=df.index.dtype),
-    ]
+    x_frames = x_frames[:len(y_frames)]
+    y_frames = y_frames[:len(x_frames)]
 
-    yframes = np.empty(shape=(len(ids) * horizon, df.shape[1]), dtype="object")
-    yindex = [
-        np.empty(shape=(len(ids) * horizon), dtype="<U31"),
-        np.empty(shape=(len(ids) * horizon), dtype=df.index.dtype),
-    ]
+    print(len(x_frames), len(y_frames))
 
-    for i in ids:
-        uuid_str = str(uuid.uuid4())
+    return x_frames, y_frames
 
-        # X
-        frame = df.iloc[i - lookback : i]
-        xframes[
-            (i - lookback) * lookback : (i - lookback + 1) * lookback, :
-        ] = frame.values
-        # xindex[0][(i - lookback) * lookback : (i - lookback + 1) * lookback] = (
-        #     i - lookback
-        # ) * np.ones(lookback, dtype=int)
-        xindex[0][
-            (i - lookback) * lookback : (i - lookback + 1) * lookback
-        ] = np.repeat(uuid_str, lookback)
-        xindex[1][
-            (i - lookback) * lookback : (i - lookback + 1) * lookback
-        ] = frame.index.values
 
-        # Y
-        frame = df.iloc[i + gap : i + gap + horizon]
-        yframes[
-            (i - lookback) * horizon : (i - lookback + 1) * horizon, :
-        ] = frame.values
-        # yindex[0][(i - lookback) * horizon : (i - lookback + 1) * horizon] = (
-        #     i - lookback
-        # ) * np.ones(horizon, dtype=int)
-        yindex[0][(i - lookback) * horizon : (i - lookback + 1) * horizon] = np.repeat(
-            uuid_str, horizon
-        )
-        yindex[1][
-            (i - lookback) * horizon : (i - lookback + 1) * horizon
-        ] = frame.index.values
+def get_ids(x_frames, y_frames):
+    assert len(x_frames) == len(y_frames)
+    return [str(uuid.uuid4()) for _ in range(len(x_frames))]
 
+
+def create_panels(df, lookback, horizon, gap):
+    if isinstance(lookback, str) and isinstance(horizon, str):
+        x_frames, y_frames = make_xy_by_timestamp(df, lookback, horizon, gap)
+    elif isinstance(lookback, int) and isinstance(horizon, int):
+        x_frames, y_frames = make_xy(df, lookback, horizon, gap)
+    ids = get_ids(x_frames, y_frames)
     timesteps_name = df.index.name or "timesteps"
 
-    return Panel(
-        xframes,
-        columns=df.columns,
-        index=pd.MultiIndex.from_arrays(xindex, names=["id", timesteps_name]),
-    ), Panel(
-        yframes,
-        columns=df.columns,
-        index=pd.MultiIndex.from_arrays(yindex, names=["id", timesteps_name]),
-    )
+    return Panel(pd.concat(x_frames, keys=ids)), Panel(pd.concat(y_frames, keys=ids))
+
+
+# # Define column to y
+# def create_panels(
+#     df: pd.DataFrame, lookback: int, horizon: int, gap: int = 0
+# ) -> tuple[Panel, Panel]:
+#     """
+#     Create panels from a dataframe.
+
+#     Args:
+#         df (``pd.DataFrame``): Dataframe
+#         lookback (``int``): Lookback size
+#         horizon (``int``): Horizon size
+#         gap (``int``): Gap size
+
+#     Returns:
+#         ``tuple[Panel, Panel]``: Tuple of panels
+#     """
+
+#     indices = df.index
+
+#     # Sort by index
+#     df = df.sort_index(ascending=True)
+
+#     if not all(df.index == indices):
+#         warnings.warn("DataFrame is being sorted!")
+
+#     x_timesteps = len(df.index)
+
+#     if x_timesteps - lookback - horizon - gap <= -1:
+#         raise ValueError("Not enough timesteps to build.")
+
+#     end = x_timesteps - horizon - gap + 1
+
+#     ids = np.arange(lookback, end)
+
+#     xframes = np.empty(shape=(len(ids) * lookback, df.shape[1]), dtype="object")
+#     xindex = [
+#         np.empty(shape=(len(ids) * lookback), dtype="<U31"),
+#         np.empty(shape=(len(ids) * lookback), dtype=df.index.dtype),
+#     ]
+
+#     yframes = np.empty(shape=(len(ids) * horizon, df.shape[1]), dtype="object")
+#     yindex = [
+#         np.empty(shape=(len(ids) * horizon), dtype="<U31"),
+#         np.empty(shape=(len(ids) * horizon), dtype=df.index.dtype),
+#     ]
+
+#     for i in ids:
+#         uuid_str = str(uuid.uuid4())
+
+#         # X
+#         frame = df.iloc[i - lookback : i]
+#         xframes[
+#             (i - lookback) * lookback : (i - lookback + 1) * lookback, :
+#         ] = frame.values
+#         # xindex[0][(i - lookback) * lookback : (i - lookback + 1) * lookback] = (
+#         #     i - lookback
+#         # ) * np.ones(lookback, dtype=int)
+#         xindex[0][
+#             (i - lookback) * lookback : (i - lookback + 1) * lookback
+#         ] = np.repeat(uuid_str, lookback)
+#         xindex[1][
+#             (i - lookback) * lookback : (i - lookback + 1) * lookback
+#         ] = frame.index.values
+
+#         # Y
+#         frame = df.iloc[i + gap : i + gap + horizon]
+#         yframes[
+#             (i - lookback) * horizon : (i - lookback + 1) * horizon, :
+#         ] = frame.values
+#         # yindex[0][(i - lookback) * horizon : (i - lookback + 1) * horizon] = (
+#         #     i - lookback
+#         # ) * np.ones(horizon, dtype=int)
+#         yindex[0][(i - lookback) * horizon : (i - lookback + 1) * horizon] = np.repeat(
+#             uuid_str, horizon
+#         )
+#         yindex[1][
+#             (i - lookback) * horizon : (i - lookback + 1) * horizon
+#         ] = frame.index.values
+
+#     timesteps_name = df.index.name or "timesteps"
+
+#     print(yindex)
+
+#     return Panel(
+#         xframes,
+#         columns=df.columns,
+#         index=pd.MultiIndex.from_arrays(xindex, names=["id", timesteps_name]),
+#     ), Panel(
+#         yframes,
+#         columns=df.columns,
+#         index=pd.MultiIndex.from_arrays(yindex, names=["id", timesteps_name]),
+#     )
 
 
 # def reset_ids(panels: list[Panel], inplace: bool = False) -> list[Panel]:

@@ -103,16 +103,23 @@ class BaseModel:
             or not y.train_size
         ):
             warnings.warn("Running set_training_split with default parameters")
-
             set_training_split(x, y)
 
+
         # Raise error if column is not numeric
+<<<<<<< Updated upstream
         for sample in [x, y]:
             for col in sample.columns:
                 if sample[col].dtype not in [np.float64, np.int64]:
                     raise ValueError(
                         f"Column {col} is of type {sample[col].dtype}, not numeric."
                     )
+=======
+        # for sample in [x, y]:
+        #     for col in sample.columns:
+        #         if sample[col].dtype not in [np.float64, np.int64]:
+        #             raise ValueError(f"Column {col} is not numeric.")
+>>>>>>> Stashed changes
 
         self.x = x
         self.y = y
