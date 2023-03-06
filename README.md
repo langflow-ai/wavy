@@ -2,6 +2,15 @@
 ## ≈ Wavy: Time-Series Manipulation ≈
 
 <p>
+<a href="https://logspace.ai/">
+<img src="https://img.shields.io/badge/Web-681DFF?style=for-the-badge&logo=web&logoColor=white" />
+</a>
+<a href="https://www.linkedin.com/company/logspace-ai">
+<img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" />
+</a>
+<a href="https://medium.com/logspace">
+<img src="https://img.shields.io/badge/Medium-FFD606?style=for-the-badge&logo=medium&logoColor=black"/>
+</a><br>
 <img alt="GitHub Contributors" src="https://img.shields.io/github/contributors/logspace-ai/wavy" />
 <img alt="GitHub Last Commit" src="https://img.shields.io/github/last-commit/logspace-ai/wavy" />
 <!-- <img alt="GitHub Language Count" src="https://img.shields.io/github/languages/count/logspace-ai/wavy" /> -->
@@ -68,7 +77,7 @@ model.score()
     
 
 <!-- Description -->
-## Features
+## :dart: Features
 
 💡 Wavy **is**:
 
@@ -82,7 +91,7 @@ model.score()
 
 
 <!-- CONTRIBUTING -->
-## Contributing
+## 🙌 Contributing
 
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make to `wavy` are **greatly appreciated**.
 
@@ -97,7 +106,7 @@ Don't forget to give the project a star! ⭐
 
 
 <!-- LICENSE -->
-## License
+## 📃 License
 
 Distributed under the MIT License. See `LICENSE.txt` for more information.
 
