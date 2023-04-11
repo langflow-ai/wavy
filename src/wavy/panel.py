@@ -1,21 +1,17 @@
 from __future__ import annotations
 
-# import contextlib
 import random
 import uuid
 import warnings
-from itertools import chain
 
 import numpy as np
 import pandas as pd
-from matplotlib.pyplot import figure
 from pandas.core.groupby import DataFrameGroupBy
-
-warnings.simplefilter(action="ignore", category=FutureWarning)
 
 from wavy.plot import plot
 from wavy.validations import _validate_sample_panel, _validate_training_split
 
+warnings.simplefilter(action="ignore", category=FutureWarning)
 
 
 def make_xy(df, lookback, horizon, gap):
@@ -59,126 +55,11 @@ def create_panels(df, lookback, horizon, gap):
     elif isinstance(lookback, int) and isinstance(horizon, int):
         x_frames, y_frames = make_xy(df, lookback, horizon, gap)
     ids = get_ids(x_frames, y_frames)
-    timesteps_name = df.index.name or "timesteps"
+
+    # ?
+    # timesteps_name = df.index.name or "timesteps"
 
     return Panel(pd.concat(x_frames, keys=ids)), Panel(pd.concat(y_frames, keys=ids))
-
-
-# # Define column to y
-# def create_panels(
-#     df: pd.DataFrame, lookback: int, horizon: int, gap: int = 0
-# ) -> tuple[Panel, Panel]:
-#     """
-#     Create panels from a dataframe.
-
-#     Args:
-#         df (``pd.DataFrame``): Dataframe
-#         lookback (``int``): Lookback size
-#         horizon (``int``): Horizon size
-#         gap (``int``): Gap size
-
-#     Returns:
-#         ``tuple[Panel, Panel]``: Tuple of panels
-#     """
-
-#     indices = df.index
-
-#     # Sort by index
-#     df = df.sort_index(ascending=True)
-
-#     if not all(df.index == indices):
-#         warnings.warn("DataFrame is being sorted!")
-
-#     x_timesteps = len(df.index)
-
-#     if x_timesteps - lookback - horizon - gap <= -1:
-#         raise ValueError("Not enough timesteps to build.")
-
-#     end = x_timesteps - horizon - gap + 1
-
-#     ids = np.arange(lookback, end)
-
-#     xframes = np.empty(shape=(len(ids) * lookback, df.shape[1]), dtype="object")
-#     xindex = [
-#         np.empty(shape=(len(ids) * lookback), dtype="<U31"),
-#         np.empty(shape=(len(ids) * lookback), dtype=df.index.dtype),
-#     ]
-
-#     yframes = np.empty(shape=(len(ids) * horizon, df.shape[1]), dtype="object")
-#     yindex = [
-#         np.empty(shape=(len(ids) * horizon), dtype="<U31"),
-#         np.empty(shape=(len(ids) * horizon), dtype=df.index.dtype),
-#     ]
-
-#     for i in ids:
-#         uuid_str = str(uuid.uuid4())
-
-#         # X
-#         frame = df.iloc[i - lookback : i]
-#         xframes[
-#             (i - lookback) * lookback : (i - lookback + 1) * lookback, :
-#         ] = frame.values
-#         # xindex[0][(i - lookback) * lookback : (i - lookback + 1) * lookback] = (
-#         #     i - lookback
-#         # ) * np.ones(lookback, dtype=int)
-#         xindex[0][
-#             (i - lookback) * lookback : (i - lookback + 1) * lookback
-#         ] = np.repeat(uuid_str, lookback)
-#         xindex[1][
-#             (i - lookback) * lookback : (i - lookback + 1) * lookback
-#         ] = frame.index.values
-
-#         # Y
-#         frame = df.iloc[i + gap : i + gap + horizon]
-#         yframes[
-#             (i - lookback) * horizon : (i - lookback + 1) * horizon, :
-#         ] = frame.values
-#         # yindex[0][(i - lookback) * horizon : (i - lookback + 1) * horizon] = (
-#         #     i - lookback
-#         # ) * np.ones(horizon, dtype=int)
-#         yindex[0][(i - lookback) * horizon : (i - lookback + 1) * horizon] = np.repeat(
-#             uuid_str, horizon
-#         )
-#         yindex[1][
-#             (i - lookback) * horizon : (i - lookback + 1) * horizon
-#         ] = frame.index.values
-
-#     timesteps_name = df.index.name or "timesteps"
-
-#     print(yindex)
-
-#     return Panel(
-#         xframes,
-#         columns=df.columns,
-#         index=pd.MultiIndex.from_arrays(xindex, names=["id", timesteps_name]),
-#     ), Panel(
-#         yframes,
-#         columns=df.columns,
-#         index=pd.MultiIndex.from_arrays(yindex, names=["id", timesteps_name]),
-#     )
-
-
-# def reset_ids(panels: list[Panel], inplace: bool = False) -> list[Panel]:
-#     """
-#     Reset ids of a panel.
-
-#     Args:
-#         panels (``list``): List of panels
-#         inplace (``bool``): Whether to reset ids inplace or not.
-
-#     Returns:
-#         ``Panel``: Reset id of panel
-#     """
-
-#     # Check if id in x and y are the same
-#     # ! Broken
-#     # if not all(np.array_equal(panels[0].ids, panel.ids) for panel in panels):
-#     #     raise ValueError(
-#     #         "Ids for panels are not the same. Try using match function first."
-#     #     )
-
-#     return [panel.reset_ids(inplace=inplace) for panel in panels]
-
 
 def dropna_match(x, y):
     """
@@ -192,49 +73,13 @@ def dropna_match(x, y):
         ``Panel``: Panel with dropped frames and matched ids
     """
 
-    x_t = x.dropna_frames()
+    x_t = x.drop_empty_frames()
     y_t = y.match_frames(x_t)
 
-    y_t = y_t.dropna_frames()
+    y_t = y_t.drop_empty_frames()
     x_t = x_t.match_frames(y_t)
 
     return x_t, y_t
-
-
-# ? Why is this function necessay if we can use pandas concat and append?
-# def concat_panels(
-#     panels: list[Panel], reset_ids: bool = False, sort: bool = False, axis=0
-# ) -> Panel:
-#     """
-#     Concatenate panels.
-
-#     Args:
-#         panels (``list``): List of panels
-#         reset_ids (``bool``): Whether to reset ids
-#         sort (``bool``): Whether to sort by id
-#         axis (``axis``): Same as pd.concat axis
-
-#     Returns:
-#         ``Panel``: Concatenated panels
-#     """
-
-#     # ! What if the panels have the same ids before concat and we want to concat anyway? IDs should be hashes.
-#     # Get ids of all panels
-#     # ids = list(chain(*[panel.ids for panel in panels]))
-
-#     # Check duplicated ids in list
-#     # if len(ids) != len(set(ids)):
-#     #     raise ValueError("There are duplicated ids in the list.")
-
-#     panel = Panel(pd.concat(panels, axis=axis))
-
-#     if sort:
-#         panel = panel.sort_panel()
-
-#     if reset_ids:
-#         panel.reset_ids(inplace=True)
-
-#     return panel
 
 
 def set_training_split(
@@ -279,23 +124,6 @@ class _PanelSeries(pd.Series):
 
     @property
     def _constructor_expanddim(self):
-        # def f(*args, **kw):
-
-        #     df = Panel(*args, **kw)
-
-        #     # Workaround to fix pandas bug
-        #     if (df.index.nlevels > 1 and self.index.nlevels > 1) and len(
-        #         df.index.levels
-        #     ) > len(self.index.levels):
-        #         df = df.droplevel(0, axis="index")
-
-        #     if df.num_frames == self.num_frames:
-        #         self._copy_attrs(df)
-
-        #     return df
-
-        # return f
-
         return Panel
 
     @property
@@ -322,12 +150,6 @@ class Panel(pd.DataFrame):
     @property
     def _constructor(self):
         def f(*args, **kw):
-
-            # with contextlib.suppress(Exception):
-            #     index = [a for a in args[0].axes if isinstance(a, pd.MultiIndex)]
-            #     if index and len(index[0]) == self.num_timesteps:
-            #         return pd.DataFrame(*args, **kw)
-
             df = Panel(*args, **kw)
 
             # Workaround to fix pandas bug
@@ -339,6 +161,7 @@ class Panel(pd.DataFrame):
             if df.num_frames == self.num_frames:
                 self._copy_attrs(df)
 
+            # ?
             # df.style.set_properties(**{"background-color": "black", "color": "green"})
 
             return df
@@ -352,17 +175,17 @@ class Panel(pd.DataFrame):
     @property
     def num_frames(self) -> int:
         """Returns the number of frames in the panel."""
-        return self.shape_panel[0]
+        return self.shape_[0]
 
     @property
     def num_timesteps(self) -> int:
         """Returns the number of timesteps in the panel."""
-        return self.shape_panel[1]
+        return self.shape_[1]
 
     @property
     def num_columns(self) -> int:
         """Returns the number of columns in the panel."""
-        return self.shape_panel[2]
+        return self.shape_[2]
 
     @property
     def frames(self) -> DataFrameGroupBy:
@@ -394,7 +217,7 @@ class Panel(pd.DataFrame):
             ids (``list``): List of ids.
         """
 
-        ids = np.repeat(ids, self.shape_panel[1])
+        ids = np.repeat(ids, self.shape_[1])
         timestep = self.index.get_level_values(1)
 
         index = pd.MultiIndex.from_arrays([ids, timestep], names=["id", timestep.name])
@@ -417,13 +240,14 @@ class Panel(pd.DataFrame):
         return self.set_index(new_index, inplace=inplace)
 
     @property
-    def shape_panel(self) -> tuple[int, int, int]:
+    def shape_(self) -> tuple[int, int, int]:
         """
         Return a tuple representing the dimensionality of the Panel.
         """
         return (len(self.ids), int(self.shape[0] / len(self.ids)), self.shape[1])
 
-    def row_panel(self, n: list[int] | int = 0) -> Panel:
+    def row_(self, n: list[int] | int = 0) -> Panel:
+        # ? rename with get_nth_rows?
         """
         Returns the nth row of each frame.
 
@@ -457,7 +281,7 @@ class Panel(pd.DataFrame):
         return self.frames.take(n).index.get_level_values(1)
 
     @property
-    def values_panel(self) -> np.ndarray:
+    def values_(self) -> np.ndarray:
         """
         3D matrix with Panel value.
 
@@ -473,9 +297,9 @@ class Panel(pd.DataFrame):
                [[274.80999756, 279.25      , 271.26998901, 274.73001099],
                 [270.05999756, 272.35998535, 263.32000732, 264.57998657]]])
         """
-        return np.reshape(self.to_numpy(), self.shape_panel)
+        return np.reshape(self.to_numpy(), self.shape_)
 
-    def flatten_panel(self) -> pd.DataFrame:
+    def flatten_(self) -> pd.DataFrame:
         """
         Flatten the panel.
         """
@@ -517,7 +341,7 @@ class Panel(pd.DataFrame):
 
         return self.drop(index=ids, level=0, inplace=inplace)
 
-    def findna_frames(self) -> pd.Int64Index:
+    def find_empty_frames(self) -> pd.Int64Index:
         """
         Find NaN values index.
 
@@ -531,7 +355,7 @@ class Panel(pd.DataFrame):
             else pd.Int64Index([], name="id")
         )
 
-    def dropna_frames(self, inplace: bool = False) -> Panel | None:
+    def drop_empty_frames(self, inplace: bool = False) -> Panel | None:
         """
         Drop frames with missing values from the panel.
 
@@ -541,7 +365,7 @@ class Panel(pd.DataFrame):
         Returns:
             ``Panel``: Panel with frames dropped.
         """
-        return self.drop_ids(self.findna_frames(), inplace=inplace)
+        return self.drop_ids(self.find_empty_frames(), inplace=inplace)
 
     def match_frames(self, other: Panel, inplace: bool = False) -> Panel | None:
         """
@@ -695,7 +519,7 @@ class Panel(pd.DataFrame):
             raise ValueError("No testing set was set.")
         self[-self.test_size * self.num_timesteps :] = value.values
 
-    def head_panel(self, n: int = 5) -> Panel:
+    def head_(self, n: int = 5) -> Panel:
         """
         Return the first n frames of the panel.
 
@@ -705,9 +529,9 @@ class Panel(pd.DataFrame):
         Returns:
             ``Panel``: Result of head function.
         """
-        return self[: n * self.shape_panel[1]]
+        return self[: n * self.shape_[1]]
 
-    def tail_panel(self, n: int = 5) -> Panel:
+    def tail_(self, n: int = 5) -> Panel:
         """
         Return the last n frames of the panel.
 
@@ -717,9 +541,9 @@ class Panel(pd.DataFrame):
         Returns:
             ``Panel``: Result of tail function.
         """
-        return self[-n * self.shape_panel[1] :]
+        return self[-n * self.shape_[1] :]
 
-    def sort_panel(
+    def sort_(
         self,
         ascending: bool = True,
         inplace: bool = False,
@@ -748,7 +572,7 @@ class Panel(pd.DataFrame):
             key=key,
         )
 
-    def sample_panel(
+    def sample_(
         self,
         samples: int | float = 5,
         how: str = "spaced",
@@ -849,7 +673,7 @@ class Panel(pd.DataFrame):
 
         return new_panel
 
-    def shuffle_panel(self, seed: int = None, reset_ids: bool = False) -> Panel | None:
+    def shuffle_(self, seed: int = None, reset_ids: bool = False) -> Panel | None:
         """
         Shuffle the panel.
 
@@ -891,35 +715,36 @@ class Panel(pd.DataFrame):
         return new_panel
 
     # ! Inconsistent with lookback >= 2 if frames were modified.
-    # def plot(
-    #     self,
-    #     add_annotation: bool = True,
-    #     max: int = 10_000,
-    #     use_timestep: bool = False,
-    #     **kwargs,
-    # ) -> plot.PanelFigure:
-    #     """
-    #     Plot the panel.
+    def plot_(
+        self,
+        add_annotation: bool = True,
+        max: int = 10_000,
+        use_timestep: bool = False,
+        **kwargs,
+    ) -> plot.PanelFigure:
+        """
+        Plot the panel.
 
-    #     Args:
-    #         add_annotation (``bool``): If True, plot the training, validation, and test annotation.
-    #         max (``int``): Maximum number of samples to plot.
-    #         use_timestep (``bool``): If True, plot the timestep instead of the sample index.
-    #         **kwargs: Additional arguments to pass to the plot function.
+        Args:
+            add_annotation (``bool``): If True, plot the training, validation, and test annotation.
+            max (``int``): Maximum number of samples to plot.
+            use_timestep (``bool``): If True, plot the timestep instead of the sample index.
+            **kwargs: Additional arguments to pass to the plot function.
 
-    #     Returns:
-    #         ``plot``: Result of plot function.
-    #     """
+        Returns:
+            ``plot``: Result of plot function.
+        """
 
-    #     panel = self.row_panel(n=0)
+        panel = self.row_(n=0)
+        panel = panel.reset_index(level=0, drop=True)
 
-    #     if max and self.num_frames > max:
-    #         return plot(
-    #             panel.sample_panel(max, how="spaced"),
-    #             use_timestep=use_timestep,
-    #             add_annotation=add_annotation,
-    #             **kwargs,
-    #         )
-    #     return plot(
-    #         panel, use_timestep=use_timestep, add_annotation=add_annotation, **kwargs
-    #     )
+        if max and self.num_frames > max:
+            return plot(
+                panel.sample_(max, how="spaced"),
+                use_timestep=use_timestep,
+                add_annotation=add_annotation,
+                **kwargs,
+            )
+        return plot(
+            panel, use_timestep=use_timestep, add_annotation=add_annotation, **kwargs
+        )
